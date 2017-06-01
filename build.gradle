@@ -1,0 +1,29 @@
+group 'com.javathinker.research'
+version '1-SNAPSHOT'
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '3.5'
+  distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
+}
+
+buildscript {
+    ext.kotlinVersion = '1.1.2-4'
+
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+    }
+}
+
+ext {
+    libraries = [
+            junit: "junit:junit:4.12",
+            kotlin_stdlib: "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion",
+            kotlin_stdlib_common: "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlinVersion",
+            kotlin_stdlib_js: "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlinVersion",
+            kotlin_test: "org.jetbrains.kotlin:kotlin-test:$kotlinVersion",
+    ]
+}

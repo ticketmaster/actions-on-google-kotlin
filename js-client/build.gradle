@@ -1,0 +1,26 @@
+apply plugin: 'kotlin2js'
+
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+dependencies {
+    compile project(':js')
+    compile libraries.kotlin_stdlib_js
+}
+
+build.doLast {
+    configurations.compile.each { File file ->
+        copy {
+            includeEmptyDirs = false
+
+            from zipTree(file.absolutePath)
+            into "${projectDir}/web"
+            include { fileTreeElement ->
+                def path = fileTreeElement.path
+                path.endsWith(".js") && (path.startsWith("META-INF/resources/") || !path.startsWith("META-INF/"))
+            }
+        }
+    }
+}
