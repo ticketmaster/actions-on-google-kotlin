@@ -10,7 +10,7 @@ dependencies {
     compile libraries.kotlin_stdlib_js
 }
 
-build.doLast {
+compileKotlin2Js.doLast {
     configurations.compile.each { File file ->
         copy {
             includeEmptyDirs = false

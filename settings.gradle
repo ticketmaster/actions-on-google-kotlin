@@ -2,6 +2,6 @@ rootProject.name = 'kotlin-multiplatform-recipes'
 
 include ':common'
 include ':jvm'
-include ':jvm-client'
+include ':jvm-app'
 include ':js'
-include ':js-client'
+include ':js-app'
