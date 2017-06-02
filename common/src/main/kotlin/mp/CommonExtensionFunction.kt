@@ -1,7 +1,7 @@
 package mp
 
 /**
- * Extension function for a multi-platform class.
+ * Extension function for a multi-platform interface.
  */
 fun MpCloseable.printThis() = println(this)
 

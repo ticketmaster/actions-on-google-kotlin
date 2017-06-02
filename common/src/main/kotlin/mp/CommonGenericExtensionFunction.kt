@@ -1,7 +1,7 @@
 package mp
 
 /**
- * Generic extension function for a multi-platform class.
+ * Generic extension function for a multi-platform interface.
  */
 // Copied from "kotlin.io.Closeable.kt"
 fun <TCloseable: MpCloseable?, TResult> TCloseable.mpUse(block: (TCloseable) -> TResult): TResult {
