@@ -8,4 +8,6 @@ repositories {
 dependencies {
     implement project(':common')
     compile libraries.kotlin_stdlib
+    testCompile libraries.junit
+    testCompile libraries.kotlin_test
 }

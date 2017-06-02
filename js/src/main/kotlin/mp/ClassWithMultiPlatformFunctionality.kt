@@ -8,4 +8,8 @@ impl class ClassWithMultiPlatformFunctionality {
     fun javascriptFunctionality() {
         println("This is JavaScript-specific functionality")
     }
+
+    override fun toString(): String {
+        return "A JavaScript class implementing common and providing JavaScript-specific functionality"
+    }
 }

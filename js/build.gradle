@@ -8,4 +8,23 @@ repositories {
 dependencies {
     implement project(':common')
     compile libraries.kotlin_stdlib_js
+    testCompile libraries.kotlin_test_js
+    testCompile libraries.qunit
+}
+
+compileTestKotlin2Js.doLast {
+    [ configurations.compile, configurations.testCompile ].each { configuration ->
+        configuration.each { File file ->
+            copy {
+                includeEmptyDirs = false
+
+                from zipTree(file.absolutePath)
+                into "${projectDir}/web"
+                include { fileTreeElement ->
+                    def path = fileTreeElement.path
+                    path.endsWith(".js") && (path.startsWith("META-INF/resources/") || !path.startsWith("META-INF/"))
+                }
+            }
+        }
+    }
 }
