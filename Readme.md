@@ -18,7 +18,7 @@ Not everything is working as it should as multi-platform support is still being 
 
 * (Generic) extension functions on header types is not working in Java yet. An [issue](https://youtrack.jetbrains.com/issue/KT-18257) has been created for it.
 * IntelliJ IDEA support using stable plug-ins is broken. The experience should be better with an [EAP](https://discuss.kotlinlang.org/c/eap) or [development](https://github.com/jetbrains/kotlin#-installing-the-latest-kotlin-plugin) build, and using the associated Gradle plug-in and standard library from the [Kotlin development repository](https://bintray.com/kotlin/kotlin-dev/kotlin):
-    * Lots of errors in the source files.
+    * Lots of errors in the source files of modules depending on a multi-platform module.
     * You have to build and run the examples using the Gradle runner by enabling the following setting: Settings » Build, Execution, Deployment » Gradle » Runner » Delegate IDE build/run actions to gradle), or use the command line. To run the Java app:
   
             ./gradlew :jvm-app:run
