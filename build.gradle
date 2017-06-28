@@ -1,5 +1,7 @@
-group 'com.javathinker.research'
-version '1-SNAPSHOT'
+allprojects {
+    group 'com.javathinker.research'
+    version '1-SNAPSHOT'
+}
 
 task wrapper(type: Wrapper) {
   gradleVersion = '4.0'

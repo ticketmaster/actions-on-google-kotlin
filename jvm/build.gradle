@@ -1,5 +1,7 @@
 apply plugin: 'kotlin-platform-jvm'
 
+archivesBaseName = 'kotlin-multiplatform-recipes-jvm'
+
 repositories {
     jcenter()
     mavenCentral()
@@ -10,4 +12,13 @@ dependencies {
     compile libraries.kotlin_stdlib
     testCompile libraries.junit
     testCompile libraries.kotlin_test
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.kotlin
+}
+
+artifacts {
+    archives sourcesJar
 }

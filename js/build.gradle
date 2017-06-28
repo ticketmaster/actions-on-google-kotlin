@@ -1,5 +1,7 @@
 apply plugin: 'kotlin-platform-js'
 
+archivesBaseName = 'kotlin-multiplatform-recipes-js'
+
 repositories {
     jcenter()
     mavenCentral()
@@ -27,4 +29,13 @@ compileTestKotlin2Js.doLast {
             }
         }
     }
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.kotlin
+}
+
+artifacts {
+    archives sourcesJar
 }
