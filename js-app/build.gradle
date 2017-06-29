@@ -10,17 +10,24 @@ dependencies {
     compile libraries.kotlin_stdlib_js
 }
 
-compileKotlin2Js.doLast {
-    configurations.compile.each { File file ->
-        copy {
-            includeEmptyDirs = false
+task copyCompileLibrariesToBuildDir {
+    inputs.files configurations.compile
+    outputs.files file(temporaryDir)
 
-            from zipTree(file.absolutePath)
-            into "${projectDir}/web"
-            include { fileTreeElement ->
-                def path = fileTreeElement.path
-                path.endsWith(".js") && (path.startsWith("META-INF/resources/") || !path.startsWith("META-INF/"))
+    doLast {
+        configurations.compile.each { File file ->
+            copy {
+                includeEmptyDirs = false
+
+                from zipTree(file.absolutePath)
+                into temporaryDir
+                include { fileTreeElement ->
+                    def path = fileTreeElement.path
+                    path.endsWith(".js") && (path.startsWith("META-INF/resources/") || !path.startsWith("META-INF/"))
+                }
             }
         }
     }
 }
+
+compileKotlin2Js.dependsOn copyCompileLibrariesToBuildDir

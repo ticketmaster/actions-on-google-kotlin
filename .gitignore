@@ -1,4 +1,3 @@
 .idea/
 *.iml
 gradle.properties
-js-app/web/

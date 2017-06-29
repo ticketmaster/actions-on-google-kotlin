@@ -34,7 +34,6 @@ task copyTestCompileLibrariesToQunitReportDir {
             }
         }
     }
-
 }
 
 task copyTestHtmlToQunitReportDir(type: Copy) {
