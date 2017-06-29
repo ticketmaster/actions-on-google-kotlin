@@ -8,9 +8,9 @@ Recipes for unit tests for common and platform-specific code are available. To r
     
 To run the JavaScript tests:
 
-    ./gradlew :js:compileTestKotlin2Js
+    ./gradlew :js:test
     
-and open `js/JsTest.html`.
+and open `js/build/reports/tests/qunit/html/JsTest.html`.
 
 ## Current Issues
 

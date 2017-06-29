@@ -1,3 +1,5 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 apply plugin: 'kotlin-platform-js'
 
 archivesBaseName = 'kotlin-multiplatform-recipes-js'
@@ -11,17 +13,20 @@ dependencies {
     implement project(':common')
     compile libraries.kotlin_stdlib_js
     testCompile libraries.kotlin_test_js
-    testCompile libraries.qunit
 }
 
-compileTestKotlin2Js.doLast {
-    [ configurations.compile, configurations.testCompile ].each { configuration ->
-        configuration.each { File file ->
+task copyTestCompileLibrariesToQunitReportDir {
+    def outputDirectoryPath = "${buildDir}/reports/tests/qunit/lib"
+    inputs.files configurations.testCompile
+    outputs.files file(outputDirectoryPath)
+
+    doLast {
+        configurations.testCompile.each { File file ->
             copy {
                 includeEmptyDirs = false
 
                 from zipTree(file.absolutePath)
-                into "${projectDir}/web"
+                into outputDirectoryPath
                 include { fileTreeElement ->
                     def path = fileTreeElement.path
                     path.endsWith(".js") && (path.startsWith("META-INF/resources/") || !path.startsWith("META-INF/"))
@@ -29,7 +34,17 @@ compileTestKotlin2Js.doLast {
             }
         }
     }
+
 }
+
+task copyTestHtmlToQunitReportDir(type: Copy) {
+    from file('src/test/html')
+    inputs.property("qunitVersion", qunitVersion)
+    into "${buildDir}/reports/tests/qunit/html"
+    filter(ReplaceTokens, tokens: [qunitVersion: qunitVersion])
+}
+
+test.dependsOn copyTestCompileLibrariesToQunitReportDir, copyTestHtmlToQunitReportDir
 
 task sourcesJar(type: Jar) {
     classifier = 'sources'

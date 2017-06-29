@@ -21,6 +21,9 @@ buildscript {
 }
 
 ext {
+    // Use version 1 as "ok" is no longer available in version 2+. This is the latest 1.x version available in
+    // Maven Central.
+    qunitVersion = '1.18.0'
     libraries = [
             junit: "junit:junit:4.12",
             kotlin_stdlib: "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion",
@@ -29,8 +32,5 @@ ext {
             kotlin_test: "org.jetbrains.kotlin:kotlin-test:$kotlinVersion",
             kotlin_test_common: "org.jetbrains.kotlin:kotlin-test-common:$kotlinVersion",
             kotlin_test_js: "org.jetbrains.kotlin:kotlin-test-js:$kotlinVersion",
-            // Use version 1 as "ok" is no longer available in version 2+. This is the latest 1.x version available in
-            // Maven Central.
-            qunit: "org.webjars:qunit:1.18.0",
     ]
 }
