@@ -1,0 +1,77 @@
+#built application files
+*.apk
+*.ap_
+
+# files for the dex VM
+*.dex
+
+# Java class files
+*.class
+
+# generated files
+bin/
+gen/
+
+#cache
+cache/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Windows thumbnail db
+.DS_Store
+.localized
+
+# Eclipse project files
+.classpath
+.project
+
+# Sandbox stuff
+_sandbox
+
+# Android Studio
+.idea
+#.idea/workspace.xml - uncomment this and comment/delete .idea if it better suit your needs
+.gradle
+/*/local.properties
+/*/out
+/*/*/build
+/*/*/production
+/app/cache/*
+*.iml
+*.iws
+*.ipr
+*~
+*.swp
+*.keystore
+# Maven
+target
+gen-external-apklibs
+*/gen-external-apklibs/*
+*/target/*
+*-SNAPSHOT
+
+# SWIG
+*/jni/*Wrapper.c
+*/libs/armeabi/*
+jniwrapper
+
+# gradle
+build
+
+# osx
+.DS_Store
+
+captures/
+
+# tmp files
+*/tmp_global_props.sh
+
+# certs for nginx
+*.crt
+*.crs
+*.key
+
+banjo-local.csr
+
+

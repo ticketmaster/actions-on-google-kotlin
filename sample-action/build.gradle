@@ -1,0 +1,43 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.google.cloud.tools:appengine-gradle-plugin:+'
+        // latest App Engine Gradle tasks
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$project.ext.kotlinVersion"
+    }
+}
+repositories {
+    mavenCentral()
+}
+
+apply plugin: 'idea'
+apply plugin: 'kotlin'
+apply plugin: 'java'
+apply plugin: 'war'
+apply plugin: 'com.google.cloud.tools.appengine'
+
+dependencies {
+    compile('javax.servlet:javax.servlet-api:3.1.0',
+            'com.google.appengine:appengine:+',
+            'com.google.code.gson:gson:2.8.0',
+            "org.jetbrains.kotlin:kotlin-stdlib-jre8:$project.ext.kotlinVersion")
+    compile project(':sdk')
+}
+
+
+appengine {  // App Engine tasks configuration
+    run {      // local (dev_appserver) configuration (standard environments only)
+        port = 8080                 // default
+    }
+
+    deploy {   // deploy configuration
+        stopPreviousVersion = true  // default - stop the current version
+        promote = true              // default - & make this the current version
+    }
+}
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
+
