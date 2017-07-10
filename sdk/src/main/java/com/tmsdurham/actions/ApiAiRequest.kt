@@ -85,7 +85,8 @@ data class Contexts<out T>(
 
 data class OriginalRequest(
         var source: String? = null,
-        var data: OriginalRequestData? = null)
+        var data: OriginalRequestData? = null,
+        val version: String? = null)
 
 data class OriginalRequestData(
         var user: User? = null,
@@ -97,16 +98,21 @@ data class OriginalRequestData(
 
 data class Device(val location: DeviceLocation? = null)
 
-data class DeviceLocation(val coordinates: Coordinates? = null)
+data class DeviceLocation(var coordinates: Coordinates? = null, var formattedAddress: String? = null,
+                          var zipCode: String? = null, var city: String? = null)
 
 data class Coordinates(val latitude: Double? = null, val longitude: Double? = null)
+
 
 data class Sender(val id: String? = null)
 
 data class User(
         var userId: String = "",
         var accessToken: String? = null,
-        var locale: String? = null)
+        var locale: String? = null,
+        var profile: Profile? = null)
+
+data class Profile(var displayName: String? = null, var givenName: String? = null, var familyName: String? = null)
 
 data class Surface(
         val capabilities: List<Capabilities>? = null)
