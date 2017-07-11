@@ -26,8 +26,9 @@ junitPlatform {
 dependencies {
     compile("org.jetbrains.kotlin:kotlin-stdlib-jre8:$project.ext.kotlinVersion")
 
-
-    testCompile 'org.jetbrains.spek:spek-api:1.1.2'
+    testCompile('org.jetbrains.spek:spek-api:1.1.2',
+            "com.winterbe:expekt:0.5.0",
+            'com.nhaarman:mockito-kotlin:1.5.0')
     testRuntime 'org.jetbrains.spek:spek-junit-platform-engine:1.1.2'
 
     testCompile "com.google.code.gson:gson:$project.ext.gsonVersion"

@@ -3,6 +3,12 @@ package com.ticketmaster.apiai
 import com.ticketmaster.apiai.google.GoogleData
 import com.tmsdurham.actions.AlexaData
 
+fun <T>apiAiRequest(init: ApiAiRequest<T>.() -> Unit): ApiAiRequest<T> {
+    val request = ApiAiRequest<T>()
+    request.init()
+    return request
+}
+
 data class ApiAiRequest<T>(
         var id: String? = null,
         val timestamp: String? = null,
@@ -13,7 +19,12 @@ data class ApiAiRequest<T>(
         val sessionId: String? = null,
         var originalRequest: OriginalRequest? = null) {
 
-    fun result(f: Result<T>.() -> Unit): Result<T>.() -> Unit = f
+    fun result(f: Result<T>.() -> Unit) = result.f()
+
+    fun originalRequest(init: OriginalRequest.() -> Unit) {
+        originalRequest = OriginalRequest()
+        originalRequest!!.init()
+    }
 
     companion object {
         val GOOGLE_SOURCE = "google"
@@ -86,9 +97,10 @@ data class Contexts<out T>(
 data class OriginalRequest(
         var source: String? = null,
         var data: OriginalRequestData? = null,
-        val version: String? = null)
+        var version: String? = null)
 
 data class OriginalRequestData(
+        var conversation: Conversation? = null,
         var user: User? = null,
         val device: Device? = null,
         var surface: Surface? = null,
@@ -96,6 +108,7 @@ data class OriginalRequestData(
         var inputs: List<Inputs>? = null,
         var isInSandbox: Boolean? = null)
 
+data class Conversation(val type: String)
 data class Device(val location: DeviceLocation? = null)
 
 data class DeviceLocation(var coordinates: Coordinates? = null, var formattedAddress: String? = null,

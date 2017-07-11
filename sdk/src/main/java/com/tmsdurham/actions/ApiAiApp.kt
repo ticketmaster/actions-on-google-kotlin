@@ -9,8 +9,7 @@ import com.tmsdurham.actions.gui.Data
 import com.tmsdurham.actions.gui.SimpleResponse
 
 
-class ApiAiApp<T>(request: RequestWrapper<ApiAiRequest<T>>, response: ResponseWrapper<ApiAiResponse>)
-    : AssistantApp<ApiAiRequest<T>, ApiAiResponse>(request, response) {
+class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse> {
 
     // Constants
     val RESPONSE_CODE_OK = 200
@@ -31,6 +30,23 @@ class ApiAiApp<T>(request: RequestWrapper<ApiAiRequest<T>>, response: ResponseWr
     val PLATFORM = "platform"
 
     var data: T? = null
+
+    constructor(request: RequestWrapper<ApiAiRequest<T>>, response: ResponseWrapper<ApiAiResponse>, sessionStarted: (() -> Unit)? = null) :
+            super(request, response, sessionStarted) {
+        debug("ApiAiApp constructor")
+        
+        // If request contains originalRequest, convert to Proto3.
+        if (request.body.originalRequest != null && !isNotApiVersionOne()) {
+            //TODO("convert to Proto3")
+        }
+
+        debug("new == ${CONVERSATION_STAGES.NEW}")
+        debug("type == ${request.body.originalRequest?.data?.conversation?.type}")
+        if ((request.body.originalRequest?.data?.conversation?.type ==
+                CONVERSATION_STAGES.NEW) && sessionStarted != null) {
+            sessionStarted()
+        }
+    }
 
     fun ask(response: SimpleResponse.() -> Unit): Unit {
 
@@ -66,8 +82,8 @@ class ApiAiApp<T>(request: RequestWrapper<ApiAiRequest<T>>, response: ResponseWr
 
     // INTERNAL FUNCTIONS
     override fun fulfillPermissionRequest(permissionSpec: GoogleData.PermissionsRequest): Unit {
-        response.body?.data?.google?.systemIntent = GoogleData.SystemIntent(intent = StandardIntents.PERMISSION.value)
-        response.body?.data?.google?.systemIntent?.data?.`@type` = InputValueDataTypes.PERMISSION.value
+        response.body?.data?.google?.systemIntent = GoogleData.SystemIntent(intent = STANDARD_INTENTS.PERMISSION)
+        response.body?.data?.google?.systemIntent?.data?.`@type` = INPUT_VALUE_DATA_TYPES.PERMISSION
         response.body?.data?.google?.systemIntent?.data?.permissions = permissionSpec.permissions
     }
 

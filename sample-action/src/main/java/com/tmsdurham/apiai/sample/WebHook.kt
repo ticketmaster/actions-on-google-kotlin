@@ -87,7 +87,7 @@ class WebHook : HttpServlet() {
         val t = TypeToken.get(Parameters::class.java).type
         val type = TypeToken.getParameterized(ApiAiRequest::class.java, t)
         val request = gson.fromJson<ApiAiRequest<Parameters>>(InputStreamReader(req.inputStream), type.type)
-        val action = ApiAiApp(RequestWrapper(request), ResponseWrapper())
+        val action = ApiAiApp(RequestWrapper(body = request), ResponseWrapper())
         logger.warning(gson.toJson(request))
 
         val response = action.handleRequest(actionMap)

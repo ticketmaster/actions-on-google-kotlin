@@ -18,67 +18,67 @@ val HTTP_CONTENT_TYPE_HEADER = "Content-Type"
 val HTTP_CONTENT_TYPE_JSON = "application/json"
 
 
-enum class StandardIntents(val value: String) {
+class StandardIntents(val isNotVersionOne: Boolean) {
     /** App fires MAIN intent for queries like [talk to $app]. */
-    MAIN("actions.intent.MAIN"),
+    val MAIN = if (isNotVersionOne) "actions.intent.MAIN" else "assistant.intent.action.MAIN"
     /** App fires TEXT intent when action issues ask intent. */
-    TEXT("actions.intent.TEXT"),
+    val TEXT = if (isNotVersionOne) "actions.intent.TEXT" else "assistant.intent.action.TEXT"
     /** App fires PERMISSION intent when action invokes askForPermission. */
-    PERMISSION("actions.intent.PERMISSION"),
+    val PERMISSION = if (isNotVersionOne) "actions.intent.PERMISSION" else "assistant.intent.action.PERMISSION"
     /** App fires OPTION intent when user chooses from options provided. */
-    OPTION("actions.intent.OPTION"),
+    val OPTION = if (isNotVersionOne) "actions.intent.OPTION" else "assistant.intent.action.PERMISSION"
     /** App fires TRANSACTION_REQUIREMENTS_CHECK intent when action sets up transaction. */
-    TRANSACTION_REQUIREMENTS_CHECK("actions.intent.TRANSACTION_REQUIREMENTS_CHECK"),
+    val TRANSACTION_REQUIREMENTS_CHECK = "actions.intent.TRANSACTION_REQUIREMENTS_CHECK"
     /** App fires DELIVERY_ADDRESS intent when action asks for delivery address. */
-    DELIVERY_ADDRESS("actions.intent.DELIVERY_ADDRESS"),
+    val DELIVERY_ADDRESS = "actions.intent.DELIVERY_ADDRESS"
     /** App fires TRANSACTION_DECISION intent when action asks for transaction decision. */
-    TRANSACTION_DECISION("actions.intent.TRANSACTION_DECISION"),
+    val TRANSACTION_DECISION = "actions.intent.TRANSACTION_DECISION"
     /** App fires CONFIRMATION intent when requesting affirmation from user. */
-    CONFIRMATION("actions.intent.CONFIRMATION"),
+    val CONFIRMATION = "actions.intent.CONFIRMATION"
     /** App fires DATETIME intent when requesting date/time from user. */
-    DATETIME("actions.intent.DATETIME"),
+    val DATETIME = "actions.intent.DATETIME"
     /** App fires SIGN_IN intent when requesting sign-in from user. */
-    SIGN_IN("actions.intent.SIGN_IN")
+    val SIGN_IN = "actions.intent.SIGN_IN"
 }
 
-enum class SupportedIntent(val value: String) {
+class SupportedIntent {
     /**
      * The user"s name as defined in the
      * {@link https://developers.google.com/actions/reference/conversation#UserProfile|UserProfile object}
      */
-    NAME("NAME"),
+    val NAME = "NAME"
     /**
      * The location of the user"s current device, as defined in the
      * {@link https://developers.google.com/actions/reference/conversation#Location|Location object}.
      */
-    DEVICE_PRECISE_LOCATION("DEVICE_PRECISE_LOCATION"),
+    val DEVICE_PRECISE_LOCATION = "DEVICE_PRECISE_LOCATION"
     /**
      * City and zipcode corresponding to the location of the user"s current device, as defined in the
      * {@link https://developers.google.com/actions/reference/conversation#Location|Location object}.
      */
-    DEVICE_COARSE_LOCATION("DEVICE_COARSE_LOCATION")
+    val DEVICE_COARSE_LOCATION = "DEVICE_COARSE_LOCATION"
 }
 
 /**
  * List of built-in argument names.
  */
-enum class BuiltInArgNames(value: String) {
+class BuiltInArgNames(isNotVersionOne: Boolean) {
     /** Permission granted argument. */
-    PERMISSION_GRANTED("PERMISSION"),
+    val PERMISSION_GRANTED = if (isNotVersionOne) "PERMISSION" else "permission_granted"
     /** Option selected argument. */
-    OPTION("OPTION"),
+    val OPTION = "OPTION"
     /** Transaction requirements check result argument. */
-    TRANSACTION_REQ_CHECK_RESULT("TRANSACTION_REQUIREMENTS_CHECK_RESULT"),
+    val TRANSACTION_REQ_CHECK_RESULT = "TRANSACTION_REQUIREMENTS_CHECK_RESULT"
     /** Delivery address value argument. */
-    DELIVERY_ADDRESS_VALUE("DELIVERY_ADDRESS_VALUE"),
+    val DELIVERY_ADDRESS_VALUE = "DELIVERY_ADDRESS_VALUE"
     /** Transactions decision argument. */
-    TRANSACTION_DECISION_VALUE("TRANSACTION_DECISION_VALUE"),
+    val TRANSACTION_DECISION_VALUE = "TRANSACTION_DECISION_VALUE"
     /** Confirmation argument. */
-    CONFIRMATION("CONFIRMATION"),
+    val CONFIRMATION = "CONFIRMATION"
     /** DateTime argument. */
-    DATETIME("DATETIME"),
+    val DATETIME = "DATETIME"
     /** Sign in status argument. */
-    SIGN_IN("SIGN_IN")
+    val SIGN_IN = "SIGN_IN"
 }
 
 const val ANY_TYPE_PROPERTY = "@type"
@@ -86,67 +86,95 @@ const val ANY_TYPE_PROPERTY = "@type"
 /**
  * List of built-in value type names.
  */
-enum class InputValueDataTypes(val value: String) {
+class InputValueDataTypes {
     /** Permission Value Spec. */
-    PERMISSION("type.googleapis.com/google.actions.v2.PermissionValueSpec"),
+    val PERMISSION = "type.googleapis.com/google.actions.v2.PermissionValueSpec"
     /** Option Value Spec. */
-    OPTION("type.googleapis.com/google.actions.v2.OptionValueSpec"),
+    val OPTION = "type.googleapis.com/google.actions.v2.OptionValueSpec"
     /** Transaction Requirements Check Value Spec. */
-    TRANSACTION_REQ_CHECK("type.googleapis.com/google.actions.v2.TransactionRequirementsCheckSpec"),
+    val TRANSACTION_REQ_CHECK = "type.googleapis.com/google.actions.v2.TransactionRequirementsCheckSpec"
     /** Delivery Address Value Spec. */
-    DELIVERY_ADDRESS("type.googleapis.com/google.actions.v2.DeliveryAddressValueSpec"),
+    val DELIVERY_ADDRESS = "type.googleapis.com/google.actions.v2.DeliveryAddressValueSpec"
     /** Transaction Decision Value Spec. */
-    TRANSACTION_DECISION("type.googleapis.com/google.actions.v2.TransactionDecisionValueSpec"),
+    val TRANSACTION_DECISION = "type.googleapis.com/google.actions.v2.TransactionDecisionValueSpec"
     /** Confirmation Value Spec. */
-    CONFIRMATION("type.googleapis.com/google.actions.v2.ConfirmationValueSpec"),
+    val CONFIRMATION = "type.googleapis.com/google.actions.v2.ConfirmationValueSpec"
     /** DateTime Value Spec. */
-    DATETIME("type.googleapis.com/google.actions.v2.DateTimeValueSpec")
+    val DATETIME = "type.googleapis.com/google.actions.v2.DateTimeValueSpec"
+}
+
+/**
+ * List of possible conversation stages, as defined in the
+ * {@link https://developers.google.com/actions/reference/conversation#Conversation|Conversation object}.
+ * @actionssdk
+ * @apiai
+ */
+class ConversationStages(val isNotVersionOne: Boolean) {
+    /**
+     * Unspecified conversation state.
+     */
+    val UNSPECIFIED = if (isNotVersionOne) "UNSPECIFIED" else "0"
+    /**
+     * A new conversation.
+     */
+    val NEW = if (isNotVersionOne) "NEW" else "1"
+    /**
+     * An active (ongoing) conversation.
+     */
+    val ACTIVE = if (isNotVersionOne) "ACTIVE" else "2"
 }
 
 /**
  * List of supported permissions the app supports.
  */
-enum class SupportedPermissions(value: String) {
+class SupportedPermissions {
     /**
      * The user"s name as defined in the
      * {@link https://developers.google.com/actions/reference/conversation#UserProfile|UserProfile object}
      */
-    NAME("NAME"),
+    val NAME = "NAME"
     /**
      * The location of the user"s current device, as defined in the
      * {@link https://developers.google.com/actions/reference/conversation#Location|Location object}.
      */
-    DEVICE_PRECISE_LOCATION("DEVICE_PRECISE_LOCATION"),
+    val DEVICE_PRECISE_LOCATION = "DEVICE_PRECISE_LOCATION"
     /**
      * City and zipcode corresponding to the location of the user"s current device, as defined in the
      * {@link https://developers.google.com/actions/reference/conversation#Location|Location object}.
      */
-    DEVICE_COARSE_LOCATION("DEVICE_COARSE_LOCATION")
+    val DEVICE_COARSE_LOCATION = "DEVICE_COARSE_LOCATION"
 }
 
-enum class SignInStatus(value: String) {
+class SignInStatus {
     // Unknown status.
-    UNSPECIFIED("SIGN_IN_STATUS_UNSPECIFIED"),
+    val UNSPECIFIED = "SIGN_IN_STATUS_UNSPECIFIED"
     // User successfully completed the account linking.
-    OK("OK"),
+    val OK = "OK"
     // Cancelled or dismissed account linking.
-    CANCELLED("CANCELLED"),
+    val CANCELLED = "CANCELLED"
     // System or network error.
-    ERROR("ERROR")
+    val ERROR = "ERROR"
 }
 
 
-abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val response: ResponseWrapper<S>) {
-    var actionsApiVersion: String = ""
+open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val response: ResponseWrapper<S>, val sessionStarted: (() -> Unit)? = null) {
+    var actionsApiVersion: String = "1"
     val logger = Logger.getAnonymousLogger()
+    lateinit var STANDARD_INTENTS: StandardIntents
+    val SUPPORTED_INTENT = SupportedIntent()
+    lateinit var BUILT_IN_ARG_NAMES: BuiltInArgNames
+    val INPUT_VALUE_DATA_TYPES = InputValueDataTypes()
+    lateinit var CONVERSATION_STAGES: ConversationStages
+    val SUPPORTED_PERMISSIONS = SupportedPermissions()
+    val SIGN_IN_STATUS = SignInStatus()
 
     init {
         debug("AssistantApp constructor");
 
         if (request == null) {
-            this.handleError("Request can NOT be empty.")
+            handleError("Request can NOT be empty.")
         } else if (response == null) {
-            this.handleError("Response can NOT be empty.")
+            handleError("Response can NOT be empty.")
         } else {
             if (request.headers[ACTIONS_CONVERSATION_API_VERSION_HEADER] != null) {
                 actionsApiVersion = request.headers[ACTIONS_CONVERSATION_API_VERSION_HEADER]!!
@@ -154,30 +182,34 @@ abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val response: 
             }
             if (request.body is ApiAiRequest<*>) {
                 if (request.body.originalRequest != null) {
-                    this.actionsApiVersion = request.body.originalRequest?.version ?: "missing version"
+                    actionsApiVersion = request.body.originalRequest?.version ?: "1"
                     debug("Actions API version from APIAI: " + this.actionsApiVersion);
                 }
             }
         }
+        STANDARD_INTENTS = StandardIntents(isNotApiVersionOne())
+        BUILT_IN_ARG_NAMES = BuiltInArgNames(isNotApiVersionOne())
+        CONVERSATION_STAGES = ConversationStages(isNotApiVersionOne())
     }
 
-    fun handleRequest(handler: Any) {
+    fun handleRequest(handler: Handler<T, S>) {
         debug("handleRequest: handler=${handler::javaClass.get().name}")
-        if (handler is Map<*, *>) {
-            invokeIntentHandler(handler as Map<*, Handler<T, S>>, getIntent())
-        } else {
-            (handler as Handler<T, S>)(this)
-        }
+        handler(this)
     }
 
-    fun askForPermissions(context: String, permissions: List<SupportedIntent>): Any? {
+    fun handleRequest(handler: Map<*, *>) {
+        debug("handleRequest: handler=${handler::javaClass.get().name}")
+        invokeIntentHandler(handler as Map<*, Handler<T, S>>, getIntent())
+    }
+
+    fun askForPermissions(context: String, permissions: MutableList<String>): Any? {
         if (context.isEmpty()) {
             handleError("Assistant context can NOT be empty.");
             return null
         }
         return fulfillPermissionRequest(GoogleData.PermissionsRequest(
                 optContext = context,
-                permissions = permissions.map { it.value }.toMutableList()
+                permissions = permissions
 
         ))
     }
@@ -191,7 +223,7 @@ abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val response: 
     // ---------------------------------------------------------------------------
 
     private var lastErrorMessage: String? = null
-    val dummyHandler = ApiAiApp<T>(request = RequestWrapper(body = ApiAiRequest()), response = ResponseWrapper())
+//    val dummyHandler = ApiAiApp<T>(request = RequestWrapper(body = ApiAiRequest()), response = ResponseWrapper())
     /**
      * Utility function to invoke an intent handler.
      *
