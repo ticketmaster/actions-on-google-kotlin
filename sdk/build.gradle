@@ -10,44 +10,25 @@ buildscript {
     }
 }
 
+apply plugin: 'org.junit.platform.gradle.plugin'
 apply plugin: 'idea'
 apply plugin: 'kotlin'
 apply plugin: 'java'
-apply plugin: 'org.junit.platform.gradle.plugin'
 
 junitPlatform {
-    platformVersion '1.0.0-M2'
     filters {
         engines {
-            include 'spek', 'junit-jupiter', 'junit-vintage'
+            include 'spek'//, 'junit-jupiter', 'junit-vintage'
         }
     }
 }
 
-sourceSets {
-    test {
-        resources.srcDirs = ['src', 'src/test/java']
-    }
-}
 dependencies {
-    compile("org.jetbrains.kotlin:kotlin-stdlib-jre7:$project.ext.kotlinVersion")
+    compile("org.jetbrains.kotlin:kotlin-stdlib-jre8:$project.ext.kotlinVersion")
 
-//    testCompile 'junit:junit:4.12'
-//    testCompile 'org.jetbrains.spek:spek-api:1.1.2'
-//    testRuntime 'org.jetbrains.spek:spek-junit-platform-engine:1.1.2'
-//    testRuntime "org.junit.platform:junit-platform-console:1.0.0-M5"
-//    testCompile 'org.junit.platform:junit-platform-runner:1.0.0-M5'
-//    testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.0-M5'
-//    testCompile("org.junit.platform:junit-platform-launcher:1.0.0-M5")
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.assertj:assertj-core:3.5.2'
-    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
-    testCompile 'org.junit.platform:junit-platform-runner:1.0.0-M2'
-    testCompile "org.junit.jupiter:junit-jupiter-api:5.0.0-M2"
 
-    testRuntime "org.jetbrains.spek:spek-junit-platform-engine:1.0.89"
-    testRuntime "org.junit.vintage:junit-vintage-engine:4.12.0-M2"
-    testRuntime "org.junit.jupiter:junit-jupiter-engine:5.0.0-M2"
+    testCompile 'org.jetbrains.spek:spek-api:1.1.2'
+    testRuntime 'org.jetbrains.spek:spek-junit-platform-engine:1.1.2'
 
     testCompile "com.google.code.gson:gson:$project.ext.gsonVersion"
 }
