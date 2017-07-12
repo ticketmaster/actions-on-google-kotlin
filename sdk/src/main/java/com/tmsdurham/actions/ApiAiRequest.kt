@@ -1,7 +1,6 @@
 package com.ticketmaster.apiai
 
 import com.ticketmaster.apiai.google.GoogleData
-import com.tmsdurham.actions.AlexaData
 
 fun <T>apiAiRequest(init: ApiAiRequest<T>.() -> Unit): ApiAiRequest<T> {
     val request = ApiAiRequest<T>()
@@ -25,13 +24,8 @@ data class ApiAiRequest<T>(
         originalRequest = OriginalRequest()
         originalRequest!!.init()
     }
-
-    companion object {
-        val GOOGLE_SOURCE = "google"
-        val FACEBOOK_SOURCE = "facebook"
-        val ALEXA = "alexa"
-    }
 }
+
 fun <T> request(f: ApiAiRequest<T>.() -> Unit): ApiAiRequest<T>.() -> Unit = f
 
 data class Metadata(
@@ -52,10 +46,8 @@ data class Fulfillment(
         val data: Data? = null)
 
 data class Data(
-        var google: GoogleData? = null,
-        var alexa: AlexaData? = null) {
+        var google: GoogleData? = null) {
     fun google(f: GoogleData.() -> Unit): GoogleData.() -> Unit = f
-    fun alexa(f: AlexaData.() -> Unit): AlexaData.() -> Unit = f
 
     companion object {
         val empty = Data()
