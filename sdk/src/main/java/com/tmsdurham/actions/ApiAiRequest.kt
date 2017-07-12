@@ -189,3 +189,5 @@ data class Inputs(
         val intent: String? = null,
         val rawInputs: List<Raw_inputs>? = null)
 
+data class DialogState<out T>(val state: String = "", val data:T? = null)
+

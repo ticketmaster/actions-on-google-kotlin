@@ -1,10 +1,11 @@
 package com.tmsdurham.actions
 
 import com.ticketmaster.apiai.ApiAiRequest
+import com.ticketmaster.apiai.ContextOut
 import com.ticketmaster.apiai.google.GoogleData
 import java.util.logging.Logger
 
-typealias Handler<reified T, reified S> = (AssistantApp<T, S>) -> Unit
+typealias Handler<T, S, U> = (AssistantApp<T, S, U>) -> Unit
 
 // Constants
 val ERROR_MESSAGE = "Sorry, I am unable to process your request."
@@ -157,7 +158,7 @@ class SignInStatus {
 }
 
 
-open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val response: ResponseWrapper<S>, val sessionStarted: (() -> Unit)? = null) {
+open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val response: ResponseWrapper<S>, val sessionStarted: (() -> Unit)? = null) {
     var actionsApiVersion: String = "1"
     val logger = Logger.getAnonymousLogger()
     lateinit var STANDARD_INTENTS: StandardIntents
@@ -167,6 +168,11 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     lateinit var CONVERSATION_STAGES: ConversationStages
     val SUPPORTED_PERMISSIONS = SupportedPermissions()
     val SIGN_IN_STATUS = SignInStatus()
+
+    var responded = false
+    var apiVersion: String = ""
+    var state: String = ""
+    var contexts = listOf<ContextOut<U>>()
 
     init {
         debug("AssistantApp constructor");
@@ -190,21 +196,34 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         STANDARD_INTENTS = StandardIntents(isNotApiVersionOne())
         BUILT_IN_ARG_NAMES = BuiltInArgNames(isNotApiVersionOne())
         CONVERSATION_STAGES = ConversationStages(isNotApiVersionOne())
+
+        /**
+         * API version describes version of the Assistant request.
+         * @deprecated
+         * @private
+         * @type {string}
+         */
+        // Populates API version.
+        if (request.get(CONVERSATION_API_VERSION_HEADER) != null) {
+            apiVersion = request.get(CONVERSATION_API_VERSION_HEADER) ?: ""
+            debug("Assistant API version: " + apiVersion)
+        }
+
     }
 
-    fun handleRequest(handler: Handler<T, S>) {
+    fun handleRequest(handler: Handler<T, S, U>) {
         debug("handleRequest: handler=${handler::javaClass.get().name}")
         handler(this)
     }
 
     fun handleRequest(handler: Map<*, *>) {
         debug("handleRequest: handler=${handler::javaClass.get().name}")
-        invokeIntentHandler(handler as Map<*, Handler<T, S>>, getIntent())
+        invokeIntentHandler(handler as Map<*, Handler<T, S, U>>, getIntent())
     }
 
     fun askForPermissions(context: String, permissions: MutableList<String>): Any? {
         if (context.isEmpty()) {
-            handleError("Assistant context can NOT be empty.");
+            handleError("Assistant context can NOT be empty.")
             return null
         }
         return fulfillPermissionRequest(GoogleData.PermissionsRequest(
@@ -214,9 +233,42 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         ))
     }
 
+    fun doResponse(response: ResponseWrapper<S>, responseCode: Int = 0): ResponseWrapper<S>? {
+        debug("doResponse_: responseWrapper=$response., responseCode=$responseCode")
+        if (responded) {
+            return null
+        }
+        if (response == null || response.body == null) {
+            this.handleError("Response can NOT be empty.")
+            return null
+        } else {
+            var code = RESPONSE_CODE_OK;
+            if (responseCode != 0) {
+                code = responseCode;
+            }
+            if (this.apiVersion !== null) {
+                this.response.append(CONVERSATION_API_VERSION_HEADER, apiVersion);
+            }
+            response.append(HTTP_CONTENT_TYPE_HEADER, HTTP_CONTENT_TYPE_JSON);
+            // If request was in Proto2 format, convert response to Proto2
+            if (!this.isNotApiVersionOne()) {
+                //TODO migrate data
+//                if (response.data) {
+//                    response.data = transformToSnakeCase(response.data);
+//                } else {
+//                    response = transformToSnakeCase(response);
+//                }
+            }
+            debug("Response $response")
+            val httpResponse = response.status(code).send(response.body!!)
+            this.responded = true
+            return httpResponse
+        }
+    }
     internal abstract fun fulfillPermissionRequest(permissionSpec: GoogleData.PermissionsRequest): Any
 
     abstract fun getIntent(): String
+    abstract fun tell(string: String): ResponseWrapper<S>?
 
     // ---------------------------------------------------------------------------
     //                   Private Helpers
@@ -232,7 +284,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @return {boolean} true if the handler was invoked.
      * @private
      */
-    private fun invokeIntentHandler(handler: Map<*, Handler<T, S>>, intent: String): Boolean {
+    private fun invokeIntentHandler(handler: Map<*, Handler<T, S, U>>, intent: String): Boolean {
         debug("invokeIntentHandler_: handler=${handler::class.java.name}, intent=$intent");
         lastErrorMessage = null
 
@@ -249,6 +301,23 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         }
     }
 
+    /**
+     * Utility function to detect SSML markup.
+     *
+     * @param {string} text The text to be checked.
+     * @return {boolean} true if text is SSML markup.
+     * @private
+     */
+    fun isSsml(text: String): Boolean {
+        debug("isSsml_: text=$text")
+        if (text.isEmpty()) {
+            this.handleError("text can NOT be empty.")
+            return false
+        }
+        return ResponseBuilder.isSsml(text)
+    }
+    
+    
     /**
      * Utility function to detect incoming request format.
      *
@@ -267,6 +336,30 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     //                   Response Builders
     // ---------------------------------------------------------------------------
 
+    /**
+     * Helper to build prompts from SSML"s.
+     *
+     * @param {Array<string>} ssmls Array of ssml.
+     * @return {Array<Object>} Array of SpeechResponse objects.
+     * @private
+     */
+    fun buildPromptsFromSsmlHelper(ssmls: List<String>): MutableList<GoogleData.NoInputPrompts> {
+        debug("buildPromptsFromSsmlHelper_: ssmls=$ssmls")
+        return ssmls.map { GoogleData.NoInputPrompts(ssml = it) }.toMutableList()
+    }
+
+    /**
+     * Helper to build prompts from plain texts.
+     *
+     * @param {Array<string>} plainTexts Array of plain text to speech.
+     * @return {Array<Object>} Array of SpeechResponse objects.
+     * @private
+     */
+    fun buildPromptsFromPlainTextHelper(plainTexts: List<String>): MutableList<GoogleData.NoInputPrompts> {
+        debug("buildPromptsFromPlainTextHelper_: plainTexts=%$plainTexts")
+        return plainTexts.map { GoogleData.NoInputPrompts(textToSpeech = it) }.toMutableList()
+    }
+    
     fun handleError(text: String?) {
 
     }

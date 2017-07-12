@@ -2,6 +2,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.ticketmaster.apiai.ApiAiRequest
 import com.ticketmaster.apiai.ApiAiResponse
 import com.ticketmaster.apiai.apiAiRequest
@@ -10,6 +11,7 @@ import com.winterbe.expekt.expect
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import com.tmsdurham.actions.Handler
 
 val gson = Gson()
 
@@ -23,13 +25,13 @@ object ActionsTest : Spek({
      * Describes the behavior for Assistant isNotApiVersionOne_ method.
      */
     describe("ApiAiApp#isNotApiVersionOne") {
-        it("Should detect Proto2 when header isn't present") {
+        it("Should detect Proto2 when header is not present") {
             val headers = mapOf(
                     "Content-Type" to "application/json",
                     "google-assistant-api-version" to "v1"
             )
             val mockRequest = RequestWrapper(headers, ApiAiRequest<MockParameters>())
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
+            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
 
             val app = ApiAiApp(mockRequest, mockResponse)
 
@@ -43,7 +45,7 @@ object ActionsTest : Spek({
                     "Google-Actions-API-Version" to "1"
             )
             val mockRequest = RequestWrapper(headers, ApiAiRequest<MockParameters>())
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
+            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
 
             val app = ApiAiApp(request = mockRequest, response = mockResponse);
 
@@ -63,7 +65,7 @@ object ActionsTest : Spek({
                 }
             })
 
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
+            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
 
             val app = ApiAiApp(request = mockRequest, response = mockResponse)
             app.debug(mockRequest.toString())
@@ -77,7 +79,7 @@ object ActionsTest : Spek({
                     "Google-Actions-API-Version" to "2"
             )
             val mockRequest = RequestWrapper<ApiAiRequest<MockParameters>>(headers, ApiAiRequest())
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
+            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
 
             val app = ApiAiApp(request = mockRequest, response = mockResponse)
 
@@ -94,7 +96,7 @@ object ActionsTest : Spek({
                     version = "2"
                 }
             })
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
+            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
 
             val app = ApiAiApp(request = mockRequest, response = mockResponse)
 
@@ -162,10 +164,9 @@ object ActionsTest : Spek({
 
 
             val mockRequest = RequestWrapper(headers, body)
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
+            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
 
-            val sessionStartedSpy = mock<(() -> Unit)> {
-            }
+            val sessionStartedSpy = mock<(() -> Unit)> {}
 
             val app = ApiAiApp(
                     request = mockRequest,
@@ -178,5 +179,164 @@ object ActionsTest : Spek({
 
             verify(sessionStartedSpy).invoke()
         }
+    }
+
+    // Does not call sessionStarted when not new sessoin
+    it("Does not call sessionStarted when not new session") {
+        val headers = mapOf(
+                "Content-Type" to "application/json",
+                "google-assistant-api-version" to "v1"
+        )
+
+        val t = TypeToken.get(MockParameters::class.java).type
+        val type = TypeToken.getParameterized(ApiAiRequest::class.java, t)
+        val body = gson.fromJson<ApiAiRequest<MockParameters>>(
+                """{
+            "id": "ce7295cc-b042-42d8-8d72-14b83597ac1e",
+            "timestamp": "2016-10-28T03:05:34.288Z",
+            "result": {
+            "source": "agent",
+            "resolvedQuery": "start guess a number game",
+            "speech": "",
+            "action": "generate_answer",
+            "actionIncomplete": false,
+            "parameters": {
+
+        },
+            "contexts": [
+            {
+                "name": "game",
+                "lifespan": 5
+            }
+            ],
+            "metadata": {
+            "intentId": "56da4637-0419-46b2-b851-d7bf726b1b1b",
+            "webhookUsed": "true",
+            "intentName": "start_game"
+        },
+            "fulfillment": {
+            "speech": ""
+        },
+            "score": 1
+        },
+            "status": {
+            "code": 200,
+            "errorType": "success"
+        },
+            "sessionId": "e420f007-501d-4bc8-b551-5d97772bc50c",
+            "originalRequest": {
+            "data": {
+            "conversation": {
+            "type": 2
+        }
+        }
+        }
+        }""", type.type)
+        val mockRequest = RequestWrapper <ApiAiRequest <MockParameters>>(headers, body)
+        val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+
+        val sessionStartedSpy = mock<(() -> Unit)> {}
+
+        val app = ApiAiApp(
+                request = mockRequest,
+                response = mockResponse,
+                sessionStarted = sessionStartedSpy
+        )
+
+        app.handleRequest(handler = {})
+
+        verifyZeroInteractions(sessionStartedSpy)
+    }
+
+
+    //TODO 2 tests
+
+    /**
+     * Describes the behavior for ApiAiApp tell method.
+     */
+    describe("ApiAiApp#tell") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return the valid JSON in the response object for the success case.", {
+            val headers = mapOf(
+                    "Content-Type" to "application/json",
+                    "google-assistant-api-version" to "v1"
+            )
+
+            val t = TypeToken.get(MockParameters::class.java).type
+            val type = TypeToken.getParameterized(ApiAiRequest::class.java, t)
+            val body = gson.fromJson<ApiAiRequest<MockParameters>>(
+                    """{
+                "id": "ce7295cc-b042-42d8-8d72-14b83597ac1e",
+                "timestamp": "2016-10-28T03:05:34.288Z",
+                "result": {
+                "source": "agent",
+                "resolvedQuery": "start guess a number game",
+                "speech": "",
+                "action": "generate_answer",
+                "actionIncomplete": false,
+                "parameters": {
+
+            },
+                "contexts": [
+                {
+                    "name": "game",
+                    "lifespan": 5
+                }
+                ],
+                "metadata": {
+                "intentId": "56da4637-0419-46b2-b851-d7bf726b1b1b",
+                "webhookUsed": "true",
+                "intentName": "start_game"
+            },
+                "fulfillment": {
+                "speech": ""
+            },
+                "score": 1
+            },
+                "status": {
+                "code": 200,
+                "errorType": "success"
+            },
+                "sessionId": "e420f007-501d-4bc8-b551-5d97772bc50c",
+                "originalRequest": {
+                "data": {
+                "conversation": {
+                "type": 2
+            }
+            }
+            }
+            }""", type.type)
+            val mockRequest = RequestWrapper<ApiAiRequest<MockParameters>>(headers, body)
+            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+
+            val app = ApiAiApp(request = mockRequest, response = mockResponse)
+
+            val handler: Handler<ApiAiRequest<MockParameters>, ApiAiResponse<MockParameters>, MockParameters> = {
+                app.tell("hello")
+            }
+
+            val actionMap = mapOf("generate_answer" to handler)
+
+            app.handleRequest(actionMap);
+
+            // Validating the response object
+            val expectedResponse = """{
+                "speech": "hello",
+                "data": {
+                "google": {
+                "expect_user_response": false,
+                "is_ssml": false,
+                "no_input_prompts": [
+
+                ]
+            }
+            },
+                contextOut: [
+
+                ]
+            }"""
+            val responseType = TypeToken.getParameterized(ApiAiResponse::class.java, t)
+            expect(mockResponse.body).to.equal(gson.fromJson(expectedResponse, responseType.type))
+        })
     }
 })

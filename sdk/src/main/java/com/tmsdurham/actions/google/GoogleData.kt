@@ -1,7 +1,8 @@
 package com.ticketmaster.apiai.google
 
 data class GoogleData(
-        var noInputPrompts: MutableList<NoInputPrompts>? = null,
+        var isSsml: Boolean = false,
+        var noInputPrompts: MutableList<NoInputPrompts>? = mutableListOf(),
         var permissionsRequest: PermissionsRequest? = null,
         var systemIntent: SystemIntent? = null,
         var expectUserResponse: Boolean = false,
@@ -24,7 +25,7 @@ data class GoogleData(
 
     data class PossibleIntent(val intent: String)
 
-    class NoInputPrompts
+    data class NoInputPrompts(val ssml: String? = null, val textToSpeech: String? = null)
 
     data class PermissionsRequest(
             var optContext: String? = null,
