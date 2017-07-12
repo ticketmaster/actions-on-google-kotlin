@@ -45,13 +45,13 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
     }
 
 
-    override fun tell(speechResponse: String): ResponseWrapper<ApiAiResponse<T>>? {
-        debug("tell: speechResponse=$speechResponse")
-        if (speechResponse.isEmpty()) {
+    override fun tell(speech: String, displayText: String): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("tell: speechResponse=$speech")
+        if (speech.isEmpty()) {
             handleError("Invalid speech response")
             return null
         }
-        val response = this.buildResponse(speechResponse, false)
+        val response = this.buildResponse(speech, false)
         if (response != null) {
             return this.doResponse(response, RESPONSE_CODE_OK)
         } else {

@@ -268,7 +268,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
     internal abstract fun fulfillPermissionRequest(permissionSpec: GoogleData.PermissionsRequest): Any
 
     abstract fun getIntent(): String
-    abstract fun tell(string: String): ResponseWrapper<S>?
+    abstract fun tell(speech: String, displayText: String = ""): ResponseWrapper<S>?
 
     // ---------------------------------------------------------------------------
     //                   Private Helpers

@@ -338,5 +338,96 @@ object ActionsTest : Spek({
             val responseType = TypeToken.getParameterized(ApiAiResponse::class.java, t)
             expect(mockResponse.body).to.equal(gson.fromJson(expectedResponse, responseType.type))
         })
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return the valid simple response JSON in the response object for the success case.") {
+            val headers = mapOf(
+                    "Content-Type" to "application/json",
+                    "Google-Assistant-API-Version" to "v1"
+            )
+            val t = TypeToken.get(MockParameters::class.java).type
+            val type = TypeToken.getParameterized(ApiAiRequest::class.java, t)
+            val body = gson.fromJson<ApiAiRequest<MockParameters>>(
+                    """{
+                "id": "9c4394e3-4f5a-4e68-b1af-088b75ad3071",
+                "timestamp": "2016-10-28T03:41:39.957Z",
+                "result": {
+                "source": "agent",
+                "resolvedQuery": "50",
+                "speech": "",
+                "action": "check_guess",
+                "actionIncomplete": false,
+                "parameters": {
+                "guess": "50"
+            },
+                "contexts": [
+                ],
+                "metadata": {
+                "intentId": "1e46ffc2-651f-4ac0-a54e-9698feb88880",
+                "webhookUsed": "true",
+                "intentName": "provide_guess"
+            },
+                "fulfillment": {
+                "speech": ""
+            },
+                "score": 1
+            },
+                "status": {
+                "code": 200,
+                "errorType": "success"
+            },
+                "sessionId": "e420f007-501d-4bc8-b551-5d97772bc50c",
+                "originalRequest": {
+                "data": {
+                "conversation": {
+                "type": 2
+            }
+            }
+            }
+            }""", type.type)
+            val mockRequest = RequestWrapper<ApiAiRequest<MockParameters>>(headers, body)
+            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+
+            val app = ApiAiApp(
+                    request = mockRequest,
+                    response = mockResponse
+            )
+
+
+            val handler: Handler<ApiAiRequest<MockParameters>, ApiAiResponse<MockParameters>, MockParameters> = {
+                app.tell(speech = "hello",
+                        displayText = "Hi")
+            }
+
+            val actionMap = mapOf(
+                    "check_guess" to handler
+            )
+
+            app.handleRequest(actionMap);
+
+            // Validating the response object
+            var expectedResponse = """{
+                "speech": "hello",
+                "data": {
+                "google": {
+                "expect_user_response": false,
+                "rich_response": {
+                "items": [
+                {
+                    "simple_response": {
+                    "text_to_speech": "hello",
+                    "display_text": "hi"
+                }
+                }
+                ],
+                "suggestions": []
+            }
+            }
+            },
+                "contextOut": []
+            }"""
+            val responseType = TypeToken.getParameterized(ApiAiResponse::class.java, t)
+            expect(mockResponse.body).to.equal(gson.fromJson(expectedResponse, responseType.type))
+        }
     }
 })
