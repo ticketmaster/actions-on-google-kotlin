@@ -265,10 +265,13 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
             return httpResponse
         }
     }
+
     internal abstract fun fulfillPermissionRequest(permissionSpec: GoogleData.PermissionsRequest): Any
 
     abstract fun getIntent(): String
     abstract fun tell(speech: String, displayText: String = ""): ResponseWrapper<S>?
+    abstract fun tell(richResponse: GoogleData.RichResponse?): ResponseWrapper<S>?
+    abstract fun tell(simpleResponse: GoogleData.SimpleResponse): ResponseWrapper<S>?
 
     // ---------------------------------------------------------------------------
     //                   Private Helpers
@@ -285,7 +288,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      * @private
      */
     private fun invokeIntentHandler(handler: Map<*, Handler<T, S, U>>, intent: String): Boolean {
-        debug("invokeIntentHandler_: handler=${handler::class.java.name}, intent=$intent");
+        debug("invokeIntentHandler_: handler=${handler::class.java.name}, intent=$intent")
         lastErrorMessage = null
 
         // map of intents or states
@@ -316,8 +319,8 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
         }
         return ResponseBuilder.isSsml(text)
     }
-    
-    
+
+
     /**
      * Utility function to detect incoming request format.
      *
@@ -335,6 +338,20 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
     // ---------------------------------------------------------------------------
     //                   Response Builders
     // ---------------------------------------------------------------------------
+
+    /**
+     * Constructs RichResponse with chainable property setters.
+     *
+     * @param {RichResponse=} richResponse RichResponse to clone.
+     * @return {RichResponse} Constructed RichResponse.
+     */
+    fun buildRichResponse(richResponse: GoogleData.RichResponse? = null): GoogleData.RichResponse {
+        if (richResponse != null) {
+            return richResponse.copy()
+        } else {
+            return GoogleData.RichResponse()
+        }
+    }
 
     /**
      * Helper to build prompts from SSML"s.
@@ -359,9 +376,22 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
         debug("buildPromptsFromPlainTextHelper_: plainTexts=%$plainTexts")
         return plainTexts.map { GoogleData.NoInputPrompts(textToSpeech = it) }.toMutableList()
     }
-    
-    fun handleError(text: String?) {
 
+    fun handleError(text: String?) {
+        debug("handleError_: text=%$text")
+        if (text.isNullOrEmpty()) {
+            error("Missing text")
+            return
+        }
+        // Log error
+//        error.apply(text, Array.prototype.slice.call(arguments, 1));
+        // Tell app to say error
+        if (responded) {
+            return
+        }
+        // Don"t call other methods; just do directly
+        this.response.status(RESPONSE_CODE_BAD_REQUEST).send(API_ERROR_MESSAGE_PREFIX + text)
+        this.responded = true;
     }
 
     fun debug(msg: String) {

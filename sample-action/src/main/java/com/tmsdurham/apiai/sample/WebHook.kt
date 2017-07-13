@@ -1,13 +1,17 @@
 package com.tmsdurham.apiai.sample
 
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.ticketmaster.apiai.ApiAiRequest
+import com.ticketmaster.apiai.ApiAiResponse
 import com.tmsdurham.actions.ApiAiApp
+import com.tmsdurham.actions.Handler
 import com.tmsdurham.actions.RequestWrapper
 import com.tmsdurham.actions.ResponseWrapper
 import java.io.InputStreamReader
 import java.util.logging.Logger
+import javax.servlet.annotation.WebServlet
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -41,14 +45,16 @@ const val IMG_URL_GOOGLE_PIXEL = "https://storage.googleapis.com/madebygoog/v1" 
 const val IMG_URL_GOOGLE_ALLO = "https://allo.google.com/images/allo-logo.png"
 
 fun welcome(action: ApiAiApp<Parameters>) =
-        action.ask { speech = "Ask me to show you a list, carousel, or basic card" }
+        action.tell(speech = "Ask me to show you a list, carousel, or basic card")
 
 fun normalAsk(action: ApiAiApp<Parameters>) =
-        action.ask { speech = "Ask me to show you a list, carousel, or basic card" }
+        action.tell(speech = "Ask me to show you a list, carousel, or basic card")
 
 fun basicCard(action: ApiAiApp<Parameters>) {
     action.ask {}
-    action.ask(action.buildRichResponse {
+//    action.ask(action.buildRichResponse())
+    //{
+
 //        addSimpleResponse {
 //            speech = "test"
 //            displayText = "test2"
@@ -58,7 +64,7 @@ fun basicCard(action: ApiAiApp<Parameters>) {
 //        displayList {
 //        }
 
-    })
+//    })
 
     action.ask {
         speech = "test"
@@ -68,8 +74,10 @@ fun basicCard(action: ApiAiApp<Parameters>) {
 }
 
 fun byeResponse(action: ApiAiApp<Parameters>) =
-        action.ask { speech = "Okay see you later"
-            displayText = "OK see you later!" }
+        action.ask {
+            speech = "Okay see you later"
+            displayText = "OK see you later!"
+        }
 
 fun normalBye(action: ApiAiApp<Parameters>) = action.ask { speech = "Okay see you later!" }
 
@@ -79,18 +87,40 @@ val actionMap = mapOf(
         BYE_RESPONSE to ::byeResponse,
         NORMAL_BYE to ::normalBye)
 
+@WebServlet(name = "ActionsWebhook", value = "/test")
 class WebHook : HttpServlet() {
-    val gson = GsonBuilder().setPrettyPrinting().create()
-    val logger = Logger.getAnonymousLogger()
 
     override fun doPost(req: HttpServletRequest, resp: HttpServletResponse) {
-        val t = TypeToken.get(Parameters::class.java).type
-        val type = TypeToken.getParameterized(ApiAiRequest::class.java, t)
-        val request = gson.fromJson<ApiAiRequest<Parameters>>(InputStreamReader(req.inputStream), type.type)
-        val action = ApiAiApp(RequestWrapper(body = request), ResponseWrapper())
-        logger.warning(gson.toJson(request))
-
-        val response = action.handleRequest(actionMap)
-        resp.writer.write(gson.toJson(response))
+        GAction(req, resp, Parameters::class.java).handleRequest(actionMap)
     }
 }
+
+/**
+ * Gson & Servlet Action
+ */
+class GAction<T>(req: HttpServletRequest, resp: HttpServletResponse, clazz: Class<T>, val gson: Gson = Gson()) {
+    val action: ApiAiApp<T>
+    init {
+        val t = TypeToken.get(clazz).type
+        val type = TypeToken.getParameterized(ApiAiRequest::class.java, t)
+        val request = gson.fromJson<ApiAiRequest<T>>(InputStreamReader(req.inputStream), type.type)
+        action = ApiAiApp(RequestWrapper(body = request), ResponseWrapper(sendAction = {
+            val bodyStr = gson.toJson(body)
+            resp.writer.write(bodyStr)
+        }))
+    }
+
+    fun handleRequest(handler: Map<*, *>) {
+        action.handleRequest(handler)
+    }
+}
+//
+//class GsonApiAiApp<T>(val req: RequestWrapper<ApiAiRequest<T>>) {
+//    init {
+//        val action = ApiAiApp(RequestWrapper(body = req), ResponseWrapper(sendAction = {
+//            val bodyStr = gson.toJson(body)
+//            logger.warning(bodyStr)
+//            resp.writer.write(bodyStr)
+//        }))
+//    }
+//}

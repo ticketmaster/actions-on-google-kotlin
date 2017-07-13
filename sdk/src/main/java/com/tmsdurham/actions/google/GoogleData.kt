@@ -48,7 +48,78 @@ data class GoogleData(
             var items: MutableList<RichResponseItem>? = null,
             var suggestions: MutableList<Suggestions>? = null,
             var altLinkSuggestion: AltLinkSuggestion? = null,
-            var linkOutSuggestion: LinkOutSuggestion? = null)
+            var linkOutSuggestion: LinkOutSuggestion? = null) {
+
+        fun isEmpty() = ((items == null || items!!.isEmpty()) &&
+                (suggestions == null || suggestions!!.isEmpty()) &&
+                (altLinkSuggestion == null) &&
+                (linkOutSuggestion == null))
+
+        /**
+         * Adds a SimpleResponse to list of items.
+         *
+         * @param {string|SimpleResponse} simpleResponse Simple response to present to
+         *     user. If just a string, display text will not be set.
+         * @return {RichResponse} Returns current constructed RichResponse.
+         */
+        fun addSimpleResponse(init: SimpleResponse.() -> Unit): RichResponse {
+            val simpleResponse = SimpleResponse()
+            simpleResponse.init()
+            if (simpleResponse.isEmpty()) {
+                error("Invalid simpleResponse")
+                return this
+            }
+            // Validate if RichResponse already contains two SimpleResponse objects
+            var simpleResponseCount = 0
+            if (items?.count { it?.simpleResponse != null } ?: 0 >= 2) {
+                error("Cannot include >2 SimpleResponses in RichResponse")
+                return this
+            }
+            val simpleResponseObj = RichResponseItem(simpleResponse = simpleResponse)
+
+            // Check first if needs to replace BasicCard at beginning of items list
+            if (items == null) {
+                items = mutableListOf()
+            }
+            if (items!!.size > 0 && (items!![0].basicCard != null ||
+                    items!![0].structuredResponse != null)) {
+                items!!.add(0, simpleResponseObj)
+            } else {
+                items!!.add(simpleResponseObj)
+            }
+            return this
+        }
+
+        fun addSimpleResponse(simpleResponse: String) = addSimpleResponse({ textToSpeech = simpleResponse })
+
+        fun addSimpleResponse(simpleResponse: GoogleData.SimpleResponse): RichResponse {
+            addSimpleResponse {
+                textToSpeech = simpleResponse.textToSpeech
+                displayText = simpleResponse.displayText
+            }
+            return this
+        }
+
+        /**
+         * Adds a single suggestion or list of suggestions to list of items.
+         *
+         * @param {string|Array<string>} suggestions Either a single string suggestion
+         *     or list of suggestions to add.
+         * @return {RichResponse} Returns current constructed RichResponse.
+         */
+        fun addSuggestions(vararg suggestions: String): RichResponse {
+            if (suggestions.isEmpty()) {
+                error("Invalid suggestions");
+                return this
+            }
+            if (this.suggestions == null) {
+                this.suggestions = mutableListOf()
+            }
+            this.suggestions?.addAll(suggestions.map { Suggestions(it) })
+            return this
+        }
+
+    }
 
     data class LinkOutSuggestion(
             var destination_name: String? = null,
@@ -71,7 +142,9 @@ data class GoogleData(
     data class SimpleResponse(
             var textToSpeech: String? = null,
             var ssml: String? = null,
-            var displayText: String? = null)
+            var displayText: String? = null) {
+        fun isEmpty() = textToSpeech.isNullOrBlank() && ssml.isNullOrBlank() && displayText.isNullOrBlank()
+    }
 
 
     data class BasicCard(

@@ -52,5 +52,7 @@ enum class Permission {
 
 fun Array<out Permission>.toListOrStrings() = this.map { it.toString() }
 
-data class SimpleResponse(var speech: String = "", var displayText: String = "")
+data class SimpleResponse(var speech: String = "", var displayText: String = "") {
+    fun isEmpty() = speech.isNullOrEmpty() && displayText.isNullOrBlank()
+}
 

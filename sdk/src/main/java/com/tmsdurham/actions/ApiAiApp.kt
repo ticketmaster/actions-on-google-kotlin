@@ -45,6 +45,61 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
     }
 
 
+    /**
+     * Tells the Assistant to render the speech response and close the mic.
+     *
+     * @example
+     * const app = new ApiAiApp({request: request, response: response});
+     * const WELCOME_INTENT = "input.welcome";
+     * const NUMBER_INTENT = "input.number";
+     *
+     * function welcomeIntent (app) {
+     *   app.ask("Welcome to action snippets! Say a number.");
+     * }
+     *
+     * function numberIntent (app) {
+     *   const number = app.getArgument(NUMBER_ARGUMENT);
+     *   app.tell("You said " + number);
+     * }
+     *
+     * const actionMap = new Map();
+     * actionMap.set(WELCOME_INTENT, welcomeIntent);
+     * actionMap.set(NUMBER_INTENT, numberIntent);
+     * app.handleRequest(actionMap);
+     *
+     * @param {string|SimpleResponse|RichResponse} textToSpeech Final response.
+     *     Spoken response can be SSML.
+     * @return The response that is sent back to Assistant.
+     * @apiai
+     */
+    override fun tell(richResponse: GoogleData.RichResponse?): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("tell: richResponse=$richResponse")
+        if (richResponse == null || richResponse.isEmpty()) {
+            handleError("Invalid rich response")
+            return null
+        }
+        val response = buildResponse(richResponse, false)
+        if (response != null) {
+            return doResponse(response, RESPONSE_CODE_OK)
+        } else {
+            return null
+        }
+    }
+    
+    override fun tell(simpleResponse: GoogleData.SimpleResponse): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("tell: speechResponse=$simpleResponse")
+        if (simpleResponse.isEmpty()) {
+            handleError("Invalid speech response")
+            return null
+        }
+        val response = buildResponse(simpleResponse, false)
+        if (response != null) {
+            return doResponse(response, RESPONSE_CODE_OK)
+        } else {
+            return null
+        }
+    }
+
     override fun tell(speech: String, displayText: String): ResponseWrapper<ApiAiResponse<T>>? {
         debug("tell: speechResponse=$speech")
         if (speech.isEmpty()) {
@@ -66,10 +121,6 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
 
     fun ask(action: ApiAiApp<T>) {
 
-    }
-
-    fun buildRichResponse(richResponse: Data.() -> Unit): ApiAiApp<T> {
-        return this
     }
 
     fun simpleResponse(action: ApiAiApp<T>.() -> Unit): Unit {
@@ -115,6 +166,85 @@ if (!isStringResponse) {
             }
         }
              */
+
+    /**
+     * Builds a response for API.AI to send back to the Assistant.
+     *
+     * @param {SimpleResponse} textToSpeech TTS/response
+     *     spoken/shown to end user.
+     * @param {boolean} expectUserResponse true if the user response is expected.
+     * @param {Array<string>=} noInputs Array of re-prompts when the user does not respond (max 3).
+     * @return {Object} The final response returned to Assistant.
+     * @private
+     * @apiai
+     */
+    fun buildResponse(simpleResponse: GoogleData.SimpleResponse, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("buildResponse_: simpleResponse=$simpleResponse, expectUserResponse=$expectUserResponse, noInputs=$noInputs")
+        if (simpleResponse.isEmpty()) {
+            handleError("Invalid text to speech")
+            return null
+        }
+        return buildResponse(buildRichResponse().addSimpleResponse(simpleResponse), expectUserResponse, noInputs)
+    }
+
+    /**
+     * Builds a response for API.AI to send back to the Assistant.
+     *
+     * @param {string|RichResponse|SimpleResponse} textToSpeech TTS/response
+     *     spoken/shown to end user.
+     * @param {boolean} expectUserResponse true if the user response is expected.
+     * @param {Array<string>=} noInputs Array of re-prompts when the user does not respond (max 3).
+     * @return {Object} The final response returned to Assistant.
+     * @private
+     * @apiai
+     */
+    fun buildResponse(textToSpeech: GoogleData.RichResponse, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("buildResponse_: textToSpeech=$textToSpeech, expectUserResponse=$expectUserResponse, noInputs=$noInputs")
+        if (textToSpeech.isEmpty()) {
+            handleError("Invalid text to speech")
+            return null
+        }
+        if (textToSpeech.items?.first()?.simpleResponse == null || textToSpeech.items?.first()?.simpleResponse?.textToSpeech.isNullOrBlank()) {
+            handleError("Invalid text to speech")
+            return null
+        }
+
+        val speech = textToSpeech.items?.first()?.simpleResponse?.textToSpeech!!
+        var noInputsFinal = mutableListOf<GoogleData.NoInputPrompts>()
+        val dialogState = DialogState(
+                state = state, //TODO (this.state instanceof State ? this.state.getName() : this.state),
+                data = data)
+        if (noInputs != null) {
+            if (noInputs.size > INPUTS_MAX) {
+                handleError("Invalid number of no inputs")
+                return null
+            }
+            if (isSsml(speech)) {
+                noInputsFinal.addAll(buildPromptsFromSsmlHelper(noInputs))
+            } else {
+                noInputsFinal.addAll(buildPromptsFromPlainTextHelper(noInputs))
+            }
+        } else {
+            noInputsFinal = mutableListOf()
+        }
+        val response = ApiAiResponse<T>(
+                speech = speech)
+        response.data.google = GoogleData(
+                expectUserResponse = expectUserResponse,
+                isSsml = isSsml(speech),
+                noInputPrompts = noInputsFinal)
+        if (expectUserResponse) {
+            response.contextOut.add(
+                    ContextOut(
+                            name = ACTIONS_API_AI_CONTEXT,
+                            lifespan = MAX_LIFESPAN,
+                            parameters = dialogState.data))
+        }
+        response.contextOut.addAll(contexts)
+        this.response.body = response
+        return this.response
+    }
+
     /**
      * Builds a response for API.AI to send back to the Assistant.
      *
