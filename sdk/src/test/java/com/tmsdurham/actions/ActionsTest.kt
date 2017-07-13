@@ -633,8 +633,8 @@ object ActionsTest : Spek({
             val handler: MockHandler = {
                 app.askWithList("Here is a list", app.buildList()
                         .addItems(
-                        app.buildOptionItem("key_1", "key one"),
-                        app.buildOptionItem("key_2", "key two")
+                                app.buildOptionItem("key_1", "key one"),
+                                app.buildOptionItem("key_2", "key two")
                         ))
             }
 
@@ -690,6 +690,59 @@ object ActionsTest : Spek({
             }""")
             expect(mockResponse.body).to.equal(expectedResponse)
         }
+    }
+
+    it("Should return the an error JSON in the response when list has <2 items.") {
+        var headers = mapOf("Content-Type" to "application/json")
+        val body = requestFromJson("""{
+            "id": "9c4394e3-4f5a-4e68-b1af-088b75ad3071",
+            "timestamp": "2016-10-28T03:41:39.957Z",
+            "result": {
+            "source": "agent",
+            "resolvedQuery": "Show me a list",
+            "speech": "",
+            "action": "show_list",
+            "actionIncomplete": false,
+            "parameters": {},
+            "contexts": [],
+            "metadata": {
+            "intentId": "1e46ffc2-651f-4ac0-a54e-9698feb88880",
+            "webhookUsed": "true",
+            "intentName": "show_list"
+        },
+            "fulfillment": {
+            "speech": ""
+        },
+            "score": 1
+        },
+            "status": {
+            "code": 200,
+            "errorType": "success"
+        },
+            "sessionId": "e420f007-501d-4bc8-b551-5d97772bc50c",
+            "originalRequest": {
+            "version": 2,
+            "data": {
+            "conversation": {
+            "type": 2
+        }
+        }
+        }
+        }""")
+        val mockRequest = RequestWrapper(headers, body);
+        val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+
+        val app = ApiAiApp(request = mockRequest, response = mockResponse)
+
+        val handler: MockHandler = {
+            app.askWithList("Here is a list", app.buildList())
+        }
+
+        val actionMap = mapOf("show_list" to handler)
+
+        app.handleRequest(actionMap)
+
+        expect(mockResponse.statusCode).to.equal(400)
     }
 
 })
