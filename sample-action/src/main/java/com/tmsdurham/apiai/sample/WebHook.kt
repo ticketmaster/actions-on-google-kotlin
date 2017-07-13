@@ -96,7 +96,8 @@ class WebHook : HttpServlet() {
 }
 
 /**
- * Gson & Servlet Action
+ * Gson & Servlet Action - possibly move this into separate module for users of gson & servlet.
+ * Intentionally not in sdk module so gson & servlet are not a dependency of the SDK.
  */
 class GAction<T>(req: HttpServletRequest, resp: HttpServletResponse, clazz: Class<T>, val gson: Gson = Gson()) {
     val action: ApiAiApp<T>
@@ -114,13 +115,3 @@ class GAction<T>(req: HttpServletRequest, resp: HttpServletResponse, clazz: Clas
         action.handleRequest(handler)
     }
 }
-//
-//class GsonApiAiApp<T>(val req: RequestWrapper<ApiAiRequest<T>>) {
-//    init {
-//        val action = ApiAiApp(RequestWrapper(body = req), ResponseWrapper(sendAction = {
-//            val bodyStr = gson.toJson(body)
-//            logger.warning(bodyStr)
-//            resp.writer.write(bodyStr)
-//        }))
-//    }
-//}

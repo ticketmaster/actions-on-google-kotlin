@@ -46,6 +46,86 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
 
 
     /**
+     * Asks to collect the user"s input with a list.
+     *
+     * @example
+     * const app = new ApiAiApp({request, response});
+     * const WELCOME_INTENT = "input.welcome";
+     * const OPTION_INTENT = "option.select";
+     *
+     * function welcomeIntent (app) {
+     *   app.askWithList("Which of these looks good?",
+     *     app.buildList("List title")
+     *      .addItems([
+     *        app.buildOptionItem(SELECTION_KEY_ONE,
+     *          ["synonym of KEY_ONE 1", "synonym of KEY_ONE 2"])
+     *          .setTitle("Title of First List Item"),
+     *        app.buildOptionItem(SELECTION_KEY_TWO,
+     *          ["synonym of KEY_TWO 1", "synonym of KEY_TWO 2"])
+     *          .setTitle("Title of Second List Item"),
+     *      ]));
+     * }
+     *
+     * function optionIntent (app) {
+     *   if (app.getSelectedOption() === SELECTION_KEY_ONE) {
+     *     app.tell("Number one is a great choice!");
+     *   } else {
+     *     app.tell("Number two is a great choice!");
+     *   }
+     * }
+     *
+     * const actionMap = new Map();
+     * actionMap.set(WELCOME_INTENT, welcomeIntent);
+     * actionMap.set(OPTION_INTENT, optionIntent);
+     * app.handleRequest(actionMap);
+     *
+     * @param {string|RichResponse|SimpleResponse} inputPrompt The input prompt
+     *     response.
+     * @param {List} list List built with {@link AssistantApp#buildList|buildList}.
+     * @return {Object} HTTP response.
+     * @apiai
+     */
+
+    override fun askWithList(speech: String?, richResponse: GoogleData.RichResponse): ResponseWrapper<ApiAiResponse<T>>? {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+    override fun askWithList(inputPrompt: String?, list: List): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("askWithList: inputPrompt=$inputPrompt, list=$list")
+        if (inputPrompt.isNullOrBlank()) {
+            this.handleError("Invalid input prompt");
+            return null
+        }
+
+        if (list.items?.size ?: 0 < 2) {
+            this.handleError("List requires at least 2 items")
+            return null
+        }
+        val response = buildResponse(inputPrompt ?: "", true)
+        if (response == null) {
+            error("Error in building response")
+            return null
+        }
+        response.body?.data?.google?.systemIntent {
+            intent = STANDARD_INTENTS.OPTION
+        }
+        if (isNotApiVersionOne()) {
+            response.body?.data?.google?.systemIntent?.data = GoogleData.Data(
+                    `@type` = INPUT_VALUE_DATA_TYPES.OPTION,
+                    listSelect = list)
+        } else {
+            response.body?.data?.google?.systemIntent?.spec = GoogleData.Spec(
+                    optionValueSpec = GoogleData.OptionValueSpec(
+                            listSelect = list))
+        }
+
+        if (response != null) {
+            return doResponse(response, RESPONSE_CODE_OK)
+        } else {
+            return null
+        }
+    }
+
+    /**
      * Tells the Assistant to render the speech response and close the mic.
      *
      * @example
@@ -85,7 +165,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
             return null
         }
     }
-    
+
     override fun tell(simpleResponse: GoogleData.SimpleResponse): ResponseWrapper<ApiAiResponse<T>>? {
         debug("tell: speechResponse=$simpleResponse")
         if (simpleResponse.isEmpty()) {

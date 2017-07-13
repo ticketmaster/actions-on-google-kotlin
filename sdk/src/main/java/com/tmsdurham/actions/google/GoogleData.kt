@@ -9,6 +9,12 @@ data class GoogleData(
         var possibleIntents: List<PossibleIntent>? = null,
         var richResponse: RichResponse? = null) {
 
+    fun systemIntent(init: SystemIntent.() -> Unit) {
+        systemIntent = SystemIntent()
+        systemIntent?.init()
+
+    }
+
     companion object {
         var OPTION_VALUE_SPEC_TYPE = "type.googleapis.com/google.actions.v2.OptionValueSpec"
         var SELECT_INTENT = "actions.intent.OPTION"
@@ -162,14 +168,19 @@ data class GoogleData(
     data class OpenUrlAction(var url: String? = null)
 
     data class SystemIntent(
+            var spec: Spec? = null,
             var intent: String? = null,
             var data: Data? = null)
+
+    data class Spec(var optionValueSpec: OptionValueSpec)
+
+    data class OptionValueSpec(var listSelect: com.tmsdurham.actions.List?)
 
     data class Data(
             var `@type`: String? = null,
             var optContext: String? = null,
             var permissions: List<String>? = null,
-            var listSelect: ListSelect? = null,
+            var listSelect: com.tmsdurham.actions.List? = null,
             var carouselSelect: CarouselSelect? = null,
             var proposedOrder: Order? = null,
             var name: String? = null,
@@ -229,6 +240,9 @@ data class GoogleData(
             var items: MutableList<Items>? = null)
 
     data class OptionInfo(
+            var optionInfo: OptionInfoData? = null)
+
+    data class OptionInfoData(
             var key: String? = null,
             var synonyms: MutableList<String>? = null)
 }

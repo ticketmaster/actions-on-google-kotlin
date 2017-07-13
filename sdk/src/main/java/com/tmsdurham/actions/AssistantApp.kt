@@ -266,12 +266,49 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
         }
     }
 
+    /**
+     * Constructs List with chainable property setters.
+     *
+     * @param {string=} title A title to set for a new List.
+     * @return {List} Constructed List.
+     */
+    fun buildList (title: String? = null): List {
+        return List(title)
+    }
+
+    /**
+     * Constructs OptionItem with chainable property setters.
+     *
+     * @param {string=} key A unique key to identify this option. This key will
+     *     be returned as an argument in the resulting actions.intent.OPTION
+     *     intent.
+     * @param {string|Array<string>=} synonyms A list of synonyms which the user may
+     *     use to identify this option instead of the option key.
+     * @return {OptionItem} Constructed OptionItem.
+     */
+    fun buildOptionItem (key: String, synonyms: MutableList<String>): GoogleData.OptionInfo {
+        val optionItem = GoogleData.OptionInfo()
+        if (!key.isNullOrBlank()) {
+            optionItem.optionInfo?.key = key
+        }
+        if (synonyms.isNotEmpty()) {
+            optionItem.optionInfo?.synonyms = synonyms
+        }
+        return optionItem
+    }
+
+    fun buildOptionItem (key: String, synonym: String): GoogleData.OptionInfo {
+        return GoogleData.OptionInfo(GoogleData.OptionInfoData(key, mutableListOf(synonym)))
+    }
+
     internal abstract fun fulfillPermissionRequest(permissionSpec: GoogleData.PermissionsRequest): Any
 
     abstract fun getIntent(): String
     abstract fun tell(speech: String, displayText: String = ""): ResponseWrapper<S>?
     abstract fun tell(richResponse: GoogleData.RichResponse?): ResponseWrapper<S>?
     abstract fun tell(simpleResponse: GoogleData.SimpleResponse): ResponseWrapper<S>?
+    abstract fun askWithList(speech: String? = null, richResponse: GoogleData.RichResponse): ResponseWrapper<S>?
+    abstract fun askWithList(speech: String? = null, list: List): ResponseWrapper<S>?
 
     // ---------------------------------------------------------------------------
     //                   Private Helpers
@@ -360,7 +397,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      * @return {Array<Object>} Array of SpeechResponse objects.
      * @private
      */
-    fun buildPromptsFromSsmlHelper(ssmls: List<String>): MutableList<GoogleData.NoInputPrompts> {
+    fun buildPromptsFromSsmlHelper(ssmls: MutableList<String>): MutableList<GoogleData.NoInputPrompts> {
         debug("buildPromptsFromSsmlHelper_: ssmls=$ssmls")
         return ssmls.map { GoogleData.NoInputPrompts(ssml = it) }.toMutableList()
     }
@@ -372,7 +409,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      * @return {Array<Object>} Array of SpeechResponse objects.
      * @private
      */
-    fun buildPromptsFromPlainTextHelper(plainTexts: List<String>): MutableList<GoogleData.NoInputPrompts> {
+    fun buildPromptsFromPlainTextHelper(plainTexts: MutableList<String>): MutableList<GoogleData.NoInputPrompts> {
         debug("buildPromptsFromPlainTextHelper_: plainTexts=%$plainTexts")
         return plainTexts.map { GoogleData.NoInputPrompts(textToSpeech = it) }.toMutableList()
     }
