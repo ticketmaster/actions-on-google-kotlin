@@ -745,6 +745,115 @@ object ActionsTest : Spek({
         expect(mockResponse.statusCode).to.equal(400)
     }
 
+    /**
+     * Describes the behavior for ApiAiApp askWithCarousel method.
+     */
+    describe("ApiAiApp#askWithCarousel") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return the valid carousel JSON in the response object for the success case.") {
+            val headers = mapOf("Content-Type" to "application/json")
+            val body = requestFromJson("""{
+                "id": "9c4394e3-4f5a-4e68-b1af-088b75ad3071",
+                "timestamp": "2016-10-28T03:41:39.957Z",
+                "result": {
+                "source": "agent",
+                "resolvedQuery": "Show me a carousel",
+                "speech": "",
+                "action": "show_carousel",
+                "actionIncomplete": false,
+                "parameters": {},
+                "contexts": [],
+                "metadata": {
+                "intentId": "1e46ffc2-651f-4ac0-a54e-9698feb88880",
+                "webhookUsed": "true",
+                "intentName": "show_carousel"
+            },
+                "fulfillment": {
+                "speech": ""
+            },
+                "score": 1
+            },
+                "status": {
+                "code": 200,
+                "errorType": "success"
+            },
+                "sessionId": "e420f007-501d-4bc8-b551-5d97772bc50c",
+                "originalRequest": {
+                "version": 2,
+                "data": {
+                "conversation": {
+                "type": 2
+            }
+            }
+            }
+            }""")
+            val mockRequest = RequestWrapper(headers, body);
+            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+
+            val app = ApiAiApp(request = mockRequest, response = mockResponse)
+
+            val handler: MockHandler = {
+                    app.askWithCarousel("Here is a carousel",
+                            app.buildCarousel()
+                                    .addItems(
+                                    app.buildOptionItem("key_1", "key one"),
+                                    app.buildOptionItem("key_2", "key two")
+                                    )
+                    )
+            }
+            val actionMap = mapOf("show_carousel" to handler)
+
+            app.handleRequest(actionMap)
+
+            // Validating the response object
+            val expectedResponse = responseFromJson("""{
+                "speech": "Here is a carousel",
+                "data": {
+                "google": {
+                "expectUserResponse": true,
+                "isSsml": false,
+                "noInputPrompts": [],
+                "systemIntent": {
+                "intent": "actions.intent.OPTION",
+                "data": {
+                "@type": "type.googleapis.com/google.actions.v2.OptionValueSpec",
+                "carouselSelect": {
+                "items": [
+                {
+                    "optionInfo": {
+                    "key": "key_1",
+                    "synonyms": [
+                    "key one"
+                    ]
+                },
+                    "title": ""
+                },
+                {
+                    "optionInfo": {
+                    "key": "key_2",
+                    "synonyms": [
+                    "key two"
+                    ]
+                },
+                    "title": ""
+                }
+                ]
+            }
+            }
+            }
+            }
+            },
+                "contextOut": [
+                {
+                    "name": "_actions_on_google_",
+                    "lifespan": 100,
+                    "parameters": {}
+                }
+                ]
+            }""")
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+    }
 })
 
 

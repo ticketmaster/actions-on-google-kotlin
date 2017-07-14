@@ -89,6 +89,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
     override fun askWithList(speech: String?, richResponse: GoogleData.RichResponse): ResponseWrapper<ApiAiResponse<T>>? {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
+
     override fun askWithList(inputPrompt: String?, list: List): ResponseWrapper<ApiAiResponse<T>>? {
         debug("askWithList: inputPrompt=$inputPrompt, list=$list")
         if (inputPrompt.isNullOrBlank()) {
@@ -120,6 +121,89 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
 
         if (response != null) {
             return doResponse(response, RESPONSE_CODE_OK)
+        } else {
+            return null
+        }
+    }
+
+
+    /**
+     * Asks to collect the user"s input with a carousel.
+     *
+     * @example
+     * const app = new ApiAiApp({request, response});
+     * const WELCOME_INTENT = "input.welcome";
+     * const OPTION_INTENT = "option.select";
+     *
+     * function welcomeIntent (app) {
+     *   app.askWithCarousel("Which of these looks good?",
+     *     app.buildCarousel()
+     *      .addItems([
+     *        app.buildOptionItem(SELECTION_KEY_ONE,
+     *          ["synonym of KEY_ONE 1", "synonym of KEY_ONE 2"])
+     *          .setTitle("Number one"),
+     *        app.buildOptionItem(SELECTION_KEY_TWO,
+     *          ["synonym of KEY_TWO 1", "synonym of KEY_TWO 2"])
+     *          .setTitle("Number two"),
+     *      ]));
+     * }
+     *
+     * function optionIntent (app) {
+     *   if (app.getSelectedOption() === SELECTION_KEY_ONE) {
+     *     app.tell("Number one is a great choice!");
+     *   } else {
+     *     app.tell("Number two is a great choice!");
+     *   }
+     * }
+     *
+     * const actionMap = new Map();
+     * actionMap.set(WELCOME_INTENT, welcomeIntent);
+     * actionMap.set(OPTION_INTENT, optionIntent);
+     * app.handleRequest(actionMap);
+     *
+     * @param {string|RichResponse|SimpleResponse} inputPrompt The input prompt
+     *     response.
+     * @param {Carousel} carousel Carousel built with
+     *     {@link AssistantApp#buildCarousel|buildCarousel}.
+     * @return {Object} HTTP response.
+     * @apiai
+     */
+    fun askWithCarousel(inputPrompt: String, carousel: Carousel): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("askWithCarousel: inputPrompt=$inputPrompt, carousel=$carousel")
+        if (inputPrompt.isNullOrBlank()) {
+            handleError("Invalid input prompt");
+            return null
+        }
+        if (carousel == null) {
+            handleError("Invalid carousel")
+            return null
+        }
+        if (carousel.items.size < 2) {
+            handleError("Carousel requires at least 2 items")
+            return null
+        }
+        val response = buildResponse(inputPrompt, true)
+        if (response == null) {
+            error("Error in building response")
+            return null
+        }
+        response.body?.data?.google?.systemIntent = GoogleData.SystemIntent(
+                intent = STANDARD_INTENTS.OPTION
+        )
+        if (isNotApiVersionOne()) {
+            response.body?.data?.google?.systemIntent?.data = GoogleData.Data(
+                    `@type` = INPUT_VALUE_DATA_TYPES.OPTION,
+                    carouselSelect = carousel
+            )
+        } else {
+            response.body?.data?.google?.systemIntent?.spec = GoogleData.Spec(
+                optionValueSpec = GoogleData.OptionValueSpec(
+                carouselSelect = carousel
+                )
+            )
+        }
+        if (response != null) {
+            return doResponse(response, RESPONSE_CODE_OK);
         } else {
             return null
         }

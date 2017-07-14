@@ -1,5 +1,8 @@
 package com.ticketmaster.apiai.google
 
+import com.tmsdurham.actions.Carousel
+import com.tmsdurham.actions.OptionInfo
+
 data class GoogleData(
         var isSsml: Boolean = false,
         var noInputPrompts: MutableList<NoInputPrompts>? = mutableListOf(),
@@ -41,7 +44,7 @@ data class GoogleData(
 
     data class Suggestions(var title: String? = null)
 
-    data class Image(var url: String? = null)
+    data class Image(var url: String? = null, var accessibilityText: String, var width: Int? = null, var height: Int? = null)
 
     data class Items(
             var optionInfo: OptionInfo? = null,
@@ -174,14 +177,14 @@ data class GoogleData(
 
     data class Spec(var optionValueSpec: OptionValueSpec)
 
-    data class OptionValueSpec(var listSelect: com.tmsdurham.actions.List?)
+    data class OptionValueSpec(var listSelect: com.tmsdurham.actions.List? = null, var carouselSelect: Carousel? = null)
 
     data class Data(
             var `@type`: String? = null,
             var optContext: String? = null,
             var permissions: List<String>? = null,
             var listSelect: com.tmsdurham.actions.List? = null,
-            var carouselSelect: CarouselSelect? = null,
+            var carouselSelect: Carousel? = null,
             var proposedOrder: Order? = null,
             var name: String? = null,
             var paymentOptions: PaymentOptions? = null)
@@ -234,15 +237,4 @@ data class GoogleData(
     data class ListSelect(
             var title: String? = null,
             var items: MutableList<Items>? = null)
-
-    data class CarouselSelect(
-            var title: String? = null,
-            var items: MutableList<Items>? = null)
-
-    data class OptionInfo(
-            var optionInfo: OptionInfoData? = null)
-
-    data class OptionInfoData(
-            var key: String? = null,
-            var synonyms: MutableList<String>? = null)
 }

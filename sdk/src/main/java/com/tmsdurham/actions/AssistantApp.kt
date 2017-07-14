@@ -277,6 +277,15 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
     }
 
     /**
+     * Constructs Carousel with chainable property setters.
+     *
+     * @return {Carousel} Constructed Carousel.
+     */
+    fun buildCarousel (): Carousel {
+        return Carousel()
+    }
+
+    /**
      * Constructs OptionItem with chainable property setters.
      *
      * @param {string=} key A unique key to identify this option. This key will
@@ -286,19 +295,19 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      *     use to identify this option instead of the option key.
      * @return {OptionItem} Constructed OptionItem.
      */
-    fun buildOptionItem (key: String, synonyms: MutableList<String>): GoogleData.OptionInfo {
-        val optionItem = GoogleData.OptionInfo()
+    fun buildOptionItem (key: String, synonyms: MutableList<String>): OptionInfo {
+        val optionItem = OptionInfo()
         if (!key.isNullOrBlank()) {
-            optionItem.optionInfo?.key = key
+            optionItem?.key = key
         }
         if (synonyms.isNotEmpty()) {
-            optionItem.optionInfo?.synonyms = synonyms
+            optionItem?.synonyms = synonyms
         }
         return optionItem
     }
 
-    fun buildOptionItem (key: String, synonym: String): GoogleData.OptionInfo {
-        return GoogleData.OptionInfo(GoogleData.OptionInfoData(key, mutableListOf(synonym)))
+    fun buildOptionItem (key: String, synonym: String): OptionItem {
+        return OptionItem(OptionInfo(key, mutableListOf(synonym)))
     }
 
     internal abstract fun fulfillPermissionRequest(permissionSpec: GoogleData.PermissionsRequest): Any
