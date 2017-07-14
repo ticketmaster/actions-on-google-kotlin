@@ -67,23 +67,62 @@ fun basicCard(action: ApiAiApp<Parameters>) {
 //    })
 
     action.ask {
-        speech = "test"
+        textToSpeech = "test"
         displayText = "test"
     }
 
 }
 
+// List
+fun list(app: ApiAiApp<Parameters>) {
+    app.askWithList(app.buildRichResponse()
+            .addSimpleResponse("This is a simple response for a list")
+            .addSuggestions("Basic Card", "List", "Carousel", "Suggestions"),
+            // Build a list
+            app.buildList("List Title")
+                    // Add the first item to the list
+                    .addItems(app.buildOptionItem(SELECTION_KEY_ONE,
+                            "synonym of title 1", "synonym of title 2", "synonym of title 3")
+                            .setTitle("Title of First List Item")
+                            .setDescription("This is a description of a list item")
+                            .setImage(IMG_URL_AOG, "Image alternate text"))
+                    // Add the second item to the list
+                    .addItems(app.buildOptionItem(SELECTION_KEY_GOOGLE_HOME,
+                            "Google Home Assistant", "Assistant on the Google Home")
+                            .setTitle("Google Home")
+                            .setDescription("Google Home is a voice-activated speaker powered by the Google Assistant.")
+            .setImage(IMG_URL_GOOGLE_HOME, "Google Home")
+    )
+    // Add third item to the list
+    .addItems(app.buildOptionItem(SELECTION_KEY_GOOGLE_PIXEL,
+            "Google Pixel XL", "Pixel", "Pixel XL")
+            .setTitle("Google Pixel")
+            .setDescription("Pixel. Phone by Google.")
+            .setImage(IMG_URL_GOOGLE_PIXEL, "Google Pixel")
+    )
+            // Add last item of the list
+            .addItems(app.buildOptionItem(SELECTION_KEY_GOOGLE_ALLO)
+                    .setTitle("Google Allo")
+                    .setDescription("Introducing Google Allo, a smart messaging app" +
+                            "that helps you say more and do more.")
+                    .setImage(IMG_URL_GOOGLE_ALLO, "Google Allo Logo")
+                    .addSynonyms("Allo")
+            )
+    )
+}
+
 fun byeResponse(action: ApiAiApp<Parameters>) =
         action.ask {
-            speech = "Okay see you later"
+            textToSpeech = "Okay see you later"
             displayText = "OK see you later!"
         }
 
-fun normalBye(action: ApiAiApp<Parameters>) = action.ask { speech = "Okay see you later!" }
+fun normalBye(action: ApiAiApp<Parameters>) = action.ask { textToSpeech = "Okay see you later!" }
 
 val actionMap = mapOf(
         WELCOME to ::welcome,
         NORMAL_ASK to ::normalAsk,
+        LIST to ::list,
         BYE_RESPONSE to ::byeResponse,
         NORMAL_BYE to ::normalBye)
 

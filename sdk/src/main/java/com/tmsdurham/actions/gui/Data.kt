@@ -2,6 +2,7 @@ package com.tmsdurham.actions.gui
 
 import com.ticketmaster.apiai.google.GoogleData
 import com.ticketmaster.banjo.domain.bot.output.gui.TransactionCompleteData
+import com.tmsdurham.actions.SimpleResponse
 
 
 data class Data(
@@ -52,7 +53,7 @@ enum class Permission {
 
 fun Array<out Permission>.toListOrStrings() = this.map { it.toString() }
 
-data class SimpleResponse(var speech: String = "", var displayText: String = "") {
-    fun isEmpty() = speech.isNullOrEmpty() && displayText.isNullOrBlank()
-}
-
+//data class SimpleResponse(var speech: String = "", var displayText: String = "") {
+//    fun isEmpty() = speech.isNullOrEmpty() && displayText.isNullOrBlank()
+//}
+//

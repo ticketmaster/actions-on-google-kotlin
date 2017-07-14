@@ -2,8 +2,6 @@ package com.tmsdurham.actions
 
 import com.ticketmaster.apiai.*
 import com.ticketmaster.apiai.google.GoogleData
-import com.tmsdurham.actions.gui.SimpleResponse
-
 
 class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
 
@@ -86,11 +84,15 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      * @apiai
      */
 
-    override fun askWithList(speech: String?, richResponse: GoogleData.RichResponse): ResponseWrapper<ApiAiResponse<T>>? {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    fun askWithList(richResponse: RichResponse, list: List): ResponseWrapper<ApiAiResponse<T>>? {
+        if (richResponse.items?.size ?: 0 < 2) {
+            this.handleError("List requires at least 2 items")
+            return null
+        }
+        return askWithResponseAndList(buildResponse(richResponse, true), list)
     }
 
-    override fun askWithList(inputPrompt: String?, list: List): ResponseWrapper<ApiAiResponse<T>>? {
+    fun askWithList(inputPrompt: String?, list: List): ResponseWrapper<ApiAiResponse<T>>? {
         debug("askWithList: inputPrompt=$inputPrompt, list=$list")
         if (inputPrompt.isNullOrBlank()) {
             this.handleError("Invalid input prompt");
@@ -101,7 +103,10 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
             this.handleError("List requires at least 2 items")
             return null
         }
-        val response = buildResponse(inputPrompt ?: "", true)
+        return askWithResponseAndList(buildResponse(inputPrompt ?: "", true), list)
+    }
+
+    private fun askWithResponseAndList(response: ResponseWrapper<ApiAiResponse<T>>?, list: List): ResponseWrapper<ApiAiResponse<T>>? {
         if (response == null) {
             error("Error in building response")
             return null
@@ -125,7 +130,6 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
             return null
         }
     }
-
 
     /**
      * Asks to collect the user"s input with a carousel.
@@ -236,7 +240,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      * @return The response that is sent back to Assistant.
      * @apiai
      */
-    override fun tell(richResponse: GoogleData.RichResponse?): ResponseWrapper<ApiAiResponse<T>>? {
+    override fun tell(richResponse: RichResponse?): ResponseWrapper<ApiAiResponse<T>>? {
         debug("tell: richResponse=$richResponse")
         if (richResponse == null || richResponse.isEmpty()) {
             handleError("Invalid rich response")
@@ -250,7 +254,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         }
     }
 
-    override fun tell(simpleResponse: GoogleData.SimpleResponse): ResponseWrapper<ApiAiResponse<T>>? {
+    override fun tell(simpleResponse: SimpleResponse): ResponseWrapper<ApiAiResponse<T>>? {
         debug("tell: speechResponse=$simpleResponse")
         if (simpleResponse.isEmpty()) {
             handleError("Invalid speech response")
@@ -342,7 +346,7 @@ if (!isStringResponse) {
      * @private
      * @apiai
      */
-    fun buildResponse(simpleResponse: GoogleData.SimpleResponse, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse<T>>? {
+    fun buildResponse(simpleResponse: SimpleResponse, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse<T>>? {
         debug("buildResponse_: simpleResponse=$simpleResponse, expectUserResponse=$expectUserResponse, noInputs=$noInputs")
         if (simpleResponse.isEmpty()) {
             handleError("Invalid text to speech")
@@ -362,7 +366,7 @@ if (!isStringResponse) {
      * @private
      * @apiai
      */
-    fun buildResponse(textToSpeech: GoogleData.RichResponse, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse<T>>? {
+    fun buildResponse(textToSpeech: RichResponse, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse<T>>? {
         debug("buildResponse_: textToSpeech=$textToSpeech, expectUserResponse=$expectUserResponse, noInputs=$noInputs")
         if (textToSpeech.isEmpty()) {
             handleError("Invalid text to speech")

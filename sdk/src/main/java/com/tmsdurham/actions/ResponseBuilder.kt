@@ -1,9 +1,139 @@
 package com.tmsdurham.actions
 
-import com.ticketmaster.apiai.google.GoogleData
-
 var LIST_ITEM_LIMIT = 30
 var CAROUSEL_ITEM_LIMIT = 10
+
+
+data class RichResponse(
+        var items: MutableList<RichResponseItem>? = null,
+        var suggestions: MutableList<Suggestions>? = null,
+        var altLinkSuggestion: AltLinkSuggestion? = null,
+        var linkOutSuggestion: LinkOutSuggestion? = null) {
+
+    fun isEmpty() = ((items == null || items!!.isEmpty()) &&
+            (suggestions == null || suggestions!!.isEmpty()) &&
+            (altLinkSuggestion == null) &&
+            (linkOutSuggestion == null))
+
+    /**
+     * Adds a SimpleResponse to list of items.
+     *
+     * @param {string|SimpleResponse} simpleResponse Simple response to present to
+     *     user. If just a string, display text will not be set.
+     * @return {RichResponse} Returns current constructed RichResponse.
+     */
+    fun addSimpleResponse(init: SimpleResponse.() -> Unit): RichResponse {
+        val simpleResponse = SimpleResponse()
+        simpleResponse.init()
+        if (simpleResponse.isEmpty()) {
+            error("Invalid simpleResponse")
+            return this
+        }
+        // Validate if RichResponse already contains two SimpleResponse objects
+        var simpleResponseCount = 0
+        if (items?.count { it?.simpleResponse != null } ?: 0 >= 2) {
+            error("Cannot include >2 SimpleResponses in RichResponse")
+            return this
+        }
+        val simpleResponseObj = RichResponseItem(simpleResponse = simpleResponse)
+
+        // Check first if needs to replace BasicCard at beginning of items list
+        if (items == null) {
+            items = mutableListOf()
+        }
+        if (items!!.size > 0 && (items!![0].basicCard != null ||
+                items!![0].structuredResponse != null)) {
+            items!!.add(0, simpleResponseObj)
+        } else {
+            items!!.add(simpleResponseObj)
+        }
+        return this
+    }
+
+    fun addSimpleResponse(simpleResponse: String) = addSimpleResponse({ textToSpeech = simpleResponse })
+
+    fun addSimpleResponse(simpleResponse: SimpleResponse): RichResponse {
+        addSimpleResponse {
+            textToSpeech = simpleResponse.textToSpeech
+            displayText = simpleResponse.displayText
+        }
+        return this
+    }
+
+    /**
+     * Adds a single suggestion or list of suggestions to list of items.
+     *
+     * @param {string|Array<string>} suggestions Either a single string suggestion
+     *     or list of suggestions to add.
+     * @return {RichResponse} Returns current constructed RichResponse.
+     */
+    fun addSuggestions(vararg suggestions: String): RichResponse {
+        if (suggestions.isEmpty()) {
+            error("Invalid suggestions");
+            return this
+        }
+        if (this.suggestions == null) {
+            this.suggestions = mutableListOf()
+        }
+        this.suggestions?.addAll(suggestions.map { Suggestions(it) })
+        return this
+    }
+
+}
+
+data class LinkOutSuggestion(
+        var destination_name: String? = null,
+        var url: String? = null)
+
+//weird structure here.  This is Wrapper for ONE of the objects below.
+data class RichResponseItem(
+        var simpleResponse: SimpleResponse? = null,
+        var basicCard: BasicCard? = null,
+        var structuredResponse: StructuredResponse? = null)
+
+data class StructuredResponse(var orderUpdate: OrderUpdate)
+
+data class OrderUpdate(var googleOrderId: String, var orderState: OrderState)
+
+data class OrderState(var state: String, var label: String)
+
+data class AltLinkSuggestion(var url: String? = null)
+
+data class Suggestions(var title: String? = null)
+
+
+data class BasicCard(
+        var formattedText: String? = null,
+        var buttons: MutableList<Buttons>? = null,
+        var title: String? = null,
+        var image: Image? = null,
+        var subtitle: String? = null)
+
+
+data class Buttons(
+        var title: String? = null,
+        var openUrlAction: OpenUrlAction? = null)
+
+data class OpenUrlAction(var url: String? = null)
+
+data class Image(var url: String? = null, var accessibilityText: String, var width: Int? = null, var height: Int? = null)
+
+data class Items(
+        var optionInfo: OptionInfo? = null,
+        var title: String? = null,
+        var description: String? = null,
+        var image: Image? = null)
+
+data class ListSelect(
+        var title: String? = null,
+        var items: MutableList<Items>? = null)
+
+data class SimpleResponse(
+        var textToSpeech: String? = null,
+        var ssml: String? = null,
+        var displayText: String? = null) {
+    fun isEmpty() = textToSpeech.isNullOrBlank() && ssml.isNullOrBlank() && displayText.isNullOrBlank()
+}
 
 /**
  * Class for initializing and constructing Lists with chainable interface.
@@ -84,7 +214,7 @@ data class Carousel(var items: MutableList<OptionItem> = mutableListOf()) {
 
 }
 
-data class OptionInfo(var key: String = "", var synonyms: MutableList<String> = mutableListOf(), var description: String? = null, var image: GoogleData.Image? = null)
+data class OptionInfo(var key: String = "", var synonyms: MutableList<String> = mutableListOf(), var description: String? = null, var image: Image? = null)
 
 /**
  * Class for initializing and constructing Option Items with chainable interface.
@@ -105,7 +235,7 @@ data class OptionItem(var optionInfo: OptionInfo = OptionInfo()) {
 
     var title: String? = null
     var description: String? = null
-    var image: GoogleData.Image? = null
+    var image: Image? = null
 
     /**
      * Sets the title for this Option Item.
@@ -113,7 +243,7 @@ data class OptionItem(var optionInfo: OptionInfo = OptionInfo()) {
      * @param {string} title Title to show on item.
      * @return {OptionItem} Returns current constructed OptionItem.
      */
-    fun setTitle (title: String): OptionItem {
+    fun setTitle(title: String): OptionItem {
         if (!title.isNotBlank()) {
             error("title cannot be empty")
             return this
@@ -128,7 +258,7 @@ data class OptionItem(var optionInfo: OptionInfo = OptionInfo()) {
      * @param {string} description Description to show on item.
      * @return {OptionItem} Returns current constructed OptionItem.
      */
-    fun setDescription (description: String): OptionItem {
+    fun setDescription(description: String): OptionItem {
         if (description.isNotBlank()) {
             error("descriptions cannot be empty")
             return this
@@ -147,7 +277,7 @@ data class OptionItem(var optionInfo: OptionInfo = OptionInfo()) {
      * @param {number=} height Height of the image.
      * @return {OptionItem} Returns current constructed OptionItem.
      */
-    fun setImage (url: String, accessibilityText: String, width: Int? = null, height: Int? = null): OptionItem {
+    fun setImage(url: String, accessibilityText: String, width: Int? = null, height: Int? = null): OptionItem {
         if (url.isNotBlank()) {
             error("url cannot be empty")
             return this
@@ -156,7 +286,7 @@ data class OptionItem(var optionInfo: OptionInfo = OptionInfo()) {
             error("accessibilityText cannot be empty")
             return this
         }
-        image = GoogleData.Image(url = url, accessibilityText = accessibilityText)
+        image = Image(url = url, accessibilityText = accessibilityText)
         if (width != null) {
             image?.width = width
         }
@@ -173,7 +303,7 @@ data class OptionItem(var optionInfo: OptionInfo = OptionInfo()) {
      * @param {string} key Key to uniquely identify this item.
      * @return {OptionItem} Returns current constructed OptionItem.
      */
-    fun setKey (key: String): OptionItem {
+    fun setKey(key: String): OptionItem {
         if (key.isNotBlank()) {
             error("key cannot be empty")
             return this
@@ -189,7 +319,7 @@ data class OptionItem(var optionInfo: OptionInfo = OptionInfo()) {
      *     or list of synonyms to add.
      * @return {OptionItem} Returns current constructed OptionItem.
      */
-    fun addSynonyms (vararg synonyms: String?): OptionItem {
+    fun addSynonyms(vararg synonyms: String?): OptionItem {
         if (synonyms == null || synonyms.isEmpty()) {
             error("Invalid synonyms")
             return this

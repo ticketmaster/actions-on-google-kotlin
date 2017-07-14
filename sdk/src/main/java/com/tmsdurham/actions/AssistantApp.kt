@@ -295,29 +295,25 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      *     use to identify this option instead of the option key.
      * @return {OptionItem} Constructed OptionItem.
      */
-    fun buildOptionItem (key: String, synonyms: MutableList<String>): OptionInfo {
-        val optionItem = OptionInfo()
+    fun buildOptionItem (key: String, vararg synonyms: String): OptionItem {
+        val optionInfo = OptionInfo()
         if (!key.isNullOrBlank()) {
-            optionItem?.key = key
+            optionInfo?.key = key
         }
         if (synonyms.isNotEmpty()) {
-            optionItem?.synonyms = synonyms
+            optionInfo?.synonyms = synonyms.toMutableList()
         }
-        return optionItem
-    }
-
-    fun buildOptionItem (key: String, synonym: String): OptionItem {
-        return OptionItem(OptionInfo(key, mutableListOf(synonym)))
+        return OptionItem(optionInfo)
     }
 
     internal abstract fun fulfillPermissionRequest(permissionSpec: GoogleData.PermissionsRequest): Any
 
     abstract fun getIntent(): String
     abstract fun tell(speech: String, displayText: String = ""): ResponseWrapper<S>?
-    abstract fun tell(richResponse: GoogleData.RichResponse?): ResponseWrapper<S>?
-    abstract fun tell(simpleResponse: GoogleData.SimpleResponse): ResponseWrapper<S>?
-    abstract fun askWithList(speech: String? = null, richResponse: GoogleData.RichResponse): ResponseWrapper<S>?
-    abstract fun askWithList(speech: String? = null, list: List): ResponseWrapper<S>?
+    abstract fun tell(richResponse: RichResponse?): ResponseWrapper<S>?
+    abstract fun tell(simpleResponse: SimpleResponse): ResponseWrapper<S>?
+//    abstract fun askWithList(speech: String? = null, richResponse: RichResponse): ResponseWrapper<S>?
+//    abstract fun askWithList(speech: String? = null, list: List): ResponseWrapper<S>?
 
     // ---------------------------------------------------------------------------
     //                   Private Helpers
@@ -391,11 +387,11 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      * @param {RichResponse=} richResponse RichResponse to clone.
      * @return {RichResponse} Constructed RichResponse.
      */
-    fun buildRichResponse(richResponse: GoogleData.RichResponse? = null): GoogleData.RichResponse {
+    fun buildRichResponse(richResponse: RichResponse? = null): RichResponse {
         if (richResponse != null) {
             return richResponse.copy()
         } else {
-            return GoogleData.RichResponse()
+            return RichResponse()
         }
     }
 
@@ -444,4 +440,9 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
         logger.info(msg)
     }
 }
+
+
+// ---------------------------------------------------------------------------
+//                   Kotlin Specific
+// ---------------------------------------------------------------------------
 
