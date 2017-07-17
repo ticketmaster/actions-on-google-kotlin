@@ -32,6 +32,7 @@ fun <T> apiAiResponse(init: ApiAiResponse<T>.() -> Unit): ApiAiResponse<T> {
 
 fun test() {
     apiAiResponse<Any> {
+        displayText = "display Text"
         data {
             google {
 

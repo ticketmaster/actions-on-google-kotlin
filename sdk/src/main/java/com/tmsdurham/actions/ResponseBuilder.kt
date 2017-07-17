@@ -22,15 +22,13 @@ data class RichResponse(
      *     user. If just a string, display text will not be set.
      * @return {RichResponse} Returns current constructed RichResponse.
      */
-    fun addSimpleResponse(init: SimpleResponse.() -> Unit): RichResponse {
-        val simpleResponse = SimpleResponse()
-        simpleResponse.init()
+    fun addSimpleResponse(speech: String, displayText: String? = null): RichResponse {
+        val simpleResponse = SimpleResponse(speech, displayText)
         if (simpleResponse.isEmpty()) {
             error("Invalid simpleResponse")
             return this
         }
         // Validate if RichResponse already contains two SimpleResponse objects
-        var simpleResponseCount = 0
         if (items?.count { it?.simpleResponse != null } ?: 0 >= 2) {
             error("Cannot include >2 SimpleResponses in RichResponse")
             return this
@@ -49,14 +47,41 @@ data class RichResponse(
         }
         return this
     }
-
-    fun addSimpleResponse(simpleResponse: String) = addSimpleResponse({ textToSpeech = simpleResponse })
+//
+//    fun addSimpleResponse(speech: String, displayText: String? = null) = addSimpleResponse {
+//        textToSpeech = speech
+//        this.displayText = displayText
+//    }
 
     fun addSimpleResponse(simpleResponse: SimpleResponse): RichResponse {
-        addSimpleResponse {
-            textToSpeech = simpleResponse.textToSpeech
-            displayText = simpleResponse.displayText
+        return addSimpleResponse(
+            speech = simpleResponse.textToSpeech ?: "",
+            displayText = simpleResponse.displayText ?: "")
+    }
+
+    /**
+     * Adds a BasicCard to list of items.
+     *
+     * @param {BasicCard} basicCard Basic card to include in response.
+     * @return {RichResponse} Returns current constructed RichResponse.
+     */
+    fun addBasicCard(basicCard: BasicCard): RichResponse {
+        if (basicCard == null) {
+            error("Invalid basicCard")
+            return this
         }
+        // Validate if basic card is already present
+        if (items?.count { it.basicCard != null } ?: 0 > 0) {
+            error("Cannot include >1 BasicCard in RichResponse")
+            return this
+        }
+        if (items == null) {
+            items = mutableListOf()
+        }
+        val item = RichResponseItem()
+        item.basicCard = basicCard
+        items!!.add(item)
+
         return this
     }
 
@@ -69,7 +94,7 @@ data class RichResponse(
      */
     fun addSuggestions(vararg suggestions: String): RichResponse {
         if (suggestions.isEmpty()) {
-            error("Invalid suggestions");
+            error("Invalid suggestions")
             return this
         }
         if (this.suggestions == null) {
@@ -79,10 +104,33 @@ data class RichResponse(
         return this
     }
 
+    /**
+     * Sets the suggestion link for this rich response.
+     *
+     * @param {string} destinationName Name of the link out destination.
+     * @param {string} suggestionUrl - String URL to open when suggestion is used.
+     * @return {RichResponse} Returns current constructed RichResponse.
+     */
+    fun addSuggestionLink(destinationName: String, suggestionUrl: String): RichResponse {
+        if (destinationName.isBlank()) {
+            error("destinationName cannot be empty")
+            return this
+        }
+        if (suggestionUrl.isBlank()) {
+            error("suggestionUrl cannot be empty")
+            return this
+        }
+        this.linkOutSuggestion = LinkOutSuggestion(
+                destinationName = destinationName,
+                url = suggestionUrl)
+        return this
+    }
+
+
 }
 
 data class LinkOutSuggestion(
-        var destination_name: String? = null,
+        var destinationName: String? = null,
         var url: String? = null)
 
 //weird structure here.  This is Wrapper for ONE of the objects below.
@@ -100,14 +148,6 @@ data class OrderState(var state: String, var label: String)
 data class AltLinkSuggestion(var url: String? = null)
 
 data class Suggestions(var title: String? = null)
-
-
-data class BasicCard(
-        var formattedText: String? = null,
-        var buttons: MutableList<Buttons>? = null,
-        var title: String? = null,
-        var image: Image? = null,
-        var subtitle: String? = null)
 
 
 data class Buttons(
@@ -136,6 +176,132 @@ data class SimpleResponse(
 }
 
 /**
+ * Class for initializing and constructing Basic Cards with chainable interface.
+ */
+/**
+ * Title of the card. Optional.
+ * @type {string}
+ *
+ * Body text to show on the card. Required, unless image is present.
+ * @type {string}
+ *
+ * Subtitle of the card. Optional.
+ * @type {string}
+ *
+ * Image to show on the card. Optional.
+ * @type {Image}
+ *
+ * Ordered list of buttons to show below card. Optional.
+ * @type {Array<Button>}
+ */
+class BasicCard(var title: String = "",
+                var formattedText: String? = null,
+                var subtitle: String? = null,
+                var image: Image? = null,
+                var buttons: MutableList<Buttons>? = null) {
+
+    /**
+     * Sets the title for this Basic Card.
+     *
+     * @param {string} title Title to show on card.
+     * @return {BasicCard} Returns current constructed BasicCard.
+     */
+    fun setTitle (title: String): BasicCard
+    {
+        if (title.isBlank()) {
+            error("title cannot be empty")
+            return this
+        }
+        this.title = title
+        return this
+    }
+
+    /**
+     * Sets the subtitle for this Basic Card.
+     *
+     * @param {string} subtitle Subtitle to show on card.
+     * @return {BasicCard} Returns current constructed BasicCard.
+     */
+    fun setSubtitle (subtitle: String): BasicCard
+    {
+        if (subtitle.isBlank()) {
+            error("subtitle cannot be empty")
+            return this
+        }
+        this.subtitle = subtitle
+        return this
+    }
+
+    /**
+     * Sets the body text for this Basic Card.
+     *
+     * @param {string} bodyText Body text to show on card.
+     * @return {BasicCard} Returns current constructed BasicCard.
+     */
+    fun setBodyText (bodyText: String): BasicCard
+    {
+        if (bodyText.isBlank()) {
+            error("bodyText cannot be empty")
+            return this
+        }
+        this.formattedText = bodyText
+        return this
+    }
+
+    /**
+     * Sets the image for this Basic Card.
+     *
+     * @param {string} url Image source URL.
+     * @param {string} accessibilityText Text to replace for image for
+     *     accessibility.
+     * @param {number=} width Width of the image.
+     * @param {number=} height Height of the image.
+     * @return {BasicCard} Returns current constructed BasicCard.
+     */
+    fun setImage (url: String, accessibilityText: String, width: Int? = null, height: Int? = null): BasicCard {
+        if (url.isBlank()) {
+            error("url cannot be empty")
+            return this
+        }
+        if (accessibilityText.isBlank()) {
+            error("accessibilityText cannot be empty")
+            return this
+        }
+        this.image = Image(url = url, accessibilityText = accessibilityText, width = width, height = height)
+        return this
+    }
+
+    /**
+     * Adds a button below card.
+     *
+     * @param {string} text Text to show on button.
+     * @param {string} url URL to open when button is selected.
+     * @return {BasicCard} Returns current constructed BasicCard.
+     */
+    fun addButton (text: String, url: String): BasicCard
+    {
+        if (text.isBlank()) {
+            error("text cannot be empty")
+            return this
+        }
+        if (url.isBlank()) {
+            error("url cannot be empty")
+            return this
+        }
+        if (buttons == null) {
+            buttons = mutableListOf()
+        }
+        this.buttons!!.add(Buttons(
+            title = text,
+            openUrlAction = OpenUrlAction(
+            url = url))
+        )
+        return this
+    }
+}
+
+
+/**
  * Class for initializing and constructing Lists with chainable interface.
  */
 data class List(var title: String? = null, var items: MutableList<OptionItem>? = null) {
@@ -147,7 +313,7 @@ data class List(var title: String? = null, var items: MutableList<OptionItem>? =
      * @return {List} Returns current constructed List.
      */
     fun setTitle(title: String): List {
-        if (title.isNullOrBlank()) {
+        if (title.isBlank()) {
             error("title cannot be empty")
             return this
         }
@@ -244,7 +410,7 @@ data class OptionItem(var optionInfo: OptionInfo = OptionInfo()) {
      * @return {OptionItem} Returns current constructed OptionItem.
      */
     fun setTitle(title: String): OptionItem {
-        if (!title.isNotBlank()) {
+        if (title.isBlank()) {
             error("title cannot be empty")
             return this
         }
@@ -259,7 +425,7 @@ data class OptionItem(var optionInfo: OptionInfo = OptionInfo()) {
      * @return {OptionItem} Returns current constructed OptionItem.
      */
     fun setDescription(description: String): OptionItem {
-        if (description.isNotBlank()) {
+        if (description.isBlank()) {
             error("descriptions cannot be empty")
             return this
         }
@@ -278,11 +444,11 @@ data class OptionItem(var optionInfo: OptionInfo = OptionInfo()) {
      * @return {OptionItem} Returns current constructed OptionItem.
      */
     fun setImage(url: String, accessibilityText: String, width: Int? = null, height: Int? = null): OptionItem {
-        if (url.isNotBlank()) {
+        if (url.isBlank()) {
             error("url cannot be empty")
             return this
         }
-        if (accessibilityText.isNotBlank()) {
+        if (accessibilityText.isBlank()) {
             error("accessibilityText cannot be empty")
             return this
         }
@@ -304,7 +470,7 @@ data class OptionItem(var optionInfo: OptionInfo = OptionInfo()) {
      * @return {OptionItem} Returns current constructed OptionItem.
      */
     fun setKey(key: String): OptionItem {
-        if (key.isNotBlank()) {
+        if (key.isBlank()) {
             error("key cannot be empty")
             return this
         }

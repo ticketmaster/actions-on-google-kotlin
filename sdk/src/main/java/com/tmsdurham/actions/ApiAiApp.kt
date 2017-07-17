@@ -42,6 +42,67 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         }
     }
 
+    /**
+     * Asks to collect the user"s input.
+     *
+     * NOTE: Due to a bug, if you specify the no-input prompts,
+     * the mic is closed after the 3rd prompt, so you should use the 3rd prompt
+     * for a bye message until the bug is fixed.
+     *
+     * @example
+     * const app = new ApiAiApp({request: request, response: response});
+     * const WELCOME_INTENT = "input.welcome";
+     * const NUMBER_INTENT = "input.number";
+     *
+     * function welcomeIntent (app) {
+     *   app.ask("Welcome to action snippets! Say a number.",
+     *     ["Say any number", "Pick a number", "We can stop here. See you soon."]);
+     * }
+     *
+     * function numberIntent (app) {
+     *   const number = app.getArgument(NUMBER_ARGUMENT);
+     *   app.tell("You said " + number);
+     * }
+     *
+     * const actionMap = new Map();
+     * actionMap.set(WELCOME_INTENT, welcomeIntent);
+     * actionMap.set(NUMBER_INTENT, numberIntent);
+     * app.handleRequest(actionMap);
+     *
+     * @param {string|SimpleResponse|RichResponse} inputPrompt The input prompt
+     *     response.
+     * @param {Array<string>=} noInputs Array of re-prompts when the user does not respond (max 3).
+     * @return {Object} HTTP response.
+     * @apiai
+     */
+    fun ask(inputPrompt: RichResponse, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("ask: inputPrompt=$inputPrompt, noInputs=$noInputs")
+        if (inputPrompt.isEmpty()) {
+            handleError("Invalid input prompt")
+            return null
+        }
+        val response = buildResponse(inputPrompt, true, noInputs)
+        if (response == null) {
+            error("Error in building response");
+            return null
+        }
+        return doResponse(response, RESPONSE_CODE_OK)
+    }
+
+    fun ask(speech: String, vararg noInputs: String = arrayOf()): ResponseWrapper<ApiAiResponse<T>>? {
+       debug("ask: speech:$speech")
+        if (speech.isBlank()) {
+            handleError("Invalid input prompt")
+            return null
+        }
+        val response = buildResponse(speech, true, noInputs = noInputs.toMutableList())
+        if (response == null) {
+            error("Error in building response")
+            return null
+        }
+        return doResponse(response, RESPONSE_CODE_OK)
+    }
+
 
     /**
      * Asks to collect the user"s input with a list.
@@ -85,7 +146,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      */
 
     fun askWithList(richResponse: RichResponse, list: List): ResponseWrapper<ApiAiResponse<T>>? {
-        if (richResponse.items?.size ?: 0 < 2) {
+        if (list.items?.size ?: 0 < 2) {
             this.handleError("List requires at least 2 items")
             return null
         }
@@ -201,9 +262,50 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
             )
         } else {
             response.body?.data?.google?.systemIntent?.spec = GoogleData.Spec(
-                optionValueSpec = GoogleData.OptionValueSpec(
-                carouselSelect = carousel
-                )
+                    optionValueSpec = GoogleData.OptionValueSpec(
+                            carouselSelect = carousel
+                    )
+            )
+        }
+        if (response != null) {
+            return doResponse(response, RESPONSE_CODE_OK);
+        } else {
+            return null
+        }
+    }
+
+    fun askWithCarousel(inputPrompt: RichResponse, carousel: Carousel): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("askWithCarousel: inputPrompt=$inputPrompt, carousel=$carousel")
+        if (inputPrompt.isEmpty()) {
+            handleError("Invalid input prompt");
+            return null
+        }
+        if (carousel == null) {
+            handleError("Invalid carousel")
+            return null
+        }
+        if (carousel.items.size < 2) {
+            handleError("Carousel requires at least 2 items")
+            return null
+        }
+        val response = buildResponse(inputPrompt, true)
+        if (response == null) {
+            error("Error in building response")
+            return null
+        }
+        response.body?.data?.google?.systemIntent = GoogleData.SystemIntent(
+                intent = STANDARD_INTENTS.OPTION
+        )
+        if (isNotApiVersionOne()) {
+            response.body?.data?.google?.systemIntent?.data = GoogleData.Data(
+                    `@type` = INPUT_VALUE_DATA_TYPES.OPTION,
+                    carouselSelect = carousel
+            )
+        } else {
+            response.body?.data?.google?.systemIntent?.spec = GoogleData.Spec(
+                    optionValueSpec = GoogleData.OptionValueSpec(
+                            carouselSelect = carousel
+                    )
             )
         }
         if (response != null) {
@@ -282,26 +384,6 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         }
     }
 
-
-    fun ask(response: SimpleResponse.() -> Unit): Unit {
-
-    }
-
-    fun ask(action: ApiAiApp<T>) {
-
-    }
-
-    fun simpleResponse(action: ApiAiApp<T>.() -> Unit): Unit {
-
-    }
-
-    fun getUser(): User? {
-        if (request.body.originalRequest?.data?.user == null) {
-            return null
-        }
-        return request.body.originalRequest?.data?.user
-    }
-
     override fun getIntent(): String {
         debug("getIntent_");
         return request.body.result.action
@@ -366,18 +448,18 @@ if (!isStringResponse) {
      * @private
      * @apiai
      */
-    fun buildResponse(textToSpeech: RichResponse, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse<T>>? {
-        debug("buildResponse_: textToSpeech=$textToSpeech, expectUserResponse=$expectUserResponse, noInputs=$noInputs")
-        if (textToSpeech.isEmpty()) {
+    fun buildResponse(richResponse: RichResponse, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("buildResponse_: textToSpeech=$richResponse, expectUserResponse=$expectUserResponse, noInputs=$noInputs")
+        if (richResponse.isEmpty()) {
             handleError("Invalid text to speech")
             return null
         }
-        if (textToSpeech.items?.first()?.simpleResponse == null || textToSpeech.items?.first()?.simpleResponse?.textToSpeech.isNullOrBlank()) {
+        if (richResponse.items?.first()?.simpleResponse == null || richResponse.items?.first()?.simpleResponse?.textToSpeech.isNullOrBlank()) {
             handleError("Invalid text to speech")
             return null
         }
 
-        val speech = textToSpeech.items?.first()?.simpleResponse?.textToSpeech!!
+        val speech = richResponse.items?.first()?.simpleResponse?.textToSpeech!!
         var noInputsFinal = mutableListOf<GoogleData.NoInputPrompts>()
         val dialogState = DialogState(
                 state = state, //TODO (this.state instanceof State ? this.state.getName() : this.state),
@@ -400,6 +482,7 @@ if (!isStringResponse) {
         response.data.google = GoogleData(
                 expectUserResponse = expectUserResponse,
                 isSsml = isSsml(speech),
+                richResponse = richResponse,
                 noInputPrompts = noInputsFinal)
         if (expectUserResponse) {
             response.contextOut.add(
@@ -450,7 +533,6 @@ if (!isStringResponse) {
         }
         val response = ApiAiResponse<T>(
                 speech = textToSpeech)
-//                    textToSpeech.items[0].simpleResponse.textToSpeech,
         response.data.google = GoogleData(
                 expectUserResponse = expectUserResponse,
                 isSsml = isSsml(textToSpeech),

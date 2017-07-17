@@ -396,6 +396,21 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
     }
 
     /**
+     * Constructs BasicCard with chainable property setters.
+     *
+     * @param {string=} bodyText Body text of the card. Can be set using setTitle
+     *     instead.
+     * @return {BasicCard} Constructed BasicCard.
+     */
+    fun buildBasicCard (bodyText: String): BasicCard {
+        val card = BasicCard()
+        if (bodyText.isBlank()) {
+            card.title = bodyText
+        }
+        return card
+    }
+
+    /**
      * Helper to build prompts from SSML"s.
      *
      * @param {Array<string>} ssmls Array of ssml.
