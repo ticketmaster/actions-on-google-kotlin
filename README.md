@@ -1,24 +1,21 @@
 # Actions On Google Client Library
 
 
-Unofficial Kotlin SDK for building Actions on Google.  This is a port of the official nodejs SDK to Kotlin.  
+Unofficial Kotlin SDK for building Actions on Google on the JVM.  This is a port of the (official nodejs SDK)[https://github.com/actions-on-google/actions-on-google-nodejs] to Kotlin.  This can also be used from Java.
 
-__Goals__:
+__Goals of this project__:
 
  * Port the actions-on-google SDK to Kotlin so Kotlin and Java developers can quickly start building Actions for Google Assistant.
  * match nodejs API
  * match implementation of nodejs closely so code can be maintained easily as features are added
  * pass all tests from nodejs SDK (using Spek framework)
  * support Api.Ai and Actions SDK (Api.Ai is top priority)
+ * port samples
  * release artifact to maven central
 
 # *** Work in progress ***
 
-This project is in early stages and is a work in progress.  Currently the conversation-components are functional. You are welcome to use or make contributions
-
-This Actions On Google client library makes it easy to create your apps for the Google Assistant.
-
-The client library supports both the Actions SDK webhook and API.ai fulfillment.
+This project is in early stages and is a work in progress.  Currently the conversation-components are functional. You are welcome to use, make contributions, and report issues on this project.
 
 Sample of what actions-on-google-koltin looks like:
 
@@ -60,9 +57,11 @@ Sample of what actions-on-google-koltin looks like:
 
 ## Setup Instructions
 
-Currently you will have to build this lib yourself or include the source.  Maven artifacts will be published soon.
+Currently you will have to build this lib yourself or include the source.  Maven artifacts will be published soon, once more is completed.
 
-Looking at Webhook.kt is a good starting point.
+Looking at Webhook.kt is a contains an example of how to make a basic webhook using Google App Engine Standard Environment.
+
+MORE COMING
 
 ## License
 See LICENSE.md.
