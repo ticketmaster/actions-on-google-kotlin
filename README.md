@@ -1,7 +1,7 @@
 # Actions On Google Client Library
 
 
-Unofficial Kotlin SDK for building Actions on Google on the JVM.  This is a port of the (official nodejs SDK)[https://github.com/actions-on-google/actions-on-google-nodejs] to Kotlin.  This can also be used from Java.
+Unofficial Kotlin SDK for building Actions on Google on the JVM.  This is a port of the [official nodejs SDK](https://github.com/actions-on-google/actions-on-google-nodejs) to Kotlin.  This can also be used from Java.
 
 __Goals of this project__:
 
