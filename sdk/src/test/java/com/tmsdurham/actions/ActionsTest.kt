@@ -477,10 +477,10 @@ object ActionsTest : Spek({
 
         val handler: MockHandler = {
             app.tell(app.buildRichResponse()
-                    .addSimpleResponse({
-                        textToSpeech = "hello"
+                    .addSimpleResponse(
+                        speech = "hello",
                         displayText = "hi"
-                    })
+                    )
                     .addSuggestions("Say this", "or this"))
         }
 
