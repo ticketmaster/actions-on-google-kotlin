@@ -1,1 +1,1 @@
-include ':sdk', ':sample-action'
+include ':sdk', ':conversation-components'
