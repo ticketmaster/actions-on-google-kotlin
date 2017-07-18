@@ -70,7 +70,7 @@ object ActionsTest : Spek({
             val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
 
             val app = ApiAiApp(request = mockRequest, response = mockResponse)
-            app.debug(mockRequest.toString())
+            debug(mockRequest.toString())
 
             expect(app.isNotApiVersionOne()).to.equal(false)
         }
@@ -172,7 +172,7 @@ object ActionsTest : Spek({
                     response = mockResponse,
                     sessionStarted = sessionStartedSpy
             )
-            app.debug(mockRequest.toString())
+            debug(mockRequest.toString())
 
             app.handleRequest(handler = {})
 

@@ -7,6 +7,8 @@ import java.util.logging.Logger
 
 typealias Handler<T, S, U> = (AssistantApp<T, S, U>) -> Unit
 
+internal val logger = Logger.getAnonymousLogger()
+
 // Constants
 val ERROR_MESSAGE = "Sorry, I am unable to process your request."
 val API_ERROR_MESSAGE_PREFIX = "Action Error: "
@@ -160,7 +162,6 @@ class SignInStatus {
 
 open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val response: ResponseWrapper<S>, val sessionStarted: (() -> Unit)? = null) {
     var actionsApiVersion: String = "1"
-    val logger = Logger.getAnonymousLogger()
     lateinit var STANDARD_INTENTS: StandardIntents
     val SUPPORTED_INTENT = SupportedIntent()
     lateinit var BUILT_IN_ARG_NAMES: BuiltInArgNames
@@ -272,7 +273,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      * @param {string=} title A title to set for a new List.
      * @return {List} Constructed List.
      */
-    fun buildList (title: String? = null): List {
+    fun buildList(title: String? = null): List {
         return List(title)
     }
 
@@ -281,7 +282,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      *
      * @return {Carousel} Constructed Carousel.
      */
-    fun buildCarousel (): Carousel {
+    fun buildCarousel(): Carousel {
         return Carousel()
     }
 
@@ -295,7 +296,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      *     use to identify this option instead of the option key.
      * @return {OptionItem} Constructed OptionItem.
      */
-    fun buildOptionItem (key: String, vararg synonyms: String): OptionItem {
+    fun buildOptionItem(key: String, vararg synonyms: String): OptionItem {
         val optionInfo = OptionInfo()
         if (!key.isNullOrBlank()) {
             optionInfo?.key = key
@@ -402,7 +403,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      *     instead.
      * @return {BasicCard} Constructed BasicCard.
      */
-    fun buildBasicCard (bodyText: String): BasicCard {
+    fun buildBasicCard(bodyText: String): BasicCard {
         val card = BasicCard()
         if (bodyText.isBlank()) {
             card.title = bodyText
@@ -451,11 +452,11 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
         this.responded = true;
     }
 
-    fun debug(msg: String) {
-        logger.info(msg)
-    }
 }
 
+fun debug(msg: String) {
+    logger.info(msg)
+}
 
 // ---------------------------------------------------------------------------
 //                   Kotlin Specific

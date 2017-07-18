@@ -10,6 +10,10 @@ buildscript {
 }
 repositories {
     mavenCentral()
+//  below is needed currently if adding to a project
+//    maven {
+//        url 'https://dl.bintray.com/patjackson52/maven/'
+//    }
 }
 
 apply plugin: 'idea'
