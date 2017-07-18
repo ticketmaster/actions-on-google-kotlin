@@ -10,6 +10,10 @@ buildscript {
 }
 repositories {
     mavenCentral()
+//  below is needed currently if adding to a project
+//    maven {
+//        url 'https://dl.bintray.com/patjackson52/maven/'
+//    }
 }
 
 apply plugin: 'idea'
@@ -23,6 +27,7 @@ dependencies {
             'com.google.appengine:appengine:+',
             "com.google.code.gson:gson:$project.ext.gsonVersion",
             "org.jetbrains.kotlin:kotlin-stdlib-jre8:$project.ext.kotlinVersion")
+//    compile 'com.tmsdurham.actions:actions-on-google:0.1'
     compile project(':sdk')
 }
 
