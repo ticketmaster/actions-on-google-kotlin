@@ -494,12 +494,12 @@ object ActionsTest : Spek({
             "data": {
             "google": {
             "expect_user_response": false,
-            "rich_response": {
+            "richResponse": {
             "items": [
             {
-                "simple_response": {
-                "text_to_speech": "hello",
-                "display_text": "hi"
+                "simpleResponse": {
+                "textToSpeech": "hello",
+                "displayText": "hi"
             }
             }
             ],

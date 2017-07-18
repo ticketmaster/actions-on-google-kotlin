@@ -430,7 +430,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      * @private
      */
     fun buildPromptsFromPlainTextHelper(plainTexts: MutableList<String>): MutableList<GoogleData.NoInputPrompts> {
-        debug("buildPromptsFromPlainTextHelper_: plainTexts=%$plainTexts")
+        debug("buildPromptsFromPlainTextHelper_: plainTexts=$plainTexts")
         return plainTexts.map { GoogleData.NoInputPrompts(textToSpeech = it) }.toMutableList()
     }
 

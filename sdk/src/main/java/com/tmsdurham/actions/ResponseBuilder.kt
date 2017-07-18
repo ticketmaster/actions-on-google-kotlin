@@ -23,7 +23,7 @@ data class RichResponse(
      * @return {RichResponse} Returns current constructed RichResponse.
      */
     fun addSimpleResponse(speech: String, displayText: String? = null): RichResponse {
-        val simpleResponse = SimpleResponse(speech, displayText)
+        val simpleResponse = SimpleResponse(textToSpeech = speech, displayText = displayText)
         if (simpleResponse.isEmpty()) {
             error("Invalid simpleResponse")
             return this
