@@ -57,7 +57,20 @@ Sample of what actions-on-google-koltin looks like:
 
 ## Setup Instructions
 
-Currently you will have to build this lib yourself or include the source.  Maven artifacts will be published soon, once more is completed.
+Currently this lib is not synced to maven central, however it will be soon.  For now you must add this repository:
+
+    repositories {
+        mavenCentral()
+            maven {
+                url 'https://dl.bintray.com/patjackson52/maven/'
+            }
+        }
+    }
+    
+    dependencies {
+        compile 'com.tmsdurham.actions:actions-on-google:0.1'
+    }
+
 
 Looking at Webhook.kt is a contains an example of how to make a basic webhook using Google App Engine Standard Environment.
 
