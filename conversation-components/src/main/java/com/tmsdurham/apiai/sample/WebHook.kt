@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletResponse
 
 
 typealias MyAction = ApiAiApp<Parameters>
+val logger = Logger.getAnonymousLogger()
 
 const val NORMAL_ASK = "normal.ask"
 const val NORMAL_BYE = "normal.ask"
@@ -57,16 +58,15 @@ fun welcome(app: MyAction) =
 
 fun normalAsk(app: MyAction) = app.ask("Ask me to show you a list, carousel, or basic card")
 
-fun suggestions(app: MyAction) {
+fun suggestions(app: MyAction) =
     app.ask(app
             .buildRichResponse()
             .addSimpleResponse("This is a simple response for suggestions")
             .addSuggestions("Suggestion Chips")
             .addSuggestions("Basic Card", "List", "Carousel")
             .addSuggestionLink("Suggestion Link", "https://assistant.google.com/"))
-}
 
-fun basicCard(app: MyAction) {
+fun basicCard(app: MyAction) =
     app.ask(app.buildRichResponse()
             .addSimpleResponse("This is the first simple response for a basic card")
             .addSuggestions(
@@ -86,7 +86,6 @@ fun basicCard(app: MyAction) {
             .addSimpleResponse(speech = "This is the 2nd simple response ",
                     displayText = "This is the 2nd simple response")
     )
-}
 
 
 fun list(app: MyAction) {
@@ -164,7 +163,6 @@ fun carousel(app: MyAction) {
     )
 }
 
-val logger = Logger.getAnonymousLogger()
 // React to list or carousel selection
 fun itemSelected(app: MyAction) {
     app.getIntent()
@@ -180,29 +178,24 @@ fun itemSelected(app: MyAction) {
     }
 }
 
-// Recive a rich response from API.AI and modify it
-fun cardBuilder(app: MyAction) {
-    /*
+// Receive a rich response from API.AI and modify it
+fun cardBuilder(app: MyAction) =
     app.ask(app.getIncomingRichResponse()
             .addBasicCard(app.buildBasicCard("""Actions on Google let you build for
             the Google Assistant. Reach users right when they need you. Users don’t
-            need to pre-enable skills or install new apps.  \n  \nThis was written
-    in the fulfillment webhook!""")
+            need to pre-enable skills or install new apps.""" + "  \n  \nThis was written in the fulfillment webhook!")
     .setSubtitle("Engage users through the Google Assistant")
             .setTitle("Actions on Google")
             .addButton("Developer Site", "https://developers.google.com/actions/")
             .setImage("https://lh3.googleusercontent.com/Z7LtU6hhrhA-5iiO1foAfGB" +
                     "75OsO2O7phVesY81gH0rgQFI79sjx9aRmraUnyDUF_p5_bnBdWcXaRxVm2D1Rub92" +
                     "L6uxdLBl=s1376", "Actions on Google")))
-                    */
-}
 
 // Leave conversation with card
-fun byeCard(app: MyAction) {
+fun byeCard(app: MyAction) =
     app.tell(app.buildRichResponse()
             .addSimpleResponse("Goodbye, World!")
             .addBasicCard(app.buildBasicCard("This is a goodbye card.")))
-}
 
 fun byeResponse(action: MyAction) =
         action.tell(speech = "Okay see you later",
@@ -215,13 +208,13 @@ val actionMap = mapOf(
         NORMAL_ASK to ::normalAsk,
         BASIC_CARD to ::basicCard,
         LIST to ::list,
+        ITEM_SELECTED to ::itemSelected,
         CAROUSEL to ::carousel,
         SUGGESTIONS to ::suggestions,
-        ITEM_SELECTED to ::itemSelected,
         BYE_CARD to ::byeCard,
-        BYE_RESPONSE to ::byeResponse,
         NORMAL_BYE to ::normalBye,
-        BYE_RESPONSE to ::byeResponse)
+        BYE_RESPONSE to ::byeResponse,
+        CARD_BUILDER to ::cardBuilder)
 
 @WebServlet(name = "ActionsWebhook", value = "/test")
 class WebHook : HttpServlet() {

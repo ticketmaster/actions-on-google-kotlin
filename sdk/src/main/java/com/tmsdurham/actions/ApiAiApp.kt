@@ -2,8 +2,6 @@ package com.tmsdurham.actions
 
 import com.ticketmaster.apiai.*
 import com.ticketmaster.apiai.google.GoogleData
-import com.tmsdurham.actions.BuiltInArgNames
-
 
 
 class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
@@ -88,14 +86,14 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         }
         val response = buildResponse(inputPrompt, true, noInputs)
         if (response == null) {
-            error("Error in building response");
+            error("Error in building response")
             return null
         }
         return doResponse(response, RESPONSE_CODE_OK)
     }
 
     fun ask(speech: String, vararg noInputs: String = arrayOf()): ResponseWrapper<ApiAiResponse<T>>? {
-       debug("ask: speech:$speech")
+        debug("ask: speech:$speech")
         if (speech.isBlank()) {
             handleError("Invalid input prompt")
             return null
@@ -426,13 +424,13 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      *     or null if no matching argument.
      * @apiai
      */
-    fun getArgument (argName: String): Any? {
+    fun getArgument(argName: String): Any? {
         debug("getArgument: argName=$argName")
         if (argName.isBlank()) {
             this.handleError("Invalid argument name")
             return null
         }
-        val  parameters = request.body.result.parameters
+        val parameters = request.body.result.parameters
         if (getProperty(parameters, argName) != null) {
             return getProperty(parameters, argName)
         }
@@ -488,7 +486,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      *     property matching context argument. Null if no matching argument.
      * @apiai
      */
-    fun getContextArgument (contextName: String, argName: String): ContextArgument? {
+    fun getContextArgument(contextName: String, argName: String): ContextArgument? {
         debug("getContextArgument: contextName=$contextName, argName=$argName")
         if (contextName.isBlank()) {
             this.handleError("Invalid context name")
@@ -516,6 +514,77 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         return null
     }
 
+    /**
+     * Returns the RichResponse constructed in API.AI response builder.
+     *
+     * @example
+     * val app = ApiAiApp(request = req, response = res)
+     *
+     * fun tellFact (app: ApiAiApp<T>) {
+     *   val fact = "Google was founded in 1998"
+     *
+     *   if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+     *     app.ask(app.getIncomingRichResponse().addSimpleResponse("Here\"s a " +
+     *       "fact for you. " + fact + " Which one do you want to hear about " +
+     *       "next, Google\"s history or headquarters?"))
+     *   } else {
+     *     app.ask("Here\"s a fact for you. " + fact + " Which one " +
+     *       "do you want to hear about next, Google\"s history or headquarters?")
+     *   }
+     * }
+     *
+     * val actionMap = mapOf("tell.fact" to tellFact)
+     *
+     * app.handleRequest(actionMap)
+     *
+     * @return {RichResponse} RichResponse created in API.AI. If no RichResponse was
+     *     created, an empty RichResponse is returned.
+     * @apiai
+     */
+    fun getIncomingRichResponse(): RichResponse {
+        debug("getIncomingRichResponse")
+        val response = buildRichResponse()
+        request.body.result?.fulfillment?.messages?.forEach {
+            if (it != null && response.items == null) {
+                response.items = mutableListOf()
+            }
+            when (it?.type) {
+                SIMPLE_RESPONSE -> {
+                    val item = SimpleResponse()
+                    item.textToSpeech = it.textToSpeech
+                    item.displayText = it.displayText
+                    if (response?.items?.size == 0) {
+                        response.items?.add(RichResponseItem(item))
+                    } else {
+                        response.items?.add(0, RichResponseItem(item))
+                    }
+                }
+                BASIC_CARD -> {
+                    val item = BasicCard()
+                    item.formattedText = it.formattedText
+                    item.buttons = it.buttons
+                    item.image = it.image
+                    item.subtitle = it.subtitle
+                    item.title = it.title ?: ""
+                    if (response.items?.size == 0) {
+                        response?.items?.add(RichResponseItem(basicCard = item))
+                    } else {
+                        response.items?.add(0, RichResponseItem(basicCard = item))
+                    }
+                }
+                SUGGESTIONS -> {
+                    response.suggestions = it.suggestions
+                }
+                LINK_OUT_SUGGESTION -> response.linkOutSuggestion = LinkOutSuggestion(it.destinationName, it.url)
+            }
+        }
+        return response
+    }
+
+
+    /**
+     * Gets property on any object by field name via reflection
+     */
     fun getProperty(obj: Any?, name: String): Any? {
         if (obj == null) return null
         try {
@@ -627,7 +696,7 @@ if (!isStringResponse) {
             return null
         }
         if (richResponse.items?.first()?.simpleResponse == null || richResponse.items?.first()?.simpleResponse?.textToSpeech.isNullOrBlank()) {
-            handleError("Invalid text to speech")
+            handleError("Invalid RichResponse. First item must be SimpleResponse")
             return null
         }
 
