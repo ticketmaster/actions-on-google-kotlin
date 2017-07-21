@@ -134,6 +134,8 @@ data class Capabilities(
 }
 
 data class Arguments(
+        val datetimeValue: String? = null,
+        val boolValue: Boolean? = null,
         val rawText: String? = null,
         val textValue: String? = null,
         val name: String? = null,
@@ -151,6 +153,7 @@ data class TransactionRequirementsCheckResult(
         val `@type`: String = "",
         val resultType: String = "",
         val userDecision: String = "",
+        val status: String = "",
         val order: FinalOrderHolder? = null) {
 
     enum class ResultType {

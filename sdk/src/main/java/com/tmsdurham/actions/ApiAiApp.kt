@@ -2,6 +2,9 @@ package com.tmsdurham.actions
 
 import com.ticketmaster.apiai.*
 import com.ticketmaster.apiai.google.GoogleData
+import com.tmsdurham.actions.BuiltInArgNames
+
+
 
 class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
 
@@ -22,6 +25,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
     val LINK_OUT_SUGGESTION = "link_out_chip"
     val TYPE = "type"
     val PLATFORM = "platform"
+    val requestExtractor: RequestExtractor<ApiAiRequest<T>, ApiAiResponse<T>, T>
 
     var data: T? = null
 
@@ -40,6 +44,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
                 CONVERSATION_STAGES.NEW) && sessionStarted != null) {
             sessionStarted()
         }
+        requestExtractor = RequestExtractor(this)
     }
 
     /**
@@ -389,8 +394,53 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         return request.body.result.action
     }
 
+    /**
+     * Get the argument value by name from the current intent. If the argument
+     * is included in originalRequest, and is not a text argument, the entire
+     * argument object is returned.
+     *
+     * Note: If incoming request is using an API version under 2 (e.g. "v1"),
+     * the argument object will be in Proto2 format (snake_case, etc).
+     *
+     * @example
+     * val app = ApiAiApp(request = request, response = response)
+     * val WELCOME_INTENT = "input.welcome"
+     * val NUMBER_INTENT = "input.number"
+     *
+     * fun welcomeIntent (app: ApiAiApp<Parameters>) {
+     *   app.ask("Welcome to action snippets! Say a number.");
+     * }
+     *
+     * fun numberIntent (app: ApiAiApp<Parameter>) {
+     *   val number = app.getArgument(NUMBER_ARGUMENT)
+     *   app.tell("You said " + number)
+     * }
+     *
+     * val actionMap = mapOf(
+     *  WELCOME_INTENT to welcomeIntent,
+     *  NUMBER_INTENT to numberIntent)
+     * app.handleRequest(actionMap)
+     *
+     * @param {string} argName Name of the argument.
+     * @return {Object} Argument value matching argName
+     *     or null if no matching argument.
+     * @apiai
+     */
+    fun getArgument (argName: String): Any? {
+        debug("getArgument: argName=$argName")
+        if (argName.isBlank()) {
+            this.handleError("Invalid argument name")
+            return null
+        }
+        val  parameters = request.body.result.parameters
+        if (getProperty(parameters, argName) != null) {
+            return getProperty(parameters, argName)
+        }
+        return requestExtractor.getArgumentCommon(argName)
+    }
+
     fun getDeviceLocation(): DeviceLocation? {
-        return request.body.originalRequest?.data?.device?.location;
+        return request.body.originalRequest?.data?.device?.location
     }
 
     // INTERNAL FUNCTIONS
@@ -400,6 +450,128 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         response.body?.data?.google?.systemIntent?.data?.permissions = permissionSpec.permissions
     }
 
+    /**
+     * Get the context argument value by name from the current intent. Context
+     * arguments include parameters collected in previous intents during the
+     * lifespan of the given context. If the context argument has an original
+     * value, usually representing the underlying entity value, that will be given
+     * as part of the return object.
+     *
+     * @example
+     * const app = new ApiAiApp({request: request, response: response});
+     * const WELCOME_INTENT = "input.welcome";
+     * const NUMBER_INTENT = "input.number";
+     * const OUT_CONTEXT = "output_context";
+     * const NUMBER_ARG = "myNumberArg";
+     *
+     * function welcomeIntent (app) {
+     *   const parameters = {};
+     *   parameters[NUMBER_ARG] = "42";
+     *   app.setContext(OUT_CONTEXT, 1, parameters);
+     *   app.ask("Welcome to action snippets! Ask me for your number.");
+     * }
+     *
+     * function numberIntent (app) {
+     *   const number = app.getContextArgument(OUT_CONTEXT, NUMBER_ARG);
+     *   // number === { value: 42 }
+     *   app.tell("Your number is  " + number.value);
+     * }
+     *
+     * const actionMap = new Map();
+     * actionMap.set(WELCOME_INTENT, welcomeIntent);
+     * actionMap.set(NUMBER_INTENT, numberIntent);
+     * app.handleRequest(actionMap);
+     *
+     * @param {string} contextName Name of the context.
+     * @param {string} argName Name of the argument.
+     * @return {Object} Object containing value property and optional original
+     *     property matching context argument. Null if no matching argument.
+     * @apiai
+     */
+    fun getContextArgument (contextName: String, argName: String): ContextArgument? {
+        debug("getContextArgument: contextName=$contextName, argName=$argName")
+        if (contextName.isBlank()) {
+            this.handleError("Invalid context name")
+            return null
+        }
+        if (argName.isBlank()) {
+            this.handleError("Invalid argument name")
+            return null
+        }
+        if (request.body.result.contexts.isEmpty()) {
+            this.handleError("No contexts included in request")
+            return null
+        }
+        request.body.result.contexts.forEach {
+            if (it.name === contextName) {
+                val argument = ContextArgument(value = getProperty(it.parameters, argName))
+//                if (context.parameters[argName + ORIGINAL_SUFFIX]) {
+//                    argument.original = context.parameters[argName + ORIGINAL_SUFFIX]
+//                }
+                //TODO set original value from context
+                return argument
+            }
+        }
+        debug("Failed to get context argument value: $argName")
+        return null
+    }
+
+    fun getProperty(obj: Any?, name: String): Any? {
+        if (obj == null) return null
+        try {
+            return obj.javaClass
+                    .getMethod(name)
+                    .invoke(obj)
+        } catch (e: NoSuchMethodException) {
+
+        }
+        return null
+    }
+
+    data class ContextArgument(var value: Any?)
+
+    /**
+     * Returns the option key user chose from options response.
+     * @example
+     * * val app = ApiAiApp(request = req, response = res);
+     * *
+     * * fun pickOption (app: ApiAiApp<Parameter>) {
+     * *   if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT) != null) {
+     * *     app.askWithCarousel("Which of these looks good?",
+     * *       app.getIncomingCarousel().addItems(
+     * *         app.buildOptionItem("another_choice", ["Another choice"]).
+     * *         setTitle("Another choice").setDescription("Choose me!")))
+     * *   } else {
+     * *     app.ask("What would you like?")
+     * *   }
+     * * }
+     * *
+     * * fun optionPicked (app: ApiAiApp<Parameter>) {
+     * *   assistant.ask("You picked " + app.getSelectedOption())
+     * * }
+     * *
+     * * val actionMap = mapOf(
+     * *    "pick.option" to pickOption,
+     * *    "option.picked" to optionPicked)
+     * *
+     * * app.handleRequest(actionMap)
+     * *
+     * *
+     * @return {string} Option key of selected item. Null if no option selected or
+     * *     if current intent is not OPTION intent.
+     * *
+     * @apiai
+     */
+    fun getSelectedOption(): Any? {
+        debug("getSelectedOption")
+        if (getContextArgument(SELECT_EVENT, BUILT_IN_ARG_NAMES.OPTION)?.value != null) {
+            return getContextArgument(SELECT_EVENT, BUILT_IN_ARG_NAMES.OPTION)?.value
+        } else if (getArgument(BUILT_IN_ARG_NAMES.OPTION) != null) {
+            return getArgument(BUILT_IN_ARG_NAMES.OPTION)
+        }
+        debug("Failed to get selected option")
+        return null
+    }
 
     //TODO builderResponse(richResponse,...)
     /*

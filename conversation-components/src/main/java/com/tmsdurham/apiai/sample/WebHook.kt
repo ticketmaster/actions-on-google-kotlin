@@ -51,15 +51,12 @@ fun welcome(app: MyAction) =
         app.ask(app.buildRichResponse()
                 .addSimpleResponse(speech = "Hi there!", displayText = "Hello there!")
                 .addSimpleResponse(
-                        speech = """I can show you basic cards, lists and carousels as well as
-                    "suggestions on your phone""",
-                        displayText = """"I can show you basic cards, lists and carousels as
-                    "well as suggestions"""")
+                        speech = """I can show you basic cards, lists and carousels as well as suggestions on your phone""",
+                        displayText = """I can show you basic cards, lists and carousels as well as suggestions""")
                 .addSuggestions("Basic Card", "List", "Carousel", "Suggestions"))
 
 fun normalAsk(app: MyAction) = app.ask("Ask me to show you a list, carousel, or basic card")
 
-// Suggestions
 fun suggestions(app: MyAction) {
     app.ask(app
             .buildRichResponse()
@@ -69,7 +66,6 @@ fun suggestions(app: MyAction) {
             .addSuggestionLink("Suggestion Link", "https://assistant.google.com/"))
 }
 
-// Basic card
 fun basicCard(app: MyAction) {
     app.ask(app.buildRichResponse()
             .addSimpleResponse("This is the first simple response for a basic card")
@@ -81,7 +77,7 @@ fun basicCard(app: MyAction) {
                     including emoji 📱.  Basic cards also support some markdown
                     formatting like *emphasis* or _italics_, **strong** or __bold__,
             and ***bold itallic*** or ___strong emphasis___ as well as other things
-                    like line  \nbreaks""") // Note the two spaces before "\n" required for a
+                    like line""" + "  \nbreaks") // Note the two spaces before "\n" required for a
                     // line break to be rendered in the card
                     .setSubtitle("This is a subtitle")
                     .setTitle("Title: this is a title")
@@ -93,7 +89,6 @@ fun basicCard(app: MyAction) {
 }
 
 
-// List
 fun list(app: MyAction) {
     app.askWithList(app.buildRichResponse()
             .addSimpleResponse("This is a simple response for a list")
@@ -169,6 +164,39 @@ fun carousel(app: MyAction) {
     )
 }
 
+val logger = Logger.getAnonymousLogger()
+// React to list or carousel selection
+fun itemSelected(app: MyAction) {
+    app.getIntent()
+    val param = app.getSelectedOption()
+    logger.info("USER SELECTED: $param")
+    when (param) {
+        null -> app.ask("You did not select any item from the list or carousel")
+        SELECTION_KEY_ONE -> app.ask("You selected the first item in the list or carousel")
+        SELECTION_KEY_GOOGLE_HOME -> app.ask("You selected the Google Home!")
+        SELECTION_KEY_GOOGLE_PIXEL -> app.ask("You selected the Google Pixel!")
+        SELECTION_KEY_GOOGLE_ALLO -> app.ask("You selected Google Allo!")
+        else -> app.ask("You selected an unknown item from the list or carousel")
+    }
+}
+
+// Recive a rich response from API.AI and modify it
+fun cardBuilder(app: MyAction) {
+    /*
+    app.ask(app.getIncomingRichResponse()
+            .addBasicCard(app.buildBasicCard("""Actions on Google let you build for
+            the Google Assistant. Reach users right when they need you. Users don’t
+            need to pre-enable skills or install new apps.  \n  \nThis was written
+    in the fulfillment webhook!""")
+    .setSubtitle("Engage users through the Google Assistant")
+            .setTitle("Actions on Google")
+            .addButton("Developer Site", "https://developers.google.com/actions/")
+            .setImage("https://lh3.googleusercontent.com/Z7LtU6hhrhA-5iiO1foAfGB" +
+                    "75OsO2O7phVesY81gH0rgQFI79sjx9aRmraUnyDUF_p5_bnBdWcXaRxVm2D1Rub92" +
+                    "L6uxdLBl=s1376", "Actions on Google")))
+                    */
+}
+
 // Leave conversation with card
 fun byeCard(app: MyAction) {
     app.tell(app.buildRichResponse()
@@ -189,6 +217,7 @@ val actionMap = mapOf(
         LIST to ::list,
         CAROUSEL to ::carousel,
         SUGGESTIONS to ::suggestions,
+        ITEM_SELECTED to ::itemSelected,
         BYE_CARD to ::byeCard,
         BYE_RESPONSE to ::byeResponse,
         NORMAL_BYE to ::normalBye,
@@ -212,7 +241,9 @@ class GAction<T>(req: HttpServletRequest, resp: HttpServletResponse, clazz: Clas
     init {
         val t = TypeToken.get(clazz).type
         val type = TypeToken.getParameterized(ApiAiRequest::class.java, t)
-        val request = gson.fromJson<ApiAiRequest<T>>(InputStreamReader(req.inputStream), type.type)
+        val jsonStr = convertStreamToString(req.inputStream)
+        Logger.getAnonymousLogger().info(jsonStr)
+        val request = gson.fromJson<ApiAiRequest<T>>(jsonStr, type.type)
         action = ApiAiApp(RequestWrapper(body = request), ResponseWrapper(sendAction = {
             val bodyStr = gson.toJson(body)
             headers.forEach {
@@ -221,6 +252,11 @@ class GAction<T>(req: HttpServletRequest, resp: HttpServletResponse, clazz: Clas
             Logger.getAnonymousLogger().info(bodyStr)
             resp.writer.write(bodyStr)
         }))
+    }
+
+    fun convertStreamToString(input: java.io.InputStream): String {
+        val s = java.util.Scanner(input).useDelimiter("\\A")
+        return if (s.hasNext()) s.next() else ""
     }
 
     fun handleRequest(handler: Map<*, *>) {
