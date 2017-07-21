@@ -156,7 +156,7 @@ data class Buttons(
 
 data class OpenUrlAction(var url: String? = null)
 
-data class Image(var url: String? = null, var accessibilityText: String, var width: Int? = null, var height: Int? = null)
+data class Image(var url: String? = null, var accessibilityText: String? = null, var width: Int? = null, var height: Int? = null)
 
 data class Items(
         var optionInfo: OptionInfo? = null,

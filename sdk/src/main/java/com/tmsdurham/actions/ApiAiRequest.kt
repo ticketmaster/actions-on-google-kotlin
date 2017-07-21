@@ -1,6 +1,9 @@
 package com.ticketmaster.apiai
 
 import com.ticketmaster.apiai.google.GoogleData
+import com.tmsdurham.actions.Buttons
+import com.tmsdurham.actions.Image
+import com.tmsdurham.actions.Suggestions
 
 fun <T>apiAiRequest(init: ApiAiRequest<T>.() -> Unit): ApiAiRequest<T> {
     val request = ApiAiRequest<T>()
@@ -34,9 +37,22 @@ data class Metadata(
         val webhookForSlotFillingUsed: String? = null,
         val intentName: String? = null)
 
+/**
+ * Messages from ApiAi, such as Cards, simple response, etc, that are added in the console.
+ */
 data class Messages(
-        val type: String = "",
-        val speech: String? = null)
+        var type: String = "",
+        var speech: String? = null,
+        var textToSpeech: String? = null,
+        var displayText: String? = null,
+        var suggestions: MutableList<Suggestions>? = null,
+        var destinationName: String? = null,
+        var url: String? = null,
+        var title: String? = null,
+        var subtitle: String? = null,
+        var formattedText: String? = null,
+        var image: Image? = null,
+        var buttons: MutableList<Buttons>? = null)
 
 data class Fulfillment(
         val speech: String? = null,
