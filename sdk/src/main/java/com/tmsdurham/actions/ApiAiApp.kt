@@ -403,23 +403,23 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      * the argument object will be in Proto2 format (snake_case, etc).
      *
      * @example
-     * const app = new ApiAiApp({request: request, response: response});
-     * const WELCOME_INTENT = "input.welcome";
-     * const NUMBER_INTENT = "input.number";
+     * val app = ApiAiApp(request = request, response = response)
+     * val WELCOME_INTENT = "input.welcome"
+     * val NUMBER_INTENT = "input.number"
      *
-     * function welcomeIntent (app) {
+     * fun welcomeIntent (app: ApiAiApp<Parameters>) {
      *   app.ask("Welcome to action snippets! Say a number.");
      * }
      *
-     * function numberIntent (app) {
-     *   const number = app.getArgument(NUMBER_ARGUMENT);
-     *   app.tell("You said " + number);
+     * fun numberIntent (app: ApiAiApp<Parameter>) {
+     *   val number = app.getArgument(NUMBER_ARGUMENT)
+     *   app.tell("You said " + number)
      * }
      *
-     * const actionMap = new Map();
-     * actionMap.set(WELCOME_INTENT, welcomeIntent);
-     * actionMap.set(NUMBER_INTENT, numberIntent);
-     * app.handleRequest(actionMap);
+     * val actionMap = mapOf(
+     *  WELCOME_INTENT to welcomeIntent,
+     *  NUMBER_INTENT to numberIntent)
+     * app.handleRequest(actionMap)
      *
      * @param {string} argName Name of the argument.
      * @return {Object} Argument value matching argName
@@ -533,28 +533,28 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
     /**
      * Returns the option key user chose from options response.
      * @example
-     * * const app = new App({request: req, response: res});
+     * * val app = ApiAiApp(request = req, response = res);
      * *
-     * * function pickOption (app) {
-     * *   if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+     * * fun pickOption (app: ApiAiApp<Parameter>) {
+     * *   if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT) != null) {
      * *     app.askWithCarousel("Which of these looks good?",
      * *       app.getIncomingCarousel().addItems(
      * *         app.buildOptionItem("another_choice", ["Another choice"]).
-     * *         setTitle("Another choice").setDescription("Choose me!")));
+     * *         setTitle("Another choice").setDescription("Choose me!")))
      * *   } else {
-     * *     app.ask("What would you like?");
+     * *     app.ask("What would you like?")
      * *   }
      * * }
      * *
-     * * function optionPicked (app) {
-     * *   assistant.ask("You picked " + app.getSelectedOption());
+     * * fun optionPicked (app: ApiAiApp<Parameter>) {
+     * *   assistant.ask("You picked " + app.getSelectedOption())
      * * }
      * *
-     * * const actionMap = new Map();
-     * * actionMap.set("pick.option", pickOption);
-     * * actionMap.set("option.picked", optionPicked);
+     * * val actionMap = mapOf(
+     * *    "pick.option" to pickOption,
+     * *    "option.picked" to optionPicked)
      * *
-     * * app.handleRequest(actionMap);
+     * * app.handleRequest(actionMap)
      * *
      * *
      * @return {string} Option key of selected item. Null if no option selected or

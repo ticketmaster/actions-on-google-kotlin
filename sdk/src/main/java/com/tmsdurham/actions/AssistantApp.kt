@@ -405,8 +405,8 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      */
     fun buildBasicCard(bodyText: String): BasicCard {
         val card = BasicCard()
-        if (bodyText.isBlank()) {
-            card.title = bodyText
+        if (bodyText.isNotBlank()) {
+            card.formattedText = bodyText
         }
         return card
     }

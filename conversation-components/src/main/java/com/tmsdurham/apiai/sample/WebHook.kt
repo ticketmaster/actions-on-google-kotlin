@@ -51,10 +51,8 @@ fun welcome(app: MyAction) =
         app.ask(app.buildRichResponse()
                 .addSimpleResponse(speech = "Hi there!", displayText = "Hello there!")
                 .addSimpleResponse(
-                        speech = """I can show you basic cards, lists and carousels as well as
-                    "suggestions on your phone""",
-                        displayText = """"I can show you basic cards, lists and carousels as
-                    "well as suggestions"""")
+                        speech = """I can show you basic cards, lists and carousels as well as suggestions on your phone""",
+                        displayText = """I can show you basic cards, lists and carousels as well as suggestions""")
                 .addSuggestions("Basic Card", "List", "Carousel", "Suggestions"))
 
 fun normalAsk(app: MyAction) = app.ask("Ask me to show you a list, carousel, or basic card")
@@ -79,7 +77,7 @@ fun basicCard(app: MyAction) {
                     including emoji 📱.  Basic cards also support some markdown
                     formatting like *emphasis* or _italics_, **strong** or __bold__,
             and ***bold itallic*** or ___strong emphasis___ as well as other things
-                    like line  \nbreaks""") // Note the two spaces before "\n" required for a
+                    like line""" + "  \nbreaks") // Note the two spaces before "\n" required for a
                     // line break to be rendered in the card
                     .setSubtitle("This is a subtitle")
                     .setTitle("Title: this is a title")
@@ -168,27 +166,22 @@ fun carousel(app: MyAction) {
 
 val logger = Logger.getAnonymousLogger()
 // React to list or carousel selection
-fun itemSelected (app: MyAction) {
+fun itemSelected(app: MyAction) {
     app.getIntent()
     val param = app.getSelectedOption()
     logger.info("USER SELECTED: $param")
-    if (param == null) {
-        app.ask("You did not select any item from the list or carousel")
-    } else if (param === SELECTION_KEY_ONE) {
-        app.ask("You selected the first item in the list or carousel")
-    } else if (param === SELECTION_KEY_GOOGLE_HOME) {
-        app.ask("You selected the Google Home!");
-    } else if (param === SELECTION_KEY_GOOGLE_PIXEL) {
-        app.ask("You selected the Google Pixel!");
-    } else if (param === SELECTION_KEY_GOOGLE_ALLO) {
-        app.ask("You selected Google Allo!")
-    } else {
-        app.ask("You selected an unknown item from the list or carousel")
+    when (param) {
+        null -> app.ask("You did not select any item from the list or carousel")
+        SELECTION_KEY_ONE -> app.ask("You selected the first item in the list or carousel")
+        SELECTION_KEY_GOOGLE_HOME -> app.ask("You selected the Google Home!")
+        SELECTION_KEY_GOOGLE_PIXEL -> app.ask("You selected the Google Pixel!")
+        SELECTION_KEY_GOOGLE_ALLO -> app.ask("You selected Google Allo!")
+        else -> app.ask("You selected an unknown item from the list or carousel")
     }
 }
 
 // Recive a rich response from API.AI and modify it
-fun cardBuilder (app: MyAction) {
+fun cardBuilder(app: MyAction) {
     /*
     app.ask(app.getIncomingRichResponse()
             .addBasicCard(app.buildBasicCard("""Actions on Google let you build for
@@ -248,7 +241,9 @@ class GAction<T>(req: HttpServletRequest, resp: HttpServletResponse, clazz: Clas
     init {
         val t = TypeToken.get(clazz).type
         val type = TypeToken.getParameterized(ApiAiRequest::class.java, t)
-        val request = gson.fromJson<ApiAiRequest<T>>(InputStreamReader(req.inputStream), type.type)
+        val jsonStr = convertStreamToString(req.inputStream)
+        Logger.getAnonymousLogger().info(jsonStr)
+        val request = gson.fromJson<ApiAiRequest<T>>(jsonStr, type.type)
         action = ApiAiApp(RequestWrapper(body = request), ResponseWrapper(sendAction = {
             val bodyStr = gson.toJson(body)
             headers.forEach {
@@ -257,6 +252,11 @@ class GAction<T>(req: HttpServletRequest, resp: HttpServletResponse, clazz: Clas
             Logger.getAnonymousLogger().info(bodyStr)
             resp.writer.write(bodyStr)
         }))
+    }
+
+    fun convertStreamToString(input: java.io.InputStream): String {
+        val s = java.util.Scanner(input).useDelimiter("\\A")
+        return if (s.hasNext()) s.next() else ""
     }
 
     fun handleRequest(handler: Map<*, *>) {

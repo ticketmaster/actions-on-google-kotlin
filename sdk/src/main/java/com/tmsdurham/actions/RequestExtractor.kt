@@ -2,22 +2,6 @@ package com.tmsdurham.actions
 
 import com.ticketmaster.apiai.*
 
-/**
- * Copyright 2017 Google Inc. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 
 /**
  * The Actions on Google client library RequestExtractor.
@@ -34,10 +18,10 @@ class RequestExtractor<T, S, U>(val app: AssistantApp<T,S,U>) {
      * see {@link AssistantApp#askForPermissions|askForPermissions}).
      *
      * @example
-     * const app = new ApiAiApp({request: request, response: response});
+     * val app = ApiAiApp(request = request, response = response)
      * or
-     * const app = new ActionsSdkApp({request: request, response: response});
-     * const userId = app.getUser().userId;
+     * val app = ActionsSdkApp(request = request, response = response)
+     * val userId = app.getUser().userId
      *
      * @return {User} Null if no value.
      * @requestextractor
@@ -79,11 +63,11 @@ class RequestExtractor<T, S, U>(val app: AssistantApp<T,S,U>) {
      * If device info is unavailable, returns null.
      *
      * @example
-     * const app = new ApiAiApp({request: req, response: res});
+     * val app = ApiAiApp(request = req, response = res)
      * or
-     * const app = new ActionsSdkApp({request: req, response: res});
+     * val app = ActionsSdkApp(request = req, response = res)
      * app.askForPermission("To get you a ride",
-     *   app.SupportedPermissions.DEVICE_PRECISE_LOCATION);
+     *   app.SupportedPermissions.DEVICE_PRECISE_LOCATION)
      * // ...
      * // In response handler for permissions fallback intent:
      * if (app.isPermissionGranted()) {
@@ -107,10 +91,10 @@ class RequestExtractor<T, S, U>(val app: AssistantApp<T,S,U>) {
 
     /**
      * Find argument with requirements
-     * @param {Array<string>} targets Argument to find
-     * @return {*} The argument
+     * @param {vararg <String>} targets Argument to find
+     * @return {Arguments} The argument
      */
-    fun findArgument_ (vararg targets: String): Arguments? {
+    fun findArgument(vararg targets: String): Arguments? {
         val data = requestData()
         data?.inputs?.forEach {
                 it?.arguments?.forEach {
@@ -131,26 +115,26 @@ class RequestExtractor<T, S, U>(val app: AssistantApp<T,S,U>) {
      * the argument object will be in Proto2 format (snake_case, etc).
      *
      * @example
-     * const app = new ApiAiApp({request: request, response: response});
-     * const WELCOME_INTENT = "input.welcome";
-     * const NUMBER_INTENT = "input.number";
+     * val app = ApiAiApp(request = request, response = response)
+     * val WELCOME_INTENT = "input.welcome"
+     * val NUMBER_INTENT = "input.number"
      *
-     * function welcomeIntent (app) {
-     *   app.ask("Welcome to action snippets! Say a number.");
+     * fun welcomeIntent (app: ApiAiApp<T>) {
+     *   app.ask("Welcome to action snippets! Say a number.")
      * }
      *
-     * function numberIntent (app) {
-     *   const number = app.getArgument(NUMBER_ARGUMENT);
-     *   app.tell("You said " + number);
+     * fun numberIntent (app: ApiAiApp<T>) {
+     *   const number = app.getArgument(NUMBER_ARGUMENT)
+     *   app.tell("You said " + number)
      * }
      *
-     * const actionMap = new Map();
-     * actionMap.set(WELCOME_INTENT, welcomeIntent);
-     * actionMap.set(NUMBER_INTENT, numberIntent);
-     * app.handleRequest(actionMap);
+     * val actionMap = mapOf(
+     *  WELCOME_INTENT to welcomeIntent,
+     *  NUMBER_INTENT to numberIntent)
+     * app.handleRequest(actionMap)
      *
-     * @param {string} argName Name of the argument.
-     * @return {Object} Argument value matching argName
+     * @param {String} argName Name of the argument.
+     * @return {String} Argument value matching argName
      *     or null if no matching argument.
      * @requestextractor
      */
@@ -160,8 +144,8 @@ class RequestExtractor<T, S, U>(val app: AssistantApp<T,S,U>) {
             this.app.handleError("Invalid argument name")
             return null
         }
-        val argument = this.findArgument_(argName)
-        if (argument != null) {
+        val argument = this.findArgument(argName)
+        if (argument == null) {
             debug("Failed to get argument value: $argName")
             return null
         } else if (argument?.textValue != null) {
@@ -171,7 +155,7 @@ class RequestExtractor<T, S, U>(val app: AssistantApp<T,S,U>) {
                 //TODO version 1
 //                return transformToSnakeCase(argument)
             } else {
-                return argument
+                return argument.textValue
             }
         }
         return null
@@ -181,12 +165,12 @@ class RequestExtractor<T, S, U>(val app: AssistantApp<T,S,U>) {
      * Gets transactability of user. Only use after calling
      * askForTransactionRequirements. Null if no result given.
      *
-     * @return {string} One of Transactions.ResultType.
+     * @return {String?} One of Transactions.ResultType.
      * @requestextractor
      */
     fun getTransactionRequirementsResult (): String? {
         debug("getTransactionRequirementsResult")
-        val argument = this.findArgument_(app.BUILT_IN_ARG_NAMES.TRANSACTION_REQ_CHECK_RESULT)
+        val argument = this.findArgument(app.BUILT_IN_ARG_NAMES.TRANSACTION_REQ_CHECK_RESULT)
         if (argument?.extension?.resultType != null) {
             return argument.extension.resultType
         }
@@ -208,7 +192,7 @@ class RequestExtractor<T, S, U>(val app: AssistantApp<T,S,U>) {
             DELIVERY_ADDRESS_VALUE,
             TRANSACTION_DECISION_VALUE
         } = this.app.BuiltInArgNames;
-        val argument = this.findArgument_(DELIVERY_ADDRESS_VALUE, TRANSACTION_DECISION_VALUE);
+        val argument = this.findArgument(DELIVERY_ADDRESS_VALUE, TRANSACTION_DECISION_VALUE);
         if (argument?.extension != null) {
             if (argument.extension.userDecision === this.app.Transactions.DeliveryAddressDecision.ACCEPTED) {
                 val location = argument.extension
@@ -238,7 +222,7 @@ class RequestExtractor<T, S, U>(val app: AssistantApp<T,S,U>) {
      */
     fun getTransactionDecision (): TransactionRequirementsCheckResult? {
         debug("getTransactionDecision")
-        val argument = findArgument_(app.BUILT_IN_ARG_NAMES.TRANSACTION_DECISION_VALUE)
+        val argument = findArgument(app.BUILT_IN_ARG_NAMES.TRANSACTION_DECISION_VALUE)
         if (argument?.extension != null) {
             return argument.extension
         }
@@ -255,7 +239,7 @@ class RequestExtractor<T, S, U>(val app: AssistantApp<T,S,U>) {
      */
     fun getUserConfirmation (): Boolean? {
         debug("getUserConfirmation")
-        val argument = findArgument_(app.BUILT_IN_ARG_NAMES.CONFIRMATION)
+        val argument = findArgument(app.BUILT_IN_ARG_NAMES.CONFIRMATION)
         if (argument != null) {
             return argument.boolValue
         }
@@ -272,7 +256,7 @@ class RequestExtractor<T, S, U>(val app: AssistantApp<T,S,U>) {
      */
     fun getDateTime (): String? {
         debug("getDateTime")
-        val argument = findArgument_(app.BUILT_IN_ARG_NAMES.DATETIME)
+        val argument = findArgument(app.BUILT_IN_ARG_NAMES.DATETIME)
         if (argument != null) {
             //TODO lock at returning date object
             return argument.datetimeValue
@@ -284,14 +268,14 @@ class RequestExtractor<T, S, U>(val app: AssistantApp<T,S,U>) {
     /**
      * Gets status of user sign in request.
      *
-     * @return {string} Result of user sign in request. One of
+     * @return {String?} Result of user sign in request. One of
      * ApiAiApp.SignInStatus or ActionsSdkApp.SignInStatus
      * Null if no sign in status.
      * @requestextractor
      */
     fun getSignInStatus (): String? {
         debug("getSignInStatus")
-        val argument = findArgument_(app.BUILT_IN_ARG_NAMES.SIGN_IN)
+        val argument = findArgument(app.BUILT_IN_ARG_NAMES.SIGN_IN)
         if (argument?.extension?.status != null) {
             return argument.extension.status
         }
@@ -304,7 +288,7 @@ class RequestExtractor<T, S, U>(val app: AssistantApp<T,S,U>) {
      * mode in the (Actions console)[console.actions.google.com] to test
      * transactions.
      *
-     * @return {boolean} True if app is being used in Sandbox mode.
+     * @return {Boolean} True if app is being used in Sandbox mode.
      * @requestextractor
      */
     fun isInSandbox (): Boolean {
@@ -337,7 +321,7 @@ class RequestExtractor<T, S, U>(val app: AssistantApp<T,S,U>) {
     /**
      * Gets type of input used for this request.
      *
-     * @return {number} One of ApiAiApp.InputTypes.
+     * @return {String?} One of ApiAiApp.InputTypes.
      *     Null if no input type given.
      * @requestextractor
      */
@@ -361,20 +345,20 @@ class RequestExtractor<T, S, U>(val app: AssistantApp<T,S,U>) {
      * false. Use with {@link AssistantApp#askForPermissions|askForPermissions}.
      *
      * @example
-     * const app = new ActionsSdkApp({request: request, response: response});
+     * val app = ActionsSdkApp(request = request, response = response)
      * or
-     * const app = new ApiAiApp({request: request, response: response});
+     * val app = ApiAiApp(request = request, response = response)
      * app.askForPermissions("To get you a ride", [
      *   app.SupportedPermissions.NAME,
      *   app.SupportedPermissions.DEVICE_PRECISE_LOCATION
-     * ]);
+     * ])
      * // ...
      * // In response handler for subsequent intent:
      * if (app.isPermissionGranted()) {
      *  // Use the requested permission(s) to get the user a ride
      * }
      *
-     * @return {boolean} true if permissions granted.
+     * @return {Boolean} true if permissions granted.
      * @requestextractor
      */
     fun isPermissionGranted (): Boolean {
