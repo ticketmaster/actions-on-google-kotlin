@@ -15,7 +15,7 @@ __Goals of this project__:
 
 # *** Work in progress ***
 
-This project is in early stages and is a work in progress.  Currently the conversation-components are functional. You are welcome to use, make contributions, and report issues on this project.
+This project is in early stages and is a work in progress.  Currently the Multimodal API and conversation-components sample are 100% ported. You are welcome to use, make contributions, and report issues on this project.
 
 Sample of what actions-on-google-koltin looks like:
 
@@ -68,7 +68,7 @@ Currently this lib is not synced to maven central, however it will be soon.  For
     }
     
     dependencies {
-        compile 'com.tmsdurham.actions:actions-on-google:0.1'
+        compile 'com.tmsdurham.actions:actions-on-google:0.2'
     }
 
 
