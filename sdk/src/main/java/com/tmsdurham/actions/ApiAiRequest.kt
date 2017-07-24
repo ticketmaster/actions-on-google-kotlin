@@ -116,7 +116,7 @@ data class OriginalRequestData(
         var inputs: List<Inputs>? = null,
         var isInSandbox: Boolean? = null)
 
-data class Conversation(val type: String)
+data class Conversation(var type: String)
 data class Device(val location: DeviceLocation? = null)
 
 data class DeviceLocation(var coordinates: Coordinates? = null, var formattedAddress: String? = null,

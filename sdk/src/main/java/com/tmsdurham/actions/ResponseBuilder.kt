@@ -1,5 +1,6 @@
 package com.tmsdurham.actions
 
+
 var LIST_ITEM_LIMIT = 30
 var CAROUSEL_ITEM_LIMIT = 10
 
@@ -55,8 +56,8 @@ data class RichResponse(
 
     fun addSimpleResponse(simpleResponse: SimpleResponse): RichResponse {
         return addSimpleResponse(
-            speech = simpleResponse.textToSpeech ?: "",
-            displayText = simpleResponse.displayText ?: "")
+                speech = simpleResponse.textToSpeech ?: "",
+                displayText = simpleResponse.displayText ?: "")
     }
 
     /**
@@ -206,8 +207,7 @@ class BasicCard(var title: String = "",
      * @param {string} title Title to show on card.
      * @return {BasicCard} Returns current constructed BasicCard.
      */
-    fun setTitle (title: String): BasicCard
-    {
+    fun setTitle(title: String): BasicCard {
         if (title.isBlank()) {
             error("title cannot be empty")
             return this
@@ -222,8 +222,7 @@ class BasicCard(var title: String = "",
      * @param {string} subtitle Subtitle to show on card.
      * @return {BasicCard} Returns current constructed BasicCard.
      */
-    fun setSubtitle (subtitle: String): BasicCard
-    {
+    fun setSubtitle(subtitle: String): BasicCard {
         if (subtitle.isBlank()) {
             error("subtitle cannot be empty")
             return this
@@ -238,8 +237,7 @@ class BasicCard(var title: String = "",
      * @param {string} bodyText Body text to show on card.
      * @return {BasicCard} Returns current constructed BasicCard.
      */
-    fun setBodyText (bodyText: String): BasicCard
-    {
+    fun setBodyText(bodyText: String): BasicCard {
         if (bodyText.isBlank()) {
             error("bodyText cannot be empty")
             return this
@@ -258,7 +256,7 @@ class BasicCard(var title: String = "",
      * @param {number=} height Height of the image.
      * @return {BasicCard} Returns current constructed BasicCard.
      */
-    fun setImage (url: String, accessibilityText: String, width: Int? = null, height: Int? = null): BasicCard {
+    fun setImage(url: String, accessibilityText: String, width: Int? = null, height: Int? = null): BasicCard {
         if (url.isBlank()) {
             error("url cannot be empty")
             return this
@@ -278,8 +276,7 @@ class BasicCard(var title: String = "",
      * @param {string} url URL to open when button is selected.
      * @return {BasicCard} Returns current constructed BasicCard.
      */
-    fun addButton (text: String, url: String): BasicCard
-    {
+    fun addButton(text: String, url: String): BasicCard {
         if (text.isBlank()) {
             error("text cannot be empty")
             return this
@@ -292,9 +289,9 @@ class BasicCard(var title: String = "",
             buttons = mutableListOf()
         }
         this.buttons!!.add(Buttons(
-            title = text,
-            openUrlAction = OpenUrlAction(
-            url = url))
+                title = text,
+                openUrlAction = OpenUrlAction(
+                        url = url))
         )
         return this
     }
@@ -501,9 +498,9 @@ data class OptionItem(var optionInfo: OptionInfo = OptionInfo()) {
 
 object ResponseBuilder {
 
+    val ssmlRegex = "^(?i)<speak\\b[^>]*>(.*?)</speak>$".toRegex()
 
-    val ssmlRegex = "^<speak\\b[^>]*>(\\*?)</speak>".toRegex()
     fun isSsml(text: String): Boolean {
-        return ssmlRegex.matches(text)
+        return ssmlRegex.containsMatchIn(text)
     }
 }
