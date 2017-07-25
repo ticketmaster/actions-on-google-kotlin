@@ -23,7 +23,6 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
     val LINK_OUT_SUGGESTION = "link_out_chip"
     val TYPE = "type"
     val PLATFORM = "platform"
-    val requestExtractor: RequestExtractor<ApiAiRequest<T>, ApiAiResponse<T>, T>
 
     var data: T? = null
 
@@ -42,7 +41,6 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
                 CONVERSATION_STAGES.NEW) && sessionStarted != null) {
             sessionStarted()
         }
-        requestExtractor = RequestExtractor(this)
     }
 
     /**

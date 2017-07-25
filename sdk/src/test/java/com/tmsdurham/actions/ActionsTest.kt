@@ -7,6 +7,7 @@ import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.ticketmaster.apiai.ApiAiRequest
 import com.ticketmaster.apiai.ApiAiResponse
+import com.ticketmaster.apiai.User
 import com.ticketmaster.apiai.apiAiRequest
 import com.winterbe.expekt.expect
 import org.jetbrains.spek.api.Spek
@@ -578,7 +579,7 @@ object ActionsTest : Spek({
      * Describes the behavior for ApiAiApp askForPermissions method in v2.
      */
     describe("ApiAiApp#askForPermissions") {
-           var body: ApiAiRequest<MockParameters> = ApiAiRequest()
+        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
         var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
         var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
         var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
@@ -621,6 +622,70 @@ object ActionsTest : Spek({
                 ]
             }""")
             expect(mockResponse.body).to.equal(expectedResponse)
+        }
+    }
+
+    /**
+     * Describes the behavior for ApiAiApp getUser method.
+     */
+    describe("ApiAiApp#getUser") {
+        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+
+        beforeEachTest {
+            mockResponse = ResponseWrapper()
+            body = createLiveSessionApiAppBody()
+            body.originalRequest?.data?.user?.userId = "11112226094657824893"
+            mockRequest = RequestWrapper(headerV1, body)
+            app = ApiAiApp(request = mockRequest, response = mockResponse)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant request user.") {
+            // Test new and old API
+//            expect(app.getUser().user_id).to.equal("11112226094657824893");
+            expect(app.getUser()?.userId).to.equal("11112226094657824893")
+        }
+    }
+
+    /**
+     * Describes the behavior for ApiAiApp getUserName method.
+     */
+    describe("ApiAiApp#getUserName") {
+        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+
+        beforeEachTest {
+            mockResponse = ResponseWrapper()
+            body = createLiveSessionApiAppBody()
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant request user.") {
+            var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>>
+            body.originalRequest?.data?.user = gson.fromJson("""{
+                "userId": "11112226094657824893",
+                "profile": {
+                "displayName": "John Smith",
+                "givenName": "John",
+                "familyName": "Smith"
+            }
+            }""", User::class.java)
+            mockRequest = RequestWrapper(headerV1, body)
+            app = ApiAiApp(request = mockRequest, response = mockResponse)
+            expect(app.getUserName()?.displayName).to.equal("John Smith")
+            expect(app.getUserName()?.givenName).to.equal("John")
+            expect(app.getUserName()?.familyName).to.equal("Smith")
+
+            // Test the false case
+            body.originalRequest?.data?.user?.profile = null
+            mockRequest = RequestWrapper(headerV1, body)
+            app = ApiAiApp(request = mockRequest, response = mockResponse)
+            expect(app.getUserName()).to.equal(null)
         }
     }
 

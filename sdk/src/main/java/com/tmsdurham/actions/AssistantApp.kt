@@ -1,9 +1,6 @@
 package com.tmsdurham.actions
 
-import com.ticketmaster.apiai.ApiAiRequest
-import com.ticketmaster.apiai.ApiAiResponse
-import com.ticketmaster.apiai.ContextOut
-import com.ticketmaster.apiai.DialogState
+import com.ticketmaster.apiai.*
 import com.ticketmaster.apiai.google.GoogleData
 import java.util.logging.Logger
 
@@ -176,6 +173,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
     var apiVersion: String = ""
     var state: String = ""
     var contexts = listOf<ContextOut<U>>()
+    val requestExtractor: RequestExtractor<T, S, U>
 
     init {
         debug("AssistantApp constructor");
@@ -212,6 +210,11 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
             debug("Assistant API version: " + apiVersion)
         }
 
+        requestExtractor = RequestExtractor(this)
+    }
+
+    fun getUser(): User? {
+        return requestExtractor.getUser()
     }
 
     fun handleRequest(handler: Handler<T, S, U>) {
@@ -508,6 +511,46 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
     fun buildPromptsFromPlainTextHelper(plainTexts: MutableList<String>): MutableList<GoogleData.NoInputPrompts> {
         debug("buildPromptsFromPlainTextHelper_: plainTexts=$plainTexts")
         return plainTexts.map { GoogleData.NoInputPrompts(textToSpeech = it) }.toMutableList()
+    }
+
+
+    /**
+     * If granted permission to user"s name in previous intent, returns user"s
+     * display name, family name, and given name. If name info is unavailable,
+     * returns null.
+
+     * @example
+     * * val app = ApiAIApp(request = req, response = res)
+     * * val REQUEST_PERMISSION_ACTION = "request_permission"
+     * * val SAY_NAME_ACTION = "get_name"
+     * *
+     * * fun requestPermission (app) {
+     * *   const permission = app.SupportedPermissions.NAME;
+     * *   app.askForPermission("To know who you are", permission);
+     * * }
+     * *
+     * * fun sayName (app) {
+     * *   if (app.isPermissionGranted()) {
+     * *     app.tell("Your name is " + app.getUserName().displayName));
+     * *   } else {
+     * *     // Response shows that user did not grant permission
+     * *     app.tell("Sorry, I could not get your name.");
+     * *   }
+     * * }
+     * * val actionMap = mapOf(
+     * *    REQUEST_PERMISSION_ACTION to requestPermission,
+     * *    SAY_NAME_ACTION to sayName)
+     * * app.handleRequest(actionMap)
+     * *
+     * @return {Profile} Null if name permission is not granted.
+     * *
+     * @actionssdk
+     * *
+     * @apiai
+     */
+    fun getUserName(): Profile? {
+        debug("getUserName")
+        return getUser()?.profile
     }
 
     fun handleError(text: String?) {
