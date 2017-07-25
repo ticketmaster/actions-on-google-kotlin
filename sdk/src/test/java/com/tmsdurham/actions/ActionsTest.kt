@@ -573,6 +573,57 @@ object ActionsTest : Spek({
             expect(mockResponse.statusCode).to.equal(400)
         }
     }
+
+    /**
+     * Describes the behavior for ApiAiApp askForPermissions method in v2.
+     */
+    describe("ApiAiApp#askForPermissions") {
+           var body: ApiAiRequest<MockParameters> = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+
+        beforeEachTest {
+            mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+            body = createLiveSessionApiAppBody()
+            body.originalRequest?.version = "2"
+            mockRequest = RequestWrapper(headerV1, body)
+            app = ApiAiApp(request = mockRequest, response = mockResponse)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return the valid JSON in the response object for the success case.") {
+            app.askForPermissions("To test", "NAME", "DEVICE_PRECISE_LOCATION")
+            // Validating the response object
+            val expectedResponse = responseFromJson("""{
+                "speech": "PLACEHOLDER_FOR_PERMISSION",
+                "data": {
+                "google": {
+                "expectUserResponse": true,
+                "isSsml": false,
+                "noInputPrompts": [],
+                "systemIntent": {
+                "intent": "actions.intent.PERMISSION",
+                "data": {
+                "@type": "type.googleapis.com/google.actions.v2.PermissionValueSpec",
+                "optContext": "To test",
+                "permissions": ["NAME", "DEVICE_PRECISE_LOCATION"]
+            }
+            }
+            }
+            },
+                "contextOut": [
+                {
+                    "name": "_actions_on_google_",
+                    "lifespan": 100,
+                    "parameters": {}
+                }
+                ]
+            }""")
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+    }
+
 })
 
 

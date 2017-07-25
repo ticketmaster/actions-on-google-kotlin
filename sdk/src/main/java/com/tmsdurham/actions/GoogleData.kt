@@ -13,7 +13,9 @@ data class GoogleData(
         var richResponse: RichResponse? = null) {
 
     fun systemIntent(init: SystemIntent.() -> Unit) {
-        systemIntent = SystemIntent()
+        if (systemIntent == null) {
+            systemIntent = SystemIntent()
+        }
         systemIntent?.init()
 
     }
@@ -33,9 +35,23 @@ data class GoogleData(
     data class SystemIntent(
             var spec: Spec? = null,
             var intent: String? = null,
-            var data: Data? = null)
+            var data: Data? = null) {
 
-    data class Spec(var optionValueSpec: OptionValueSpec)
+        fun spec(init: Spec.() -> Unit) {
+            if (spec == null) {
+                this.spec = Spec()
+            }
+            spec?.init()
+        }
+        fun data(init: Data.() -> Unit) {
+            if (data == null) {
+               data = Data()
+            }
+            data?.init()
+        }
+    }
+
+    data class Spec(var optionValueSpec: OptionValueSpec? = null, var permissionValueSpec: GoogleData.PermissionsRequest? = null)
 
     data class OptionValueSpec(var listSelect: com.tmsdurham.actions.List? = null, var carouselSelect: Carousel? = null)
 

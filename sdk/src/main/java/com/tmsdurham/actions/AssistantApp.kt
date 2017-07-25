@@ -1,7 +1,9 @@
 package com.tmsdurham.actions
 
 import com.ticketmaster.apiai.ApiAiRequest
+import com.ticketmaster.apiai.ApiAiResponse
 import com.ticketmaster.apiai.ContextOut
+import com.ticketmaster.apiai.DialogState
 import com.ticketmaster.apiai.google.GoogleData
 import java.util.logging.Logger
 
@@ -222,17 +224,90 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
         invokeIntentHandler(handler as Map<*, Handler<T, S, U>>, getIntent())
     }
 
-    fun askForPermissions(context: String, permissions: MutableList<String>): Any? {
+    /**
+     * Equivalent to {@link AssistantApp#askForPermission|askForPermission},
+     * but allows you to prompt the user for more than one permission at once.
+     *
+     * Notes:
+     *
+     * * The order in which you specify the permission prompts does not matter -
+     *   it is controlled by the Assistant to provide a consistent user experience.
+     * * The user will be able to either accept all permissions at once, or none.
+     *   If you wish to allow them to selectively accept one or other, make several
+     *   dialog turns asking for each permission independently with askForPermission.
+     * * Asking for DEVICE_COARSE_LOCATION and DEVICE_PRECISE_LOCATION at once is
+     *   equivalent to just asking for DEVICE_PRECISE_LOCATION
+     *
+     * @example
+     * const app = new ApiAIApp({request: req, response: res});
+     * const REQUEST_PERMISSION_ACTION = "request_permission";
+     * const GET_RIDE_ACTION = "get_ride";
+     *
+     * function requestPermission (app) {
+     *   const permission = [
+     *     app.SupportedPermissions.NAME,
+     *     app.SupportedPermissions.DEVICE_PRECISE_LOCATION
+     *   ];
+     *   app.askForPermissions("To pick you up", permissions);
+     * }
+     *
+     * function sendRide (app) {
+     *   if (app.isPermissionGranted()) {
+     *     const displayName = app.getUserName().displayName;
+     *     const address = app.getDeviceLocation().address;
+     *     app.tell("I will tell your driver to pick up " + displayName +
+     *         " at " + address);
+     *   } else {
+     *     // Response shows that user did not grant permission
+     *     app.tell("Sorry, I could not figure out where to pick you up.");
+     *   }
+     * }
+     * const actionMap = new Map();
+     * actionMap.set(REQUEST_PERMISSION_ACTION, requestPermission);
+     * actionMap.set(GET_RIDE_ACTION, sendRide);
+     * app.handleRequest(actionMap);
+     *
+     * @param {string} context Context why the permission is being asked; it"s the TTS
+     *     prompt prefix (action phrase) we ask the user.
+     * @param {Array<string>} permissions Array of permissions App supports, each of
+     *     which comes from AssistantApp.SupportedPermissions.
+     * @param {Object=} dialogState JSON object the app uses to hold dialog state that
+     *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
+     * @return A response is sent to Assistant to ask for the user"s permission; for any
+     *     invalid input, we return null.
+     * @actionssdk
+     * @apiai
+     */
+    fun askForPermissions(context: String, vararg permissions: String, dialogState: DialogState<T>? = null): ResponseWrapper<S>? {
+        debug("askForPermissions: context=$context, permissions=$permissions, dialogState=$dialogState")
         if (context.isEmpty()) {
             handleError("Assistant context can NOT be empty.")
             return null
         }
-        return fulfillPermissionRequest(GoogleData.PermissionsRequest(
+        if (permissions.isEmpty()) {
+            handleError("At least one permission needed.")
+            return null
+        }
+        permissions.forEach {
+            if (it !== SUPPORTED_PERMISSIONS.NAME &&
+                    it !== SUPPORTED_PERMISSIONS.DEVICE_PRECISE_LOCATION &&
+                    it !== SUPPORTED_PERMISSIONS.DEVICE_COARSE_LOCATION) {
+                this.handleError("Assistant permission must be one of " +
+                        "[NAME, DEVICE_PRECISE_LOCATION, DEVICE_COARSE_LOCATION]")
+                return null
+            }
+        }
+        if (dialogState != null) {
+//            dialogState = {
+//                "state": (this.state instanceof State ? this.state.getName() : this.state),
+//                "data": this.data
+//            };
+        }
+        return fulfillPermissionsRequest(GoogleData.PermissionsRequest(
                 optContext = context,
-                permissions = permissions
-
-        ))
+                permissions = permissions.toMutableList()))
     }
+
 
     fun doResponse(response: ResponseWrapper<S>, responseCode: Int = 0): ResponseWrapper<S>? {
         debug("doResponse_: responseWrapper=$response., responseCode=$responseCode")
@@ -245,12 +320,12 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
         } else {
             var code = RESPONSE_CODE_OK;
             if (responseCode != 0) {
-                code = responseCode;
+                code = responseCode
             }
             if (this.apiVersion !== null) {
-                this.response.append(CONVERSATION_API_VERSION_HEADER, apiVersion);
+                this.response.append(CONVERSATION_API_VERSION_HEADER, apiVersion)
             }
-            response.append(HTTP_CONTENT_TYPE_HEADER, HTTP_CONTENT_TYPE_JSON);
+            response.append(HTTP_CONTENT_TYPE_HEADER, HTTP_CONTENT_TYPE_JSON)
             // If request was in Proto2 format, convert response to Proto2
             if (!this.isNotApiVersionOne()) {
                 //TODO migrate data
@@ -307,7 +382,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
         return OptionItem(optionInfo)
     }
 
-    internal abstract fun fulfillPermissionRequest(permissionSpec: GoogleData.PermissionsRequest): Any
+    internal abstract fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest): ResponseWrapper<S>?
 
     abstract fun getIntent(): String
     abstract fun tell(speech: String, displayText: String = ""): ResponseWrapper<S>?

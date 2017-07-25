@@ -379,7 +379,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
             handleError("Invalid speech response")
             return null
         }
-        val response = this.buildResponse(speech, false)
+        val response = buildResponse(speech, false)
         if (response != null) {
             return this.doResponse(response, RESPONSE_CODE_OK)
         } else {
@@ -442,10 +442,69 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
     }
 
     // INTERNAL FUNCTIONS
-    override fun fulfillPermissionRequest(permissionSpec: GoogleData.PermissionsRequest): Unit {
-        response.body?.data?.google?.systemIntent = GoogleData.SystemIntent(intent = STANDARD_INTENTS.PERMISSION)
-        response.body?.data?.google?.systemIntent?.data?.`@type` = INPUT_VALUE_DATA_TYPES.PERMISSION
-        response.body?.data?.google?.systemIntent?.data?.permissions = permissionSpec.permissions
+    /**
+     * Uses a PermissionsValueSpec object to construct and send a
+     * permissions request to the user.
+     *
+     * @param {Object} permissionsSpec PermissionsValueSpec object containing
+     *     the permissions prefix and permissions requested.
+     * @return {Object} The HTTP response.
+     * @private
+     * @apiai
+     */
+    override fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("fulfillPermissionsRequest_: permissionsSpec=$permissionsSpec")
+        val inputPrompt = "PLACEHOLDER_FOR_PERMISSION"
+        val response = buildResponse(inputPrompt, true)
+
+        response {
+            body {
+                data {
+                    google {
+                        systemIntent {
+                            intent = STANDARD_INTENTS.PERMISSION
+                        }
+                    }
+                }
+            }
+        }
+
+        if (isNotApiVersionOne()) {
+            response {
+                body {
+                    data {
+                        google {
+                            systemIntent {
+                                data {
+                                    `@type` = INPUT_VALUE_DATA_TYPES.PERMISSION
+                                    permissions = permissionsSpec.permissions
+                                    optContext = permissionsSpec.optContext
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            response {
+                body {
+                    data {
+                        google {
+                            systemIntent {
+                                spec {
+                                    permissionValueSpec = permissionsSpec
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (response != null) {
+            return doResponse(response, RESPONSE_CODE_OK)
+        } else {
+            return null
+        }
     }
 
     /**
@@ -544,16 +603,16 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
     fun getIncomingRichResponse(): RichResponse {
         debug("getIncomingRichResponse")
         val response = buildRichResponse()
-        request.body.result?.fulfillment?.messages?.forEach {
+        request.body.result.fulfillment?.messages?.forEach {
             if (it != null && response.items == null) {
                 response.items = mutableListOf()
             }
-            when (it?.type) {
+            when (it.type) {
                 SIMPLE_RESPONSE -> {
                     val item = SimpleResponse()
                     item.textToSpeech = it.textToSpeech
                     item.displayText = it.displayText
-                    if (response?.items?.size == 0) {
+                    if (response.items?.size == 0) {
                         response.items?.add(RichResponseItem(item))
                     } else {
                         response.items?.add(0, RichResponseItem(item))
@@ -642,21 +701,21 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         return null
     }
 
-    //TODO builderResponse(richResponse,...)
-    /*
+//TODO builderResponse(richResponse,...)
+/*
 
 if (!isStringResponse) {
-            if (textToSpeech.speech) {
-                // Convert SimpleResponse to RichResponse
-                textToSpeech = this.buildRichResponse().addSimpleResponse(textToSpeech);
-            } else if (!(textToSpeech.items &&
-                    textToSpeech.items[0] &&
-                    textToSpeech.items[0].simpleResponse)) {
-                handleError("Invalid RichResponse. First item must be SimpleResponse");
-                return null
-            }
+        if (textToSpeech.speech) {
+            // Convert SimpleResponse to RichResponse
+            textToSpeech = this.buildRichResponse().addSimpleResponse(textToSpeech);
+        } else if (!(textToSpeech.items &&
+                textToSpeech.items[0] &&
+                textToSpeech.items[0].simpleResponse)) {
+            handleError("Invalid RichResponse. First item must be SimpleResponse");
+            return null
         }
-             */
+    }
+         */
 
     /**
      * Builds a response for API.AI to send back to the Assistant.

@@ -63,7 +63,13 @@ data class Fulfillment(
 
 data class Data(
         var google: GoogleData? = null) {
-    fun google(f: GoogleData.() -> Unit): GoogleData.() -> Unit = f
+
+    fun google(init: GoogleData.() -> Unit) {
+        if (google == null) {
+            google = GoogleData()
+        }
+        google?.init()
+    }
 
     companion object {
         val empty = Data()

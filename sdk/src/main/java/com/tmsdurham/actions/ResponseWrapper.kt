@@ -5,6 +5,14 @@ open class ResponseWrapper<T>(var statusCode: Int = 200,
                               val headers: MutableMap<String, String> = mutableMapOf(),
                               val sendAction: (ResponseWrapper<T>.() -> Unit)? = null) {
 
+    operator fun invoke(init: ResponseWrapper<T>.() -> Unit) {
+        init()
+    }
+
+    fun body(init: T.() -> Unit) {
+        body?.init()
+    }
+
     var errorMessage: String = ""
 
     fun status(statusCode: Int): ResponseWrapper<T> {
