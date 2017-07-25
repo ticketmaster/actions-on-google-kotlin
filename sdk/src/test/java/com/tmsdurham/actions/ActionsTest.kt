@@ -5,14 +5,11 @@ import com.google.gson.reflect.TypeToken
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
-import com.ticketmaster.apiai.ApiAiRequest
-import com.ticketmaster.apiai.ApiAiResponse
-import com.ticketmaster.apiai.apiAiRequest
+import com.ticketmaster.apiai.*
 import com.winterbe.expekt.expect
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
-import org.mockito.Mock
 
 val gson = Gson()
 
@@ -573,6 +570,205 @@ object ActionsTest : Spek({
             expect(mockResponse.statusCode).to.equal(400)
         }
     }
+
+    /**
+     * Describes the behavior for ApiAiApp askForPermissions method in v2.
+     */
+    describe("ApiAiApp#askForPermissions") {
+        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+
+        beforeEachTest {
+            mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+            body = createLiveSessionApiAppBody()
+            body.originalRequest?.version = "2"
+            mockRequest = RequestWrapper(headerV1, body)
+            app = ApiAiApp(request = mockRequest, response = mockResponse)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return the valid JSON in the response object for the success case.") {
+            app.askForPermissions("To test", "NAME", "DEVICE_PRECISE_LOCATION")
+            // Validating the response object
+            val expectedResponse = responseFromJson("""{
+                "speech": "PLACEHOLDER_FOR_PERMISSION",
+                "data": {
+                "google": {
+                "expectUserResponse": true,
+                "isSsml": false,
+                "noInputPrompts": [],
+                "systemIntent": {
+                "intent": "actions.intent.PERMISSION",
+                "data": {
+                "@type": "type.googleapis.com/google.actions.v2.PermissionValueSpec",
+                "optContext": "To test",
+                "permissions": ["NAME", "DEVICE_PRECISE_LOCATION"]
+            }
+            }
+            }
+            },
+                "contextOut": [
+                {
+                    "name": "_actions_on_google_",
+                    "lifespan": 100,
+                    "parameters": {}
+                }
+                ]
+            }""")
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+    }
+
+    /**
+     * Describes the behavior for ApiAiApp getUser method.
+     */
+    describe("ApiAiApp#getUser") {
+        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+
+        beforeEachTest {
+            mockResponse = ResponseWrapper()
+            body = createLiveSessionApiAppBody()
+            body.originalRequest?.data?.user?.userId = "11112226094657824893"
+            mockRequest = RequestWrapper(headerV1, body)
+            app = ApiAiApp(request = mockRequest, response = mockResponse)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant request user.") {
+            // Test new and old API
+//            expect(app.getUser().user_id).to.equal("11112226094657824893");
+            expect(app.getUser()?.userId).to.equal("11112226094657824893")
+        }
+    }
+
+    /**
+     * Describes the behavior for ApiAiApp getUserName method.
+     */
+    describe("ApiAiApp#getUserName") {
+        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+
+        beforeEachTest {
+            mockResponse = ResponseWrapper()
+            body = createLiveSessionApiAppBody()
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant request user.") {
+            var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>>
+            body.originalRequest?.data?.user = gson.fromJson("""{
+                "userId": "11112226094657824893",
+                "profile": {
+                "displayName": "John Smith",
+                "givenName": "John",
+                "familyName": "Smith"
+            }
+            }""", User::class.java)
+            mockRequest = RequestWrapper(headerV1, body)
+            app = ApiAiApp(request = mockRequest, response = mockResponse)
+            expect(app.getUserName()?.displayName).to.equal("John Smith")
+            expect(app.getUserName()?.givenName).to.equal("John")
+            expect(app.getUserName()?.familyName).to.equal("Smith")
+
+            // Test the false case
+            body.originalRequest?.data?.user?.profile = null
+            mockRequest = RequestWrapper(headerV1, body)
+            app = ApiAiApp(request = mockRequest, response = mockResponse)
+            expect(app.getUserName()).to.equal(null)
+        }
+    }
+
+    /**
+     * Describes the behavior for ApiAiApp getUserLocale method.
+     */
+    describe("ApiAiApp#getUserLocale" ) {
+        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
+        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+
+        beforeEachTest {
+            mockResponse = ResponseWrapper()
+            body = createLiveSessionApiAppBody()
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant request user with locale.") {
+            var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>>
+            val app: ApiAiApp<MockParameters>
+            mockRequest = RequestWrapper(headerV1, body)
+            app = ApiAiApp(request = mockRequest, response = mockResponse)
+            expect(app.getUserLocale()).to.equal("en-US")
+        }
+
+        // Failure case
+        it("Should return null for missing locale.") {
+            var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>>
+            val app: ApiAiApp<MockParameters>
+            body.originalRequest?.data?.user?.locale = null
+            mockRequest = RequestWrapper(headerV1, body)
+            app = ApiAiApp(request = mockRequest, response = mockResponse)
+            expect(app.getUserLocale()).to.equal(null)
+        }
+    }
+
+
+    /**
+     * Describes the behavior for ApiAiApp getDeviceLocation method.
+     */
+    describe("ApiAiApp#getDeviceLocation") {
+        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+
+        beforeEachTest {
+            body = createLiveSessionApiAppBody()
+            body.originalRequest?.data?.device = gson.fromJson("""{
+                "location": {
+                "coordinates": {
+                "latitude": 37.3861,
+                "longitude": 122.0839
+            },
+                "formattedAddress": "123 Main St, Anytown, CA 12345, United States",
+                "zipCode": "12345",
+                "city": "Anytown"
+            }
+            }""", Device::class.java)
+        }
+
+        fun initMockApp () {
+            mockRequest = RequestWrapper(headerV1, body)
+            mockResponse = ResponseWrapper()
+            app = ApiAiApp(request = mockRequest, response = mockResponse)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant request user.") {
+            initMockApp()
+            expect(app.getDeviceLocation()?.coordinates).to.equal(Coordinates(
+                latitude = 37.3861,
+                longitude = 122.0839
+            ))
+            expect(app.getDeviceLocation()?.formattedAddress)
+                    .to.equal("123 Main St, Anytown, CA 12345, United States")
+            expect(app.getDeviceLocation()?.zipCode).to.equal("12345")
+            expect(app.getDeviceLocation()?.city).to.equal("Anytown")
+        }
+
+        it("Should validate faulty assistant request user.") {
+            // Test the false case
+            body.originalRequest?.data?.device = null
+            initMockApp()
+            expect(app.getDeviceLocation()).to.equal(null)
+        }
+    }
+
 })
 
 

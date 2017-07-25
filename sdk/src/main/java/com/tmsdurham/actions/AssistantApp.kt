@@ -1,7 +1,6 @@
 package com.tmsdurham.actions
 
-import com.ticketmaster.apiai.ApiAiRequest
-import com.ticketmaster.apiai.ContextOut
+import com.ticketmaster.apiai.*
 import com.ticketmaster.apiai.google.GoogleData
 import java.util.logging.Logger
 
@@ -174,6 +173,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
     var apiVersion: String = ""
     var state: String = ""
     var contexts = listOf<ContextOut<U>>()
+    val requestExtractor: RequestExtractor<T, S, U>
 
     init {
         debug("AssistantApp constructor");
@@ -210,6 +210,11 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
             debug("Assistant API version: " + apiVersion)
         }
 
+        requestExtractor = RequestExtractor(this)
+    }
+
+    fun getUser(): User? {
+        return requestExtractor.getUser()
     }
 
     fun handleRequest(handler: Handler<T, S, U>) {
@@ -222,17 +227,88 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
         invokeIntentHandler(handler as Map<*, Handler<T, S, U>>, getIntent())
     }
 
-    fun askForPermissions(context: String, permissions: MutableList<String>): Any? {
+    /**
+     * Equivalent to {@link AssistantApp#askForPermission|askForPermission},
+     * but allows you to prompt the user for more than one permission at once.
+     *
+     * Notes:
+     *
+     * * The order in which you specify the permission prompts does not matter -
+     *   it is controlled by the Assistant to provide a consistent user experience.
+     * * The user will be able to either accept all permissions at once, or none.
+     *   If you wish to allow them to selectively accept one or other, make several
+     *   dialog turns asking for each permission independently with askForPermission.
+     * * Asking for DEVICE_COARSE_LOCATION and DEVICE_PRECISE_LOCATION at once is
+     *   equivalent to just asking for DEVICE_PRECISE_LOCATION
+     *
+     * @example
+     * val app = ApiAIApp(request = req, response = res)
+     * val REQUEST_PERMISSION_ACTION = "request_permission"
+     * val GET_RIDE_ACTION = "get_ride"
+     *
+     * fun requestPermission (app) {
+     *   app.askForPermissions("To pick you up", app.SupportedPermissions.NAME,
+     *     app.SupportedPermissions.DEVICE_PRECISE_LOCATION)
+     * }
+     *
+     * fun sendRide (app) {
+     *   if (app.isPermissionGranted()) {
+     *     val displayName = app.getUserName().displayName
+     *     val address = app.getDeviceLocation().formattedAddress
+     *     app.tell("I will tell your driver to pick up " + displayName +
+     *         " at " + address)
+     *   } else {
+     *     // Response shows that user did not grant permission
+     *     app.tell("Sorry, I could not figure out where to pick you up.")
+     *   }
+     * }
+     * val actionMap = mapOf(
+     *      REQUEST_PERMISSION_ACTION to requestPermission,
+     *      GET_RIDE_ACTION to sendRide)
+     * app.handleRequest(actionMap)
+     *
+     * @param {String} context Context why the permission is being asked; it"s the TTS
+     *     prompt prefix (action phrase) we ask the user.
+     * @param {Array<String>} permissions Array of permissions App supports, each of
+     *     which comes from AssistantApp.SupportedPermissions.
+     * @param {DialogState=} dialogState JSON object the app uses to hold dialog state that
+     *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
+     * @return A response is sent to Assistant to ask for the user"s permission; for any
+     *     invalid input, we return null.
+     * @actionssdk
+     * @apiai
+     */
+    fun askForPermissions(context: String, vararg permissions: String, dialogState: DialogState<T>? = null): ResponseWrapper<S>? {
+        debug("askForPermissions: context=$context, permissions=$permissions, dialogState=$dialogState")
         if (context.isEmpty()) {
             handleError("Assistant context can NOT be empty.")
             return null
         }
-        return fulfillPermissionRequest(GoogleData.PermissionsRequest(
+        if (permissions.isEmpty()) {
+            handleError("At least one permission needed.")
+            return null
+        }
+        permissions.forEach {
+            if (it !== SUPPORTED_PERMISSIONS.NAME &&
+                    it !== SUPPORTED_PERMISSIONS.DEVICE_PRECISE_LOCATION &&
+                    it !== SUPPORTED_PERMISSIONS.DEVICE_COARSE_LOCATION) {
+                this.handleError("Assistant permission must be one of " +
+                        "[NAME, DEVICE_PRECISE_LOCATION, DEVICE_COARSE_LOCATION]")
+                return null
+            }
+        }
+        if (dialogState != null) {
+            //TODO support dialogState
+//            dialogState = {
+//                "state": (this.state instanceof State ? this.state.getName() : this.state),
+//                "data": this.data
+//            };
+        }
+        return fulfillPermissionsRequest(GoogleData.PermissionsRequest(
                 optContext = context,
-                permissions = permissions
-
-        ))
+                permissions = permissions.toMutableList()))
     }
+
 
     fun doResponse(response: ResponseWrapper<S>, responseCode: Int = 0): ResponseWrapper<S>? {
         debug("doResponse_: responseWrapper=$response., responseCode=$responseCode")
@@ -245,12 +321,12 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
         } else {
             var code = RESPONSE_CODE_OK;
             if (responseCode != 0) {
-                code = responseCode;
+                code = responseCode
             }
             if (this.apiVersion !== null) {
-                this.response.append(CONVERSATION_API_VERSION_HEADER, apiVersion);
+                this.response.append(CONVERSATION_API_VERSION_HEADER, apiVersion)
             }
-            response.append(HTTP_CONTENT_TYPE_HEADER, HTTP_CONTENT_TYPE_JSON);
+            response.append(HTTP_CONTENT_TYPE_HEADER, HTTP_CONTENT_TYPE_JSON)
             // If request was in Proto2 format, convert response to Proto2
             if (!this.isNotApiVersionOne()) {
                 //TODO migrate data
@@ -307,7 +383,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
         return OptionItem(optionInfo)
     }
 
-    internal abstract fun fulfillPermissionRequest(permissionSpec: GoogleData.PermissionsRequest): Any
+    internal abstract fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest): ResponseWrapper<S>?
 
     abstract fun getIntent(): String
     abstract fun tell(speech: String, displayText: String = ""): ResponseWrapper<S>?
@@ -426,13 +502,74 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
     /**
      * Helper to build prompts from plain texts.
      *
-     * @param {Array<string>} plainTexts Array of plain text to speech.
-     * @return {Array<Object>} Array of SpeechResponse objects.
+     * @param {Array<String>} plainTexts Array of plain text to speech.
+     * @return {Array<NoInputPrompt>} Array of SpeechResponse objects.
      * @private
      */
     fun buildPromptsFromPlainTextHelper(plainTexts: MutableList<String>): MutableList<GoogleData.NoInputPrompts> {
         debug("buildPromptsFromPlainTextHelper_: plainTexts=$plainTexts")
         return plainTexts.map { GoogleData.NoInputPrompts(textToSpeech = it) }.toMutableList()
+    }
+
+
+    /**
+     * If granted permission to user"s name in previous intent, returns user"s
+     * display name, family name, and given name. If name info is unavailable,
+     * returns null.
+
+     * @example
+     * * val app = ApiAIApp(request = req, response = res)
+     * * val REQUEST_PERMISSION_ACTION = "request_permission"
+     * * val SAY_NAME_ACTION = "get_name"
+     * *
+     * * fun requestPermission (app) {
+     * *   const permission = app.SupportedPermissions.NAME;
+     * *   app.askForPermission("To know who you are", permission);
+     * * }
+     * *
+     * * fun sayName (app) {
+     * *   if (app.isPermissionGranted()) {
+     * *     app.tell("Your name is " + app.getUserName().displayName));
+     * *   } else {
+     * *     // Response shows that user did not grant permission
+     * *     app.tell("Sorry, I could not get your name.");
+     * *   }
+     * * }
+     * * val actionMap = mapOf(
+     * *    REQUEST_PERMISSION_ACTION to requestPermission,
+     * *    SAY_NAME_ACTION to sayName)
+     * * app.handleRequest(actionMap)
+     * *
+     * @return {Profile} Null if name permission is not granted.
+     * *
+     * @actionssdk
+     * *
+     * @apiai
+     */
+    fun getUserName(): Profile? {
+        debug("getUserName")
+        return getUser()?.profile
+    }
+
+    /**
+     * Gets the user locale. Returned string represents the regional language
+     * information of the user set in their Assistant settings.
+     * For example, "en-US" represents US English.
+
+     * @example
+     * * val app = ApiAiApp(request, response)
+     * * val locale = app.getUserLocale()
+     * *
+     * *
+     * @return {String} User"s locale, e.g. "en-US". Null if no locale given.
+     * *
+     * @actionssdk
+     * *
+     * @apiai
+     */
+    fun getUserLocale(): String? {
+        debug("getUserLocale")
+        return getUser()?.locale
     }
 
     fun handleError(text: String?) {
