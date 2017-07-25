@@ -371,7 +371,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      * @private
      */
     internal fun isNotApiVersionOne(): Boolean {
-        debug("isNotApiVersionOne_");
+        debug("isNotApiVersionOne_")
         return actionsApiVersion.isNotEmpty() &&
                 (actionsApiVersion.toInt() >= ACTIONS_CONVERSATION_API_VERSION_TWO)
     }

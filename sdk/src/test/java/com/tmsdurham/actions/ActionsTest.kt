@@ -12,6 +12,7 @@ import com.winterbe.expekt.expect
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.mockito.Mock
 
 val gson = Gson()
 
@@ -125,7 +126,8 @@ object ActionsTest : Spek({
      * Describes the behavior for Assistant isNotApiVersionOne_ method.
      */
     describe("ApiAiApp#isNotApiVersionOne") {
-        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>>
+        var mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+
         val invalidHeader = mapOf(
                 "Content-Type" to "application/json",
                 "google-assistant-api-version" to "v1",
@@ -143,7 +145,6 @@ object ActionsTest : Spek({
 
         it("Should detect Proto2 when header is not present") {
             val mockRequest = RequestWrapper(headerV1, ApiAiRequest<MockParameters>())
-            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
 
             val app = ApiAiApp(mockRequest, mockResponse)
 
@@ -247,56 +248,11 @@ object ActionsTest : Spek({
      * Describes the behavior for ApiAiApp constructor method.
      */
     describe("ApiAiApp#constructor") {
+        var mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+
         // Calls sessionStarted when provided
         it("Calls sessionStarted when new session") {
-            val headers = mapOf(
-                    "Content-Type" to "application/json",
-                    "google-assistant-api-version" to "v1"
-            )
-
-            val body = requestFromJson(
-                    """{
-	"id": "ce7295cc-b042-42d8-8d72-14b83597ac1e",
-	"timestamp": "2016-10-28T03:05:34.288Z",
-	"result": {
-		"source": "agent",
-		"resolvedQuery": "start guess a number game",
-		"speech": "",
-		"action": "generate_answer",
-		"actionIncomplete": false,
-		"parameters": {
-
-		},
-		"contexts": [{
-			"name": "game",
-			"lifespan": 5
-		}],
-		"metadata": {
-			"intentId": "56da4637-0419-46b2-b851-d7bf726b1b1b",
-			"webhookUsed": "true",
-			"intentName": "start_game"
-		},
-		"fulfillment": {
-			"speech": ""
-		},
-		"score": 1
-	},
-	"status": {
-		"code": 200,
-		"errorType": "success"
-	},
-	"sessionId": "e420f007-501d-4bc8-b551-5d97772bc50c",
-	"originalRequest": {
-		"data": {
-			"conversation": {
-				"type": 1
-			}
-		}
-	}
-}""")
-
-            val mockRequest = RequestWrapper(headers, body)
-            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+            var mockRequest = RequestWrapper(headerV1, apiAiAppRequestBodyNewSession())
 
             val sessionStartedSpy = mock<(() -> Unit)> {}
 
@@ -315,54 +271,7 @@ object ActionsTest : Spek({
 
     // Does not call sessionStarted when not new sessoin
     it("Does not call sessionStarted when not new session") {
-        val headers = mapOf(
-                "Content-Type" to "application/json",
-                "google-assistant-api-version" to "v1"
-        )
-
-        val body = requestFromJson(
-                """{
-            "id": "ce7295cc-b042-42d8-8d72-14b83597ac1e",
-            "timestamp": "2016-10-28T03:05:34.288Z",
-            "result": {
-            "source": "agent",
-            "resolvedQuery": "start guess a number game",
-            "speech": "",
-            "action": "generate_answer",
-            "actionIncomplete": false,
-            "parameters": {
-
-        },
-            "contexts": [
-            {
-                "name": "game",
-                "lifespan": 5
-            }
-            ],
-            "metadata": {
-            "intentId": "56da4637-0419-46b2-b851-d7bf726b1b1b",
-            "webhookUsed": "true",
-            "intentName": "start_game"
-        },
-            "fulfillment": {
-            "speech": ""
-        },
-            "score": 1
-        },
-            "status": {
-            "code": 200,
-            "errorType": "success"
-        },
-            "sessionId": "e420f007-501d-4bc8-b551-5d97772bc50c",
-            "originalRequest": {
-            "data": {
-            "conversation": {
-            "type": 2
-        }
-        }
-        }
-        }""")
-        val mockRequest = RequestWrapper <ApiAiRequest <MockParameters>>(headers, body)
+        val mockRequest = RequestWrapper(headerV1, createLiveSessionApiAppBody())
         val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
 
         val sessionStartedSpy = mock<(() -> Unit)> {}
@@ -385,67 +294,21 @@ object ActionsTest : Spek({
      * Describes the behavior for ApiAiApp tell method.
      */
     describe("ApiAiApp#tell") {
+        var mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+        var body = ApiAiRequest<MockParameters>()
+        var mockRequest = RequestWrapper<ApiAiRequest<MockParameters>>(body = body)
+        var app = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+
+        beforeEachTest {
+            mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+            body = createLiveSessionApiAppBody()
+            mockRequest = RequestWrapper(headerV1, body)
+            app = ApiAiApp(request = mockRequest, response = mockResponse)
+        }
+
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should return the valid JSON in the response object for the success case.", {
-            val headers = mapOf(
-                    "Content-Type" to "application/json",
-                    "google-assistant-api-version" to "v1"
-            )
-
-            val body = requestFromJson(
-                    """{
-                "id": "ce7295cc-b042-42d8-8d72-14b83597ac1e",
-                "timestamp": "2016-10-28T03:05:34.288Z",
-                "result": {
-                "source": "agent",
-                "resolvedQuery": "start guess a number game",
-                "speech": "",
-                "action": "generate_answer",
-                "actionIncomplete": false,
-                "parameters": {
-
-            },
-                "contexts": [
-                {
-                    "name": "game",
-                    "lifespan": 5
-                }
-                ],
-                "metadata": {
-                "intentId": "56da4637-0419-46b2-b851-d7bf726b1b1b",
-                "webhookUsed": "true",
-                "intentName": "start_game"
-            },
-                "fulfillment": {
-                "speech": ""
-            },
-                "score": 1
-            },
-                "status": {
-                "code": 200,
-                "errorType": "success"
-            },
-                "sessionId": "e420f007-501d-4bc8-b551-5d97772bc50c",
-                "originalRequest": {
-                "data": {
-                "conversation": {
-                "type": 2
-            }
-            }
-            }
-            }""")
-            val mockRequest = RequestWrapper<ApiAiRequest<MockParameters>>(headers, body)
-            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
-
-            val app = ApiAiApp(request = mockRequest, response = mockResponse)
-
-            val handler: MockHandler = {
-                app.tell("hello")
-            }
-
-            val actionMap = mapOf("generate_answer" to handler)
-
-            app.handleRequest(actionMap);
+            app.tell("hello")
 
             // Validating the response object
             val expectedResponse = """{
@@ -468,67 +331,8 @@ object ActionsTest : Spek({
 
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should return the valid simple response JSON in the response object for the success case.") {
-            val headers = mapOf(
-                    "Content-Type" to "application/json",
-                    "Google-Assistant-API-Version" to "v1"
-            )
-            val body = requestFromJson(
-                    """{
-                "id": "9c4394e3-4f5a-4e68-b1af-088b75ad3071",
-                "timestamp": "2016-10-28T03:41:39.957Z",
-                "result": {
-                "source": "agent",
-                "resolvedQuery": "50",
-                "speech": "",
-                "action": "check_guess",
-                "actionIncomplete": false,
-                "parameters": {
-                "guess": "50"
-            },
-                "contexts": [
-                ],
-                "metadata": {
-                "intentId": "1e46ffc2-651f-4ac0-a54e-9698feb88880",
-                "webhookUsed": "true",
-                "intentName": "provide_guess"
-            },
-                "fulfillment": {
-                "speech": ""
-            },
-                "score": 1
-            },
-                "status": {
-                "code": 200,
-                "errorType": "success"
-            },
-                "sessionId": "e420f007-501d-4bc8-b551-5d97772bc50c",
-                "originalRequest": {
-                "data": {
-                "conversation": {
-                "type": 2
-            }
-            }
-            }
-            }""")
-            val mockRequest = RequestWrapper<ApiAiRequest<MockParameters>>(headers, body)
-            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
-
-            val app = ApiAiApp(
-                    request = mockRequest,
-                    response = mockResponse
-            )
-
-
-            val handler: MockHandler = {
-                app.tell(speech = "hello",
-                        displayText = "Hi")
-            }
-
-            val actionMap = mapOf(
-                    "check_guess" to handler
-            )
-
-            app.handleRequest(actionMap);
+            app.tell(speech = "hello",
+                    displayText = "Hi")
 
             // Validating the response object
             var expectedResponse = """{
@@ -553,76 +357,20 @@ object ActionsTest : Spek({
             }"""
             expect(mockResponse.body).to.equal(responseFromJson(expectedResponse))
         }
-    }
 
-    // Success case test, when the API returns a valid 200 response with the response object
-    it("Should return the valid rich response JSON in the response object for the success case.") {
-        var headers = mapOf(
-                "Content-Type" to "application/json",
-                "Google-Assistant-API-Version" to "v1"
-        )
-        val body = requestFromJson(
-                """{
-            "id": "9c4394e3-4f5a-4e68-b1af-088b75ad3071",
-            "timestamp": "2016-10-28T03:41:39.957Z",
-            "result": {
-            "source": "agent",
-            "resolvedQuery": "50",
-            "speech": "",
-            "action": "check_guess",
-            "actionIncomplete": false,
-            "parameters": {
-            "guess": "50"
-        },
-            "contexts": [
-            ],
-            "metadata": {
-            "intentId": "1e46ffc2-651f-4ac0-a54e-9698feb88880",
-            "webhookUsed": "true",
-            "intentName": "provide_guess"
-        },
-            "fulfillment": {
-            "speech": ""
-        },
-            "score": 1
-        },
-            "status": {
-            "code": 200,
-            "errorType": "success"
-        },
-            "sessionId": "e420f007-501d-4bc8-b551-5d97772bc50c",
-            "originalRequest": {
-            "data": {
-            "conversation": {
-            "type": 2
-        }
-        }
-        }
-        }""")
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return the valid rich response JSON in the response object for the success case.") {
 
-        val mockRequest = RequestWrapper(headers, body);
-        val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
-
-        val app = ApiAiApp(
-                request = mockRequest,
-                response = mockResponse
-        )
-
-        val handler: MockHandler = {
             app.tell(app.buildRichResponse()
                     .addSimpleResponse(
                             speech = "hello",
                             displayText = "hi"
                     )
                     .addSuggestions("Say this", "or this"))
-        }
 
-        val actionMap = mapOf("check_guess" to handler)
 
-        app.handleRequest(actionMap);
-
-        // Validating the response object
-        val expectedResponse = responseFromJson("""{
+            // Validating the response object
+            val expectedResponse = responseFromJson("""{
             "speech": "hello",
             "data": {
             "google": {
@@ -649,131 +397,43 @@ object ActionsTest : Spek({
         },
             "contextOut": []
         }""")
-        expect(mockResponse.body).to.equal(expectedResponse)
-    }
-
-
-    // Failure test, when the API returns a 400 response with the response object
-    it("Should send failure response for rich response without simple response") {
-        val headers = mapOf(
-                "Content-Type" to "application/json",
-                "Google-Assistant-API-Version" to "v1"
-        )
-        val body = requestFromJson("""{
-            "id": "9c4394e3-4f5a-4e68-b1af-088b75ad3071",
-            "timestamp": "2016-10-28T03:41:39.957Z",
-            "result": {
-            "source": "agent",
-            "resolvedQuery": "50",
-            "speech": "",
-            "action": "check_guess",
-            "actionIncomplete": false,
-            "parameters": {
-            "guess": "50"
-        },
-            "contexts": [
-            ],
-            "metadata": {
-            "intentId": "1e46ffc2-651f-4ac0-a54e-9698feb88880",
-            "webhookUsed": "true",
-            "intentName": "provide_guess"
-        },
-            "fulfillment": {
-            "speech": ""
-        },
-            "score": 1
-        },
-            "status": {
-            "code": 200,
-            "errorType": "success"
-        },
-            "sessionId": "e420f007-501d-4bc8-b551-5d97772bc50c",
-            "originalRequest": {
-            "data": {
-            "conversation": {
-            "type": 2
+            expect(mockResponse.body).to.equal(expectedResponse)
         }
-        }
-        }
-        }""")
-        val mockRequest = RequestWrapper<ApiAiRequest<MockParameters>>(headers, body)
-        val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
 
-        val app = ApiAiApp(
-                request = mockRequest,
-                response = mockResponse
-        )
 
-        val handler: MockHandler = {
+        // Failure test, when the API returns a 400 response with the response object
+        it("Should send failure response for rich response without simple response") {
             app.tell(app.buildRichResponse())
+
+            expect(mockResponse.statusCode).to.equal(400)
         }
 
-        val actionMap = mapOf("check_guess" to handler)
-
-        app.handleRequest(actionMap)
-
-        expect(mockResponse.statusCode).to.equal(400)
     }
-
     /**
      * Describes the behavior for ApiAiApp askWithList method.
      */
     describe("ApiAiApp#askWithList") {
+
+        var mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+        var body = ApiAiRequest<MockParameters>()
+        var mockRequest = RequestWrapper<ApiAiRequest<MockParameters>>(body = body)
+        var app = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+
+        beforeEachTest {
+            mockResponse = ResponseWrapper()
+            body = createLiveSessionApiAppBody()
+            body.originalRequest?.version = "2"
+            mockRequest = RequestWrapper(headerV1, body)
+            app = ApiAiApp(request = mockRequest, response = mockResponse)
+        }
+
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should return the valid list JSON in the response object for the success case.") {
-            val headers = mapOf("Content-Type" to "application/json")
-            val body = requestFromJson("""{
-                "id": "9c4394e3-4f5a-4e68-b1af-088b75ad3071",
-                "timestamp": "2016-10-28T03:41:39.957Z",
-                "result": {
-                "source": "agent",
-                "resolvedQuery": "Show me a list",
-                "speech": "",
-                "action": "show_list",
-                "actionIncomplete": false,
-                "parameters": {},
-                "contexts": [],
-                "metadata": {
-                "intentId": "1e46ffc2-651f-4ac0-a54e-9698feb88880",
-                "webhookUsed": "true",
-                "intentName": "show_list"
-            },
-                "fulfillment": {
-                "speech": ""
-            },
-                "score": 1
-            },
-                "status": {
-                "code": 200,
-                "errorType": "success"
-            },
-                "sessionId": "e420f007-501d-4bc8-b551-5d97772bc50c",
-                "originalRequest": {
-                "version": 2,
-                "data": {
-                "conversation": {
-                "type": 2
-            }
-            }
-            }
-            }""")
-
-            val mockRequest = RequestWrapper(headers, body = body)
-            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
-
-            val app = ApiAiApp(request = mockRequest, response = mockResponse)
-
-            val handler: MockHandler = {
-                app.askWithList("Here is a list", app.buildList()
-                        .addItems(
-                                app.buildOptionItem("key_1", "key one"),
-                                app.buildOptionItem("key_2", "key two")
-                        ))
-            }
-
-            val actionMap = mapOf("show_list" to handler)
-
-            app.handleRequest(actionMap)
+            app.askWithList("Here is a list", app.buildList()
+                    .addItems(
+                            app.buildOptionItem("key_1", "key one"),
+                            app.buildOptionItem("key_2", "key two")
+                    ))
 
             // Validating the response object
             val expectedResponse = responseFromJson("""{
@@ -823,59 +483,11 @@ object ActionsTest : Spek({
             }""")
             expect(mockResponse.body).to.equal(expectedResponse)
         }
-    }
 
-    it("Should return the an error JSON in the response when list has <2 items.") {
-        var headers = mapOf("Content-Type" to "application/json")
-        val body = requestFromJson("""{
-            "id": "9c4394e3-4f5a-4e68-b1af-088b75ad3071",
-            "timestamp": "2016-10-28T03:41:39.957Z",
-            "result": {
-            "source": "agent",
-            "resolvedQuery": "Show me a list",
-            "speech": "",
-            "action": "show_list",
-            "actionIncomplete": false,
-            "parameters": {},
-            "contexts": [],
-            "metadata": {
-            "intentId": "1e46ffc2-651f-4ac0-a54e-9698feb88880",
-            "webhookUsed": "true",
-            "intentName": "show_list"
-        },
-            "fulfillment": {
-            "speech": ""
-        },
-            "score": 1
-        },
-            "status": {
-            "code": 200,
-            "errorType": "success"
-        },
-            "sessionId": "e420f007-501d-4bc8-b551-5d97772bc50c",
-            "originalRequest": {
-            "version": 2,
-            "data": {
-            "conversation": {
-            "type": 2
-        }
-        }
-        }
-        }""")
-        val mockRequest = RequestWrapper(headers, body);
-        val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
-
-        val app = ApiAiApp(request = mockRequest, response = mockResponse)
-
-        val handler: MockHandler = {
+        it("Should return the an error JSON in the response when list has <2 items.") {
             app.askWithList("Here is a list", app.buildList())
+            expect(mockResponse.statusCode).to.equal(400)
         }
-
-        val actionMap = mapOf("show_list" to handler)
-
-        app.handleRequest(actionMap)
-
-        expect(mockResponse.statusCode).to.equal(400)
     }
 
     /**
@@ -885,14 +497,14 @@ object ActionsTest : Spek({
         var body: ApiAiRequest<MockParameters> = ApiAiRequest()
         var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
         var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
-        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, {false})
+        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
 
         beforeEachTest {
             mockResponse = ResponseWrapper()
             body = createLiveSessionApiAppBody()
             body.originalRequest?.version = "2"
             mockRequest = RequestWrapper(headerV1, body)
-            app = ApiAiApp (request = mockRequest, response = mockResponse )
+            app = ApiAiApp(request = mockRequest, response = mockResponse)
         }
 
         // Success case test, when the API returns a valid 200 response with the response object
@@ -900,8 +512,8 @@ object ActionsTest : Spek({
             app.askWithCarousel("Here is a carousel",
                     app.buildCarousel()
                             .addItems(
-                            app.buildOptionItem("key_1", "key one"),
-                            app.buildOptionItem("key_2", "key two")
+                                    app.buildOptionItem("key_1", "key one"),
+                                    app.buildOptionItem("key_2", "key two")
                             )
             )
 
@@ -953,61 +565,13 @@ object ActionsTest : Spek({
             }""")
             expect(mockResponse.body).to.equal(expectedResponse)
         }
-    }
 
-    it("Should return the an error JSON in the response when carousel has <2 items.") {
-        val headers = mapOf("Content-Type" to "application/json")
-        val body = requestFromJson("""{
-            "id": "9c4394e3-4f5a-4e68-b1af-088b75ad3071",
-            "timestamp": "2016-10-28T03:41:39.957Z",
-            "result": {
-            "source": "agent",
-            "resolvedQuery": "Show me a carousel",
-            "speech": "",
-            "action": "show_carousel",
-            "actionIncomplete": false,
-            "parameters": {},
-            "contexts": [],
-            "metadata": {
-            "intentId": "1e46ffc2-651f-4ac0-a54e-9698feb88880",
-            "webhookUsed": "true",
-            "intentName": "show_carousel"
-        },
-            "fulfillment": {
-            "speech": ""
-        },
-            "score": 1
-        },
-            "status": {
-            "code": 200,
-            "errorType": "success"
-        },
-            "sessionId": "e420f007-501d-4bc8-b551-5d97772bc50c",
-            "originalRequest": {
-            "version": 2,
-            "data": {
-            "conversation": {
-            "type": 2
-        }
-        }
-        }
-        }""")
-        val mockRequest = RequestWrapper(headers, body)
-        val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
-
-        val app = ApiAiApp(request = mockRequest, response = mockResponse)
-
-        val handler: MockHandler = {
+        it("Should return the an error JSON in the response when carousel has <2 items.") {
             app.askWithCarousel("Here is a carousel",
                     app.buildCarousel()
             )
+            expect(mockResponse.statusCode).to.equal(400)
         }
-
-        val actionMap = mapOf("show_carousel" to handler)
-
-        app.handleRequest(actionMap)
-
-        expect(mockResponse.statusCode).to.equal(400)
     }
 })
 
