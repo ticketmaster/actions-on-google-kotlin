@@ -13,7 +13,6 @@ import com.winterbe.expekt.expect
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
-import org.mockito.Mock
 
 val gson = Gson()
 
@@ -686,6 +685,38 @@ object ActionsTest : Spek({
             mockRequest = RequestWrapper(headerV1, body)
             app = ApiAiApp(request = mockRequest, response = mockResponse)
             expect(app.getUserName()).to.equal(null)
+        }
+    }
+
+    /**
+     * Describes the behavior for ApiAiApp getUserLocale method.
+     */
+    describe("ApiAiApp#getUserLocale" ) {
+        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
+        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+
+        beforeEachTest {
+            mockResponse = ResponseWrapper()
+            body = createLiveSessionApiAppBody()
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant request user with locale.") {
+            var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>>
+            val app: ApiAiApp<MockParameters>
+            mockRequest = RequestWrapper(headerV1, body)
+            app = ApiAiApp(request = mockRequest, response = mockResponse)
+            expect(app.getUserLocale()).to.equal("en-US")
+        }
+
+        // Failure case
+        it("Should return null for missing locale.") {
+            var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>>
+            val app: ApiAiApp<MockParameters>
+            body.originalRequest?.data?.user?.locale = null
+            mockRequest = RequestWrapper(headerV1, body)
+            app = ApiAiApp(request = mockRequest, response = mockResponse)
+            expect(app.getUserLocale()).to.equal(null)
         }
     }
 

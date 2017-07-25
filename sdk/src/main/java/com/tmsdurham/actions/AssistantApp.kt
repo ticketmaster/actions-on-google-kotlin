@@ -553,6 +553,27 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
         return getUser()?.profile
     }
 
+    /**
+     * Gets the user locale. Returned string represents the regional language
+     * information of the user set in their Assistant settings.
+     * For example, "en-US" represents US English.
+
+     * @example
+     * * val app = ApiAiApp(request, response)
+     * * val locale = app.getUserLocale()
+     * *
+     * *
+     * @return {String} User"s locale, e.g. "en-US". Null if no locale given.
+     * *
+     * @actionssdk
+     * *
+     * @apiai
+     */
+    fun getUserLocale(): String? {
+        debug("getUserLocale")
+        return getUser()?.locale
+    }
+
     fun handleError(text: String?) {
         debug("handleError_: text=%$text")
         if (text.isNullOrEmpty()) {
