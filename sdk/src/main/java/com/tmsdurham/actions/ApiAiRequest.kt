@@ -116,7 +116,7 @@ data class OriginalRequest(
 data class OriginalRequestData(
         var conversation: Conversation? = null,
         var user: User? = null,
-        val device: Device? = null,
+        var device: Device? = null,
         var surface: Surface? = null,
         var sender: Sender? = null,
         var inputs: List<Inputs>? = null,

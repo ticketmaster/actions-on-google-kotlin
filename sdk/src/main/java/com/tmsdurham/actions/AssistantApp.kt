@@ -242,39 +242,36 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      *   equivalent to just asking for DEVICE_PRECISE_LOCATION
      *
      * @example
-     * const app = new ApiAIApp({request: req, response: res});
-     * const REQUEST_PERMISSION_ACTION = "request_permission";
-     * const GET_RIDE_ACTION = "get_ride";
+     * val app = ApiAIApp(request = req, response = res)
+     * val REQUEST_PERMISSION_ACTION = "request_permission"
+     * val GET_RIDE_ACTION = "get_ride"
      *
-     * function requestPermission (app) {
-     *   const permission = [
-     *     app.SupportedPermissions.NAME,
-     *     app.SupportedPermissions.DEVICE_PRECISE_LOCATION
-     *   ];
-     *   app.askForPermissions("To pick you up", permissions);
+     * fun requestPermission (app) {
+     *   app.askForPermissions("To pick you up", app.SupportedPermissions.NAME,
+     *     app.SupportedPermissions.DEVICE_PRECISE_LOCATION)
      * }
      *
-     * function sendRide (app) {
+     * fun sendRide (app) {
      *   if (app.isPermissionGranted()) {
-     *     const displayName = app.getUserName().displayName;
-     *     const address = app.getDeviceLocation().address;
+     *     val displayName = app.getUserName().displayName
+     *     val address = app.getDeviceLocation().formattedAddress
      *     app.tell("I will tell your driver to pick up " + displayName +
-     *         " at " + address);
+     *         " at " + address)
      *   } else {
      *     // Response shows that user did not grant permission
-     *     app.tell("Sorry, I could not figure out where to pick you up.");
+     *     app.tell("Sorry, I could not figure out where to pick you up.")
      *   }
      * }
-     * const actionMap = new Map();
-     * actionMap.set(REQUEST_PERMISSION_ACTION, requestPermission);
-     * actionMap.set(GET_RIDE_ACTION, sendRide);
-     * app.handleRequest(actionMap);
+     * val actionMap = mapOf(
+     *      REQUEST_PERMISSION_ACTION to requestPermission,
+     *      GET_RIDE_ACTION to sendRide)
+     * app.handleRequest(actionMap)
      *
-     * @param {string} context Context why the permission is being asked; it"s the TTS
+     * @param {String} context Context why the permission is being asked; it"s the TTS
      *     prompt prefix (action phrase) we ask the user.
-     * @param {Array<string>} permissions Array of permissions App supports, each of
+     * @param {Array<String>} permissions Array of permissions App supports, each of
      *     which comes from AssistantApp.SupportedPermissions.
-     * @param {Object=} dialogState JSON object the app uses to hold dialog state that
+     * @param {DialogState=} dialogState JSON object the app uses to hold dialog state that
      *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
      * @return A response is sent to Assistant to ask for the user"s permission; for any
      *     invalid input, we return null.
@@ -301,6 +298,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
             }
         }
         if (dialogState != null) {
+            //TODO support dialogState
 //            dialogState = {
 //                "state": (this.state instanceof State ? this.state.getName() : this.state),
 //                "data": this.data
@@ -504,8 +502,8 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
     /**
      * Helper to build prompts from plain texts.
      *
-     * @param {Array<string>} plainTexts Array of plain text to speech.
-     * @return {Array<Object>} Array of SpeechResponse objects.
+     * @param {Array<String>} plainTexts Array of plain text to speech.
+     * @return {Array<NoInputPrompt>} Array of SpeechResponse objects.
      * @private
      */
     fun buildPromptsFromPlainTextHelper(plainTexts: MutableList<String>): MutableList<GoogleData.NoInputPrompts> {

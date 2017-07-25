@@ -5,10 +5,7 @@ import com.google.gson.reflect.TypeToken
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
-import com.ticketmaster.apiai.ApiAiRequest
-import com.ticketmaster.apiai.ApiAiResponse
-import com.ticketmaster.apiai.User
-import com.ticketmaster.apiai.apiAiRequest
+import com.ticketmaster.apiai.*
 import com.winterbe.expekt.expect
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
@@ -717,6 +714,58 @@ object ActionsTest : Spek({
             mockRequest = RequestWrapper(headerV1, body)
             app = ApiAiApp(request = mockRequest, response = mockResponse)
             expect(app.getUserLocale()).to.equal(null)
+        }
+    }
+
+
+    /**
+     * Describes the behavior for ApiAiApp getDeviceLocation method.
+     */
+    describe("ApiAiApp#getDeviceLocation") {
+        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+
+        beforeEachTest {
+            body = createLiveSessionApiAppBody()
+            body.originalRequest?.data?.device = gson.fromJson("""{
+                "location": {
+                "coordinates": {
+                "latitude": 37.3861,
+                "longitude": 122.0839
+            },
+                "formattedAddress": "123 Main St, Anytown, CA 12345, United States",
+                "zipCode": "12345",
+                "city": "Anytown"
+            }
+            }""", Device::class.java)
+        }
+
+        fun initMockApp () {
+            mockRequest = RequestWrapper(headerV1, body)
+            mockResponse = ResponseWrapper()
+            app = ApiAiApp(request = mockRequest, response = mockResponse)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant request user.") {
+            initMockApp()
+            expect(app.getDeviceLocation()?.coordinates).to.equal(Coordinates(
+                latitude = 37.3861,
+                longitude = 122.0839
+            ))
+            expect(app.getDeviceLocation()?.formattedAddress)
+                    .to.equal("123 Main St, Anytown, CA 12345, United States")
+            expect(app.getDeviceLocation()?.zipCode).to.equal("12345")
+            expect(app.getDeviceLocation()?.city).to.equal("Anytown")
+        }
+
+        it("Should validate faulty assistant request user.") {
+            // Test the false case
+            body.originalRequest?.data?.device = null
+            initMockApp()
+            expect(app.getDeviceLocation()).to.equal(null)
         }
     }
 
