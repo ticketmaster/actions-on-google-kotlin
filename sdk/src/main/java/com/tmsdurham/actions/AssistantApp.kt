@@ -309,6 +309,72 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
                 permissions = permissions.toMutableList()))
     }
 
+    /**
+     * Checks whether user is in transactable state.
+     *
+     * @example
+     * val app = ApiAiApp(request = request, response = response)
+     * val WELCOME_INTENT = "input.welcome"
+     * val TXN_REQ_COMPLETE = "txn.req.complete"
+     *
+     * let transactionConfig = {
+     *     deliveryAddressRequired: false,
+     *     type: app.Transactions.PaymentType.BANK,
+     *     displayName: "Checking-1234"
+     * };
+     * function welcomeIntent (app) {
+     *   app.askForTransactionRequirements(transactionConfig);
+     * }
+     *
+     * function txnReqCheck (app) {
+     *   if (app.getTransactionRequirementsResult() === app.Transactions.ResultType.OK) {
+     *     // continue cart building flow
+     *   } else {
+     *     // don"t continue cart building
+     *   }
+     * }
+     *
+     * const actionMap = new Map();
+     * actionMap.set(WELCOME_INTENT, welcomeIntent);
+     * actionMap.set(TXN_REQ_COMPLETE, txnReqCheck);
+     * app.handleRequest(actionMap);
+     *
+     * @param {ActionPaymentTransactionConfig|GooglePaymentTransactionConfig=}
+     *     transactionConfig Configuration for the transaction. Includes payment
+     *     options and order options. Optional if order has no payment or
+     *     delivery.
+     * @param {Object=} dialogState JSON object the app uses to hold dialog state that
+     *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
+     * @return {Object} HTTP response.
+     * @actionssdk
+     * @apiai
+     */
+    fun askForTransactionRequirements (transactionConfig: TransactionConfig, dialogState: DialogState<T>): Unit? {
+        debug("checkForTransactionRequirements: transactionConfig=$transactionConfig," +
+                " dialogState=$dialogState")
+        if (transactionConfig.type?.isNullOrBlank() ?: true &&
+                transactionConfig.cardNetworks?.isEmpty() ?: true) {
+            handleError("Invalid transaction configuration. Must be of type" +
+                    "ActionPaymentTransactionConfig or GooglePaymentTransactionConfig")
+            return null
+        }
+        val transactionRequirementsCheckSpec = 
+        if (transactionConfig?.deliveryAddressRequired ?: false) {
+//            transactionRequirementsCheckSpec.orderOptions = {
+//                requestDeliveryAddress: transactionConfig.deliveryAddressRequired
+//            }
+        }
+        if (transactionConfig?.type != null ||
+                transactionConfig?.cardNetworks != null) {
+//            transactionRequirementsCheckSpec.paymentOptions =
+//                    this.buildPaymentOptions_(transactionConfig);
+        }
+        return fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec,
+                dialogState)
+    }
+
+    abstract fun  fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: Unit, dialogState: DialogState<T>): Unit?
+
 
     fun doResponse(response: ResponseWrapper<S>, responseCode: Int = 0): ResponseWrapper<S>? {
         debug("doResponse_: responseWrapper=$response., responseCode=$responseCode")
