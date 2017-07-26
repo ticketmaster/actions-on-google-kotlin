@@ -688,7 +688,7 @@ object ActionsTest : Spek({
     /**
      * Describes the behavior for ApiAiApp getUserLocale method.
      */
-    describe("ApiAiApp#getUserLocale" ) {
+    describe("ApiAiApp#getUserLocale") {
         var body: ApiAiRequest<MockParameters> = ApiAiRequest()
         var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
 
@@ -742,7 +742,7 @@ object ActionsTest : Spek({
             }""", Device::class.java)
         }
 
-        fun initMockApp () {
+        fun initMockApp() {
             mockRequest = RequestWrapper(headerV1, body)
             mockResponse = ResponseWrapper()
             app = ApiAiApp(request = mockRequest, response = mockResponse)
@@ -752,8 +752,8 @@ object ActionsTest : Spek({
         it("Should validate assistant request user.") {
             initMockApp()
             expect(app.getDeviceLocation()?.coordinates).to.equal(Coordinates(
-                latitude = 37.3861,
-                longitude = 122.0839
+                    latitude = 37.3861,
+                    longitude = 122.0839
             ))
             expect(app.getDeviceLocation()?.formattedAddress)
                     .to.equal("123 Main St, Anytown, CA 12345, United States")
@@ -766,6 +766,133 @@ object ActionsTest : Spek({
             body.originalRequest?.data?.device = null
             initMockApp()
             expect(app.getDeviceLocation()).to.equal(null)
+        }
+    }
+
+    /**
+     * Describes the behavior for ApiAiApp askForTransactionRequirements method.
+     */
+    describe("ApiAiApp#askForTransactionRequirements") {
+        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+
+        beforeEachTest {
+            body = createLiveSessionApiAppBody();
+            mockRequest = RequestWrapper(headerV2, body)
+            mockResponse = ResponseWrapper()
+            app = ApiAiApp(
+                    request = mockRequest,
+                    response = mockResponse
+            )
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON transaction requirements with Google payment options") {
+            val transactionConfig = gson.fromJson("""{
+                deliveryAddressRequired: true,
+                tokenizationParameters: {
+                myParam: "myParam"
+            },
+                cardNetworks: [
+                "VISA",
+                "MASTERCARD"
+                ],
+                prepaidCardDisallowed: false
+            }""", GooglePaymentTransactionConfig::class.java)
+
+            app.askForTransactionRequirements(transactionConfig)
+
+            val expectedResponse = responseFromJson("""{
+                "speech": "PLACEHOLDER_FOR_TXN_REQUIREMENTS",
+                "data": {
+                "google": {
+                "expectUserResponse": true,
+                "isSsml": false,
+                "noInputPrompts": [],
+                "systemIntent": {
+                "intent": "actions.intent.TRANSACTION_REQUIREMENTS_CHECK",
+                "data": {
+                "@type": "type.googleapis.com/google.actions.v2.TransactionRequirementsCheckSpec",
+                "orderOptions": {
+                "requestDeliveryAddress": true
+            },
+                "paymentOptions": {
+                "googleProvidedOptions": {
+                "tokenizationParameters": {
+                "tokenizationType": "PAYMENT_GATEWAY",
+                "parameters": {
+                "myParam": "myParam"
+            }
+            },
+                "supportedCardNetworks": [
+                "VISA",
+                "MASTERCARD"
+                ],
+                "prepaidCardDisallowed": false
+            }
+            }
+            }
+            }
+            }
+            },
+                "contextOut": [
+                {
+                    "name": "_actions_on_google_",
+                    "lifespan": 100,
+                    "parameters": {}
+                }
+                ]
+            }""")
+
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON transaction requirements with Action payment options") {
+            val transactionConfig = ActionPaymentTransactionConfig(
+                    deliveryAddressRequired = true,
+                    type = "BANK",
+                    displayName = "Checking-4773"
+            )
+
+            app.askForTransactionRequirements(transactionConfig)
+
+            val expectedResponse = responseFromJson("""{
+            "speech": "PLACEHOLDER_FOR_TXN_REQUIREMENTS",
+            "data": {
+            "google": {
+            "expectUserResponse": true,
+            "isSsml": false,
+            "noInputPrompts": [],
+            "systemIntent": {
+            "intent": "actions.intent.TRANSACTION_REQUIREMENTS_CHECK",
+            "data": {
+            "@type": "type.googleapis.com/google.actions.v2.TransactionRequirementsCheckSpec",
+            "orderOptions": {
+            "requestDeliveryAddress": true
+        },
+            "paymentOptions": {
+            "actionProvidedOptions": {
+            "paymentType": "BANK",
+            "displayName": "Checking-4773"
+        }
+        }
+        }
+        }
+        }
+        },
+            "contextOut": [
+            {
+                "name": "_actions_on_google_",
+                "lifespan": 100,
+                "parameters": {}
+            }
+            ]
+        }""")
+
+            expect(mockResponse.body).to.equal(expectedResponse)
         }
     }
 

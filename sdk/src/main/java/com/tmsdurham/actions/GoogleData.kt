@@ -30,8 +30,6 @@ data class GoogleData(
             var expectUserResponse: Boolean = false)
 
 
-
-
     data class SystemIntent(
             var spec: Spec? = null,
             var intent: String? = null,
@@ -43,9 +41,10 @@ data class GoogleData(
             }
             spec?.init()
         }
+
         fun data(init: Data.() -> Unit) {
             if (data == null) {
-               data = Data()
+                data = Data()
             }
             data?.init()
         }
@@ -63,13 +62,29 @@ data class GoogleData(
             var carouselSelect: Carousel? = null,
             var proposedOrder: Order? = null,
             var name: String? = null,
-            var paymentOptions: PaymentOptions? = null)
+            var paymentOptions: PaymentOptions? = null,
+            var orderOptions: OrderOptions? = null) {
+
+        fun paymentOptions(init: PaymentOptions.() -> Unit) {
+            if (paymentOptions == null) {
+                paymentOptions = PaymentOptions()
+            }
+            paymentOptions?.init()
+        }
+    }
 
     data class OrderOptions(var requestDeliveryAddress: Boolean = false)
 
     data class ActionProvidedOptions(var paymentType: String, var displayName: String)
 
-    data class PaymentOptions(var actionProvidedOptions: ActionProvidedOptions)
+    data class GoogleProvidedOptions(
+            var supportedCardNetworks: MutableList<String>,
+            var prepaidCardDisallowed: Boolean,
+            var tokenizationParameters: TokenizationParameters? = null)
+
+    data class TokenizationParameters(var tokenizationType: String, var parameters: Any)
+
+    data class PaymentOptions(var actionProvidedOptions: ActionProvidedOptions? = null, var googleProvidedOptions: GoogleData.GoogleProvidedOptions? = null)
 
     data class TransactionRequirementsCheckSpec(
             var orderOptions: OrderOptions? = null,

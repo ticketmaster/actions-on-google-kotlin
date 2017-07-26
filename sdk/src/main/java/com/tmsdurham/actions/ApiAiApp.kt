@@ -6,6 +6,7 @@ import com.ticketmaster.apiai.google.GoogleData
 
 class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
 
+
     // Constants
     val RESPONSE_CODE_OK = 200
     val ACTIONS_API_AI_CONTEXT = "_actions_on_google_"
@@ -439,7 +440,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         return request.body.originalRequest?.data?.device?.location
     }
 
-    // INTERNAL FUNCTIONS
+// INTERNAL FUNCTIONS
     /**
      * Uses a PermissionsValueSpec object to construct and send a
      * permissions request to the user.
@@ -492,6 +493,43 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
                                 spec {
                                     permissionValueSpec = permissionsSpec
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (response != null) {
+            return doResponse(response, RESPONSE_CODE_OK)
+        } else {
+            return null
+        }
+    }
+
+    /**
+     * Uses TransactionRequirementsCheckValueSpec to construct and send a
+     * transaction requirements request to Google.
+     *
+     * @param {TransactionRequirementsCheckSpec} transactionRequirementsSpec TransactionRequirementsSpec
+     *     object.
+     * @return {ResponseWrapper<T>} HTTP response.
+     * @private
+     * @apiai
+     */
+    override fun fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: TransactionRequirementsCheckSpec,
+                                                     dialogState: DialogState<ApiAiRequest<T>>?): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("fulfillTransactionRequirementsCheck_: transactionRequirementsSpec=%s")
+        val response = buildResponse("PLACEHOLDER_FOR_TXN_REQUIREMENTS", true)
+        response {
+            body {
+                data {
+                    google {
+                        systemIntent {
+                            intent = STANDARD_INTENTS.TRANSACTION_REQUIREMENTS_CHECK
+                            data {
+                                `@type` = INPUT_VALUE_DATA_TYPES.TRANSACTION_REQ_CHECK
+                                paymentOptions = transactionRequirementsCheckSpec.paymentOptions
+                                orderOptions = transactionRequirementsCheckSpec.orderOptions
                             }
                         }
                     }
@@ -624,7 +662,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
                     item.subtitle = it.subtitle
                     item.title = it.title ?: ""
                     if (response.items?.size == 0) {
-                        response?.items?.add(RichResponseItem(basicCard = item))
+                        response.items?.add(RichResponseItem(basicCard = item))
                     } else {
                         response.items?.add(0, RichResponseItem(basicCard = item))
                     }
