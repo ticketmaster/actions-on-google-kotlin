@@ -349,7 +349,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      * @actionssdk
      * @apiai
      */
-    fun askForTransactionRequirements (transactionConfig: TransactionConfig, dialogState: DialogState<T>): Unit? {
+    fun askForTransactionRequirements (transactionConfig: TransactionConfig, dialogState: DialogState<T>? = null): ResponseWrapper<S>? {
         debug("checkForTransactionRequirements: transactionConfig=$transactionConfig," +
                 " dialogState=$dialogState")
         if (transactionConfig.type?.isNullOrBlank() ?: true &&
@@ -358,22 +358,24 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
                     "ActionPaymentTransactionConfig or GooglePaymentTransactionConfig")
             return null
         }
-        val transactionRequirementsCheckSpec = 
+        val transactionRequirementsCheckSpec = TransactionRequirementsCheckSpec()
         if (transactionConfig?.deliveryAddressRequired ?: false) {
-//            transactionRequirementsCheckSpec.orderOptions = {
-//                requestDeliveryAddress: transactionConfig.deliveryAddressRequired
-//            }
+            transactionRequirementsCheckSpec.orderOptions = GoogleData.OrderOptions(
+                requestDeliveryAddress = transactionConfig?.deliveryAddressRequired ?: false)
         }
         if (transactionConfig?.type != null ||
                 transactionConfig?.cardNetworks != null) {
-//            transactionRequirementsCheckSpec.paymentOptions =
-//                    this.buildPaymentOptions_(transactionConfig);
+            transactionRequirementsCheckSpec.paymentOptions =
+                    buildPaymentOptions(transactionConfig)
         }
         return fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec,
                 dialogState)
     }
 
-    abstract fun  fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: Unit, dialogState: DialogState<T>): Unit?
+    data class TransactionRequirementsCheckSpec(var orderOptions: GoogleData.OrderOptions? = null,
+                                                var paymentOptions: GoogleData.PaymentOptions? = null)
+
+    abstract fun  fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: TransactionRequirementsCheckSpec, dialogState: DialogState<T>? = null): ResponseWrapper<S>?
 
 
     fun doResponse(response: ResponseWrapper<S>, responseCode: Int = 0): ResponseWrapper<S>? {
@@ -385,7 +387,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
             this.handleError("Response can NOT be empty.")
             return null
         } else {
-            var code = RESPONSE_CODE_OK;
+            var code = RESPONSE_CODE_OK
             if (responseCode != 0) {
                 code = responseCode
             }
@@ -441,10 +443,10 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
     fun buildOptionItem(key: String, vararg synonyms: String): OptionItem {
         val optionInfo = OptionInfo()
         if (!key.isNullOrBlank()) {
-            optionInfo?.key = key
+            optionInfo.key = key
         }
         if (synonyms.isNotEmpty()) {
-            optionInfo?.synonyms = synonyms.toMutableList()
+            optionInfo.synonyms = synonyms.toMutableList()
         }
         return OptionItem(optionInfo)
     }
@@ -484,7 +486,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
             intentHandler(this)
             return true
         } else {
-            this.handleError("no matching intent handler for: " + intent);
+            this.handleError("no matching intent handler for: " + intent)
             return false
         }
     }
@@ -654,7 +656,38 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
         this.response.status(RESPONSE_CODE_BAD_REQUEST).send(API_ERROR_MESSAGE_PREFIX + text)
         this.responded = true;
     }
-
+    
+    /**
+     * Helper to process a transaction config and create a payment options object.
+     *
+     * @param {ActionPaymentTransactionConfig|GooglePaymentTransactionConfig}
+     *     transactionConfig Configuration for the transaction. Includes payment
+     *     options and order options.
+     * @return {PaymentOptions} paymentOptions
+     * @private
+     */
+    fun buildPaymentOptions (transactionConfig: TransactionConfig): GoogleData.PaymentOptions {
+        debug("buildPromptsFromPlainTextHelper_: transactionConfig=${transactionConfig}")
+        var paymentOptions = GoogleData.PaymentOptions()
+        if (transactionConfig.type != null) { // Action payment
+            paymentOptions.actionProvidedOptions = GoogleData.ActionProvidedOptions(
+                paymentType = transactionConfig.type ?: "",
+                displayName = transactionConfig.displayName ?: ""
+            )
+        } else { // Google payment
+            paymentOptions.googleProvidedOptions = GoogleData.GoogleProvidedOptions(
+                supportedCardNetworks = transactionConfig.cardNetworks ?: mutableListOf(),
+                prepaidCardDisallowed = transactionConfig.prepaidCardDisallowed ?: false
+            )
+            if (transactionConfig.tokenizationParameters != null) {
+                paymentOptions?.googleProvidedOptions?.tokenizationParameters = GoogleData.TokenizationParameters(
+                    tokenizationType = "PAYMENT_GATEWAY",
+                    parameters = transactionConfig.tokenizationParameters
+                )
+            }
+        }
+        return paymentOptions;
+    }
 }
 
 fun debug(msg: String) {

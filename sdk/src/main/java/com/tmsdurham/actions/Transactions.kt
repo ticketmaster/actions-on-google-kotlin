@@ -5,13 +5,13 @@ val ORDER_LOCATION_LIMIT = 2
 val GENERIC_EXTENSION_TYPE = "type.googleapis.com/google.actions.v2.orders.GenericExtension"
 
 
-sealed class TransactionConfig(val deliveryAddressRequired: Boolean,
+sealed class TransactionConfig(val deliveryAddressRequired: Boolean? = null,
                                var type: String? = null,
                                val displayName: String? = null,
                                val tokenizationParameters: Any? = null,
                                val cardNetworks: MutableList<String>? = null,
                                val prepaidCardDisallowed: Boolean? = null,
-                               val customerInfoOptions: CustomerInfoOptions)
+                               val customerInfoOptions: CustomerInfoOptions? = null)
 
 /**
  * Transaction config for transactions not involving a Google provided

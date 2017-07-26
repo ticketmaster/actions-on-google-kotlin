@@ -800,7 +800,7 @@ object ActionsTest : Spek({
                 "MASTERCARD"
                 ],
                 prepaidCardDisallowed: false
-            }""", Transaction)
+            }""", GooglePaymentTransactionConfig::class.java)
 
             app.askForTransactionRequirements(transactionConfig)
 
