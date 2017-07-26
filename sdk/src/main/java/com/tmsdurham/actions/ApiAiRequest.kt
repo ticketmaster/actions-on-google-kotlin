@@ -21,7 +21,7 @@ data class ApiAiRequest<T>(
         val sessionId: String? = null,
         var originalRequest: OriginalRequest? = null) {
 
-    fun result(f: Result<T>.() -> Unit) = result.f()
+    inline fun result(f: Result<T>.() -> Unit) = result.f()
 
     fun originalRequest(init: OriginalRequest.() -> Unit) {
         originalRequest = OriginalRequest()
@@ -64,7 +64,7 @@ data class Fulfillment(
 data class Data(
         var google: GoogleData? = null) {
 
-    fun google(init: GoogleData.() -> Unit) {
+    inline fun google(init: GoogleData.() -> Unit) {
         if (google == null) {
             google = GoogleData()
         }
@@ -87,7 +87,6 @@ data class Result<T>(
         val fulfillment: Fulfillment? = null,
         val score: Float = 0f) {
 
-    fun parameters(f: T.() -> Unit): T.() -> Unit = f
 }
 
 
@@ -194,9 +193,6 @@ data class TransactionRequirementsCheckResult(
         CART_CHANGE_REQUESTED
     }
 
-    companion object {
-        const val CHECK_RESULT_TYPE = "type.googleapis.com/google.actions.v2.TransactionRequirementsCheckResult"
-    }
 }
 
 data class Raw_inputs(val query: String? = null, val inputType: String? = null)

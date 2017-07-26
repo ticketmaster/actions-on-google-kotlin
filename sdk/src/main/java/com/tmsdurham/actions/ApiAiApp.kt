@@ -187,11 +187,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
                             listSelect = list))
         }
 
-        if (response != null) {
-            return doResponse(response, RESPONSE_CODE_OK)
-        } else {
-            return null
-        }
+        return doResponse(response, RESPONSE_CODE_OK)
     }
 
     /**
@@ -269,11 +265,62 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
                     )
             )
         }
-        if (response != null) {
-            return doResponse(response, RESPONSE_CODE_OK);
-        } else {
+        return doResponse(response, RESPONSE_CODE_OK);
+    }
+
+    /**
+     * Asks user for delivery address.
+     *
+     * @example
+     * val app = ApiAiApp(request = request, response = response)
+     * val WELCOME_INTENT = "input.welcome"
+     * val DELIVERY_INTENT = "delivery.address"
+     *
+     * fun welcomeIntent (app) {
+     *   app.askForDeliveryAddress("To make sure I can deliver to you")
+     * }
+     *
+     * fun addressIntent (app) {
+     *   val postalCode = app.getDeliveryAddress().postalAddress.postalCode
+     *   if (isInDeliveryZone(postalCode)) {
+     *     app.tell("Great looks like you\"re in our delivery area!")
+     *   } else {
+     *     app.tell("I\"m sorry it looks like we can\"t deliver to you.")
+     *   }
+     * }
+     *
+     * val actionMap = mapOf(
+     *      WELCOME_INTENT to ::welcomeIntent,
+     *      DELIVERY_INTENT to ::addressIntent)
+     * app.handleRequest(actionMap)
+     *
+     * @param {String} reason Reason given to user for asking delivery address.
+     * @return {ResponseWrapper<ApiAiResponse<T>>} HTTP response.
+     * @apiai
+     */
+    fun askForDeliveryAddress (reason: String): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("askForDeliveryAddress: reason=$reason")
+        if (reason.isBlank()) {
+            this.handleError("reason cannot be empty")
             return null
         }
+        val response = buildResponse("PLACEHOLDER_FOR_DELIVERY_ADDRESS", true)
+        response {
+            body {
+                data {
+                    google {
+                        systemIntent {
+                            intent = STANDARD_INTENTS.DELIVERY_ADDRESS
+                            data {
+                                `@type` = INPUT_VALUE_DATA_TYPES.DELIVERY_ADDRESS
+                                addressOptions = GoogleData.AddressOptions(reason)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return doResponse(response, RESPONSE_CODE_OK)
     }
 
     fun askWithCarousel(inputPrompt: RichResponse, carousel: Carousel): ResponseWrapper<ApiAiResponse<T>>? {
@@ -310,11 +357,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
                     )
             )
         }
-        if (response != null) {
-            return doResponse(response, RESPONSE_CODE_OK);
-        } else {
-            return null
-        }
+        return doResponse(response, RESPONSE_CODE_OK);
     }
 
     /**
@@ -351,11 +394,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
             return null
         }
         val response = buildResponse(richResponse, false)
-        if (response != null) {
-            return doResponse(response, RESPONSE_CODE_OK)
-        } else {
-            return null
-        }
+        return doResponse(response, RESPONSE_CODE_OK)
     }
 
     override fun tell(simpleResponse: SimpleResponse): ResponseWrapper<ApiAiResponse<T>>? {
@@ -365,11 +404,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
             return null
         }
         val response = buildResponse(simpleResponse, false)
-        if (response != null) {
-            return doResponse(response, RESPONSE_CODE_OK)
-        } else {
-            return null
-        }
+        return doResponse(response, RESPONSE_CODE_OK)
     }
 
     override fun tell(speech: String, displayText: String): ResponseWrapper<ApiAiResponse<T>>? {
@@ -379,11 +414,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
             return null
         }
         val response = buildResponse(speech, false)
-        if (response != null) {
-            return this.doResponse(response, RESPONSE_CODE_OK)
-        } else {
-            return null
-        }
+        return this.doResponse(response, RESPONSE_CODE_OK)
     }
 
     override fun getIntent(): String {
@@ -499,11 +530,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
                 }
             }
         }
-        if (response != null) {
-            return doResponse(response, RESPONSE_CODE_OK)
-        } else {
-            return null
-        }
+        return doResponse(response, RESPONSE_CODE_OK)
     }
 
     /**
@@ -517,7 +544,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      * @apiai
      */
     override fun fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: TransactionRequirementsCheckSpec,
-                                                     dialogState: DialogState<ApiAiRequest<T>>?): ResponseWrapper<ApiAiResponse<T>>? {
+                                                     dialogState: DialogState<T>?): ResponseWrapper<ApiAiResponse<T>>? {
         debug("fulfillTransactionRequirementsCheck_: transactionRequirementsSpec=%s")
         val response = buildResponse("PLACEHOLDER_FOR_TXN_REQUIREMENTS", true)
         response {
@@ -536,13 +563,41 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
                 }
             }
         }
-        if (response != null) {
-            return doResponse(response, RESPONSE_CODE_OK)
-        } else {
-            return null
-        }
+        return doResponse(response, RESPONSE_CODE_OK)
     }
-
+    
+    /**
+     * Uses TransactionDecisionValueSpec to construct and send a transaction
+     * requirements request to Google.
+     *
+     * @param {TransactionDecisionValueSpec} transactionDecisionValueSpec TransactionDecisionValueSpec
+     *     object.
+     * @return {ResponseWrapper<ApiAiResponse<T>>} HTTP response.
+     * @private
+     * @apiai
+     */
+    override fun  fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: DialogState<T>?): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("fulfillTransactionDecision_: transactionDecisionValueSpec=$transactionDecisionValueSpec")
+        val response = buildResponse("PLACEHOLDER_FOR_TXN_DECISION", true)
+        response {
+            body {
+                data {
+                    google {
+                        systemIntent {
+                            intent = STANDARD_INTENTS.TRANSACTION_DECISION
+                            data {
+                                `@type` = INPUT_VALUE_DATA_TYPES.TRANSACTION_DECISION
+                                paymentOptions = transactionDecisionValueSpec.paymentOptions
+                                orderOptions = transactionDecisionValueSpec.orderOptions
+                                proposedOrder = transactionDecisionValueSpec.proposedOrder
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return doResponse(response, RESPONSE_CODE_OK)
+    }
     /**
      * Get the context argument value by name from the current intent. Context
      * arguments include parameters collected in previous intents during the

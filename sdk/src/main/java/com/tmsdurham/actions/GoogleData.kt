@@ -1,6 +1,7 @@
 package com.ticketmaster.apiai.google
 
 import com.tmsdurham.actions.Carousel
+import com.tmsdurham.actions.CustomerInfoOptions
 import com.tmsdurham.actions.RichResponse
 
 data class GoogleData(
@@ -12,7 +13,7 @@ data class GoogleData(
         var possibleIntents: List<PossibleIntent>? = null,
         var richResponse: RichResponse? = null) {
 
-    fun systemIntent(init: SystemIntent.() -> Unit) {
+    inline fun systemIntent(init: SystemIntent.() -> Unit) {
         if (systemIntent == null) {
             systemIntent = SystemIntent()
         }
@@ -35,14 +36,14 @@ data class GoogleData(
             var intent: String? = null,
             var data: Data? = null) {
 
-        fun spec(init: Spec.() -> Unit) {
+        inline fun spec(init: Spec.() -> Unit) {
             if (spec == null) {
                 this.spec = Spec()
             }
             spec?.init()
         }
 
-        fun data(init: Data.() -> Unit) {
+        inline fun data(init: Data.() -> Unit) {
             if (data == null) {
                 data = Data()
             }
@@ -63,9 +64,10 @@ data class GoogleData(
             var proposedOrder: Order? = null,
             var name: String? = null,
             var paymentOptions: PaymentOptions? = null,
+            var addressOptions: AddressOptions? = null,
             var orderOptions: OrderOptions? = null) {
 
-        fun paymentOptions(init: PaymentOptions.() -> Unit) {
+        inline fun paymentOptions(init: PaymentOptions.() -> Unit) {
             if (paymentOptions == null) {
                 paymentOptions = PaymentOptions()
             }
@@ -73,7 +75,7 @@ data class GoogleData(
         }
     }
 
-    data class OrderOptions(var requestDeliveryAddress: Boolean = false)
+    data class OrderOptions(var requestDeliveryAddress: Boolean = false, var customerInfoOptions: List<String>? = null)
 
     data class ActionProvidedOptions(var paymentType: String, var displayName: String)
 
@@ -82,9 +84,11 @@ data class GoogleData(
             var prepaidCardDisallowed: Boolean,
             var tokenizationParameters: TokenizationParameters? = null)
 
-    data class TokenizationParameters(var tokenizationType: String, var parameters: Any)
+    data class TokenizationParameters(var tokenizationType: String? = null, var parameters: Any)
 
     data class PaymentOptions(var actionProvidedOptions: ActionProvidedOptions? = null, var googleProvidedOptions: GoogleData.GoogleProvidedOptions? = null)
+
+    data class AddressOptions(var reason: String? = null)
 
     data class TransactionRequirementsCheckSpec(
             var orderOptions: OrderOptions? = null,

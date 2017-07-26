@@ -11,7 +11,7 @@ sealed class TransactionConfig(val deliveryAddressRequired: Boolean? = null,
                                val tokenizationParameters: Any? = null,
                                val cardNetworks: MutableList<String>? = null,
                                val prepaidCardDisallowed: Boolean? = null,
-                               val customerInfoOptions: CustomerInfoOptions? = null)
+                               val customerInfoOptions: MutableList<String>? = null)
 
 /**
  * Transaction config for transactions not involving a Google provided
@@ -27,7 +27,7 @@ sealed class TransactionConfig(val deliveryAddressRequired: Boolean? = null,
 class ActionPaymentTransactionConfig(deliveryAddressRequired: Boolean,
                                      type: String?,
                                      displayName: String,
-                                     customerInfoOptions: CustomerInfoOptions? = null) :
+                                     customerInfoOptions: MutableList<String>? = null) :
         TransactionConfig(
                 deliveryAddressRequired = deliveryAddressRequired,
                 type = type,
@@ -52,7 +52,7 @@ class GooglePaymentTransactionConfig(deliveryAddressRequired: Boolean,
                                      tokenizationParameters: Any,
                                      cardNetworks: MutableList<String>,
                                      prepaidCardDisallowed: Boolean,
-                                     customerInfoOptions: CustomerInfoOptions? = null) :
+                                     customerInfoOptions: MutableList<String>? = null) :
         TransactionConfig(deliveryAddressRequired = deliveryAddressRequired,
                 tokenizationParameters = tokenizationParameters,
                 cardNetworks = cardNetworks,
