@@ -298,7 +298,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      * @return {ResponseWrapper<ApiAiResponse<T>>} HTTP response.
      * @apiai
      */
-    fun askForDeliveryAddress (reason: String): ResponseWrapper<ApiAiResponse<T>>? {
+    fun askForDeliveryAddress(reason: String): ResponseWrapper<ApiAiResponse<T>>? {
         debug("askForDeliveryAddress: reason=$reason")
         if (reason.isBlank()) {
             this.handleError("reason cannot be empty")
@@ -565,7 +565,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         }
         return doResponse(response, RESPONSE_CODE_OK)
     }
-    
+
     /**
      * Uses TransactionDecisionValueSpec to construct and send a transaction
      * requirements request to Google.
@@ -576,7 +576,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      * @private
      * @apiai
      */
-    override fun  fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: DialogState<T>?): ResponseWrapper<ApiAiResponse<T>>? {
+    override fun fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: DialogState<T>?): ResponseWrapper<ApiAiResponse<T>>? {
         debug("fulfillTransactionDecision_: transactionDecisionValueSpec=$transactionDecisionValueSpec")
         val response = buildResponse("PLACEHOLDER_FOR_TXN_DECISION", true)
         response {
@@ -598,6 +598,38 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         }
         return doResponse(response, RESPONSE_CODE_OK)
     }
+
+
+    /**
+     * Uses ConfirmationValueSpec to construct and send a confirmation request to
+     * Google.
+     *
+     * @param {Object} confirmationValueSpec ConfirmationValueSpec object.
+     * @return {Object} HTTP response.
+     * @private
+     * @apiai
+     */
+    override fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState<T>?): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("fulfillConfirmationRequest_: confirmationValueSpec=$confirmationValueSpec")
+        val response = this.buildResponse("PLACEHOLDER_FOR_CONFIRMATION", true)
+        response {
+            body {
+                data {
+                    google {
+                        systemIntent {
+                            intent = STANDARD_INTENTS.CONFIRMATION
+                            data {
+                                `@type` = INPUT_VALUE_DATA_TYPES.CONFIRMATION
+                                dialogSpec = confirmationValueSpec.dialogSpec
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return doResponse(response, RESPONSE_CODE_OK)
+    }
+
     /**
      * Get the context argument value by name from the current intent. Context
      * arguments include parameters collected in previous intents during the

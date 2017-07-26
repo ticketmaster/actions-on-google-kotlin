@@ -310,6 +310,55 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
     }
 
     /**
+     * Asks user for a confirmation.
+     *
+     * @example
+     * val app = ApiAiApp(request, response)
+     * val WELCOME_INTENT = "input.welcome"
+     * val CONFIRMATION = "confirmation"
+     *
+     * fun welcomeIntent (app: MyAction) {
+     *   app.askForConfirmation("Are you sure you want to do that?")
+     * }
+     *
+     * fun confirmation (app: MyAction) {
+     *   if (app.getUserConfirmation()) {
+     *     app.tell("Great! I\"m glad you want to do it!")
+     *   } else {
+     *     app.tell("That\"s okay. Let\"s not do it now.")
+     *   }
+     * }
+     *
+     * val actionMap = mapOf(
+     *      WELCOME_INTENT to ::welcomeIntent,
+     *      CONFIRMATION to ::confirmation)
+     * app.handleRequest(actionMap)
+     *
+     * @param {String=} prompt The confirmation prompt presented to the user to
+     *     query for an affirmative or negative response. If undefined or null,
+     *     Google will use a generic yes/no prompt.
+     * @param {DialogState?=} dialogState JSON object the app uses to hold dialog state that
+     *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
+     * @actionssdk
+     * @apiai
+     */
+    fun askForConfirmation (prompt: String, dialogState: DialogState<U>? = null): ResponseWrapper<S>? {
+        debug("askForConfirmation: prompt=$prompt, dialogState=$dialogState")
+        val confirmationValueSpec = ConfirmationValueSpec()
+        if (prompt.isNotBlank()) {
+            confirmationValueSpec.dialogSpec = DialogSpec(
+                requestConfirmationText = prompt)
+        }
+        return fulfillConfirmationRequest(confirmationValueSpec, dialogState)
+    }
+
+    abstract fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState<U>?): ResponseWrapper<S>?
+
+    data class ConfirmationValueSpec(var dialogSpec: DialogSpec? = null)
+
+    data class DialogSpec(var requestConfirmationText: String? = null)
+    
+    /**
      * Checks whether user is in transactable state.
      *
      * @example
