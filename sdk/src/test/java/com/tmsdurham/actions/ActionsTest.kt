@@ -6,6 +6,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.ticketmaster.apiai.*
+import com.ticketmaster.apiai.google.GoogleData
 import com.winterbe.expekt.expect
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
@@ -944,6 +945,90 @@ object ActionsTest : Spek({
         }
     }
 
+    /**
+     * Describes the behavior for ApiAiApp askForTransactionDecision method.
+     */
+    describe("ApiAiApp#askForTransactionDecision") {
+        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+
+        beforeEachTest {
+            body = createLiveSessionApiAppBody()
+            mockRequest = RequestWrapper(headerV2, body)
+            mockResponse = ResponseWrapper()
+            app = ApiAiApp(
+                    request = mockRequest,
+                    response = mockResponse
+            )
+        }
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON transaction decision with Google payment options") {
+            val transactionConfig = GooglePaymentTransactionConfig(
+                    deliveryAddressRequired = true,
+                    tokenizationParameters = mapOf("myParam" to "myParam"),
+                    cardNetworks = mutableListOf(
+                            "VISA",
+                            "MASTERCARD")
+                    ,
+                    prepaidCardDisallowed = false,
+                    customerInfoOptions = mutableListOf(
+                            "EMAIL"
+                    )
+            )
+
+            app.askForTransactionDecision(GoogleData.Order(id= "order_id"), transactionConfig)
+
+            val expectedResponse = responseFromJson("""{
+                "speech": "PLACEHOLDER_FOR_TXN_DECISION",
+                "data": {
+                "google": {
+                "expectUserResponse": true,
+                "isSsml": false,
+                "noInputPrompts": [],
+                "systemIntent": {
+                "intent": "actions.intent.TRANSACTION_DECISION",
+                "data": {
+                "@type": "type.googleapis.com/google.actions.v2.TransactionDecisionValueSpec",
+                "proposedOrder": { "id": "order_id" },
+                "orderOptions": {
+                "requestDeliveryAddress": true,
+                "customerInfoOptions": [
+                "EMAIL"
+                ]
+            },
+                "paymentOptions": {
+                "googleProvidedOptions": {
+                "tokenizationParameters": {
+                "tokenizationType": "PAYMENT_GATEWAY",
+                "parameters": {
+                "myParam": "myParam"
+            }
+            },
+                "supportedCardNetworks": [
+                "VISA",
+                "MASTERCARD"
+                ],
+                "prepaidCardDisallowed": false
+            }
+            }
+            }
+            }
+            }
+            },
+                "contextOut": [
+                {
+                    "name": "_actions_on_google_",
+                    "lifespan": 100,
+                    "parameters": {}
+                }
+                ]
+            }""")
+
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+    }
 })
 
 

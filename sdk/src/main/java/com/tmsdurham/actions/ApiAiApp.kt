@@ -289,13 +289,13 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      *   }
      * }
      *
-     * const actionMap = new Map();
-     * actionMap.set(WELCOME_INTENT, welcomeIntent);
-     * actionMap.set(DELIVERY_INTENT, addressIntent);
-     * app.handleRequest(actionMap);
+     * val actionMap = mapOf(
+     *      WELCOME_INTENT to ::welcomeIntent,
+     *      DELIVERY_INTENT to ::addressIntent)
+     * app.handleRequest(actionMap)
      *
-     * @param {string} reason Reason given to user for asking delivery address.
-     * @return {Object} HTTP response.
+     * @param {String} reason Reason given to user for asking delivery address.
+     * @return {ResponseWrapper<ApiAiResponse<T>>} HTTP response.
      * @apiai
      */
     fun askForDeliveryAddress (reason: String): ResponseWrapper<ApiAiResponse<T>>? {
@@ -544,7 +544,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      * @apiai
      */
     override fun fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: TransactionRequirementsCheckSpec,
-                                                     dialogState: DialogState<ApiAiRequest<T>>?): ResponseWrapper<ApiAiResponse<T>>? {
+                                                     dialogState: DialogState<T>?): ResponseWrapper<ApiAiResponse<T>>? {
         debug("fulfillTransactionRequirementsCheck_: transactionRequirementsSpec=%s")
         val response = buildResponse("PLACEHOLDER_FOR_TXN_REQUIREMENTS", true)
         response {
@@ -565,7 +565,39 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         }
         return doResponse(response, RESPONSE_CODE_OK)
     }
-
+    
+    /**
+     * Uses TransactionDecisionValueSpec to construct and send a transaction
+     * requirements request to Google.
+     *
+     * @param {TransactionDecisionValueSpec} transactionDecisionValueSpec TransactionDecisionValueSpec
+     *     object.
+     * @return {ResponseWrapper<ApiAiResponse<T>>} HTTP response.
+     * @private
+     * @apiai
+     */
+    override fun  fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: DialogState<T>?): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("fulfillTransactionDecision_: transactionDecisionValueSpec=$transactionDecisionValueSpec")
+        val response = buildResponse("PLACEHOLDER_FOR_TXN_DECISION", true)
+        response {
+            body {
+                data {
+                    google {
+                        systemIntent {
+                            intent = STANDARD_INTENTS.TRANSACTION_DECISION
+                            data {
+                                `@type` = INPUT_VALUE_DATA_TYPES.TRANSACTION_DECISION
+                                paymentOptions = transactionDecisionValueSpec.paymentOptions
+                                orderOptions = transactionDecisionValueSpec.orderOptions
+                                proposedOrder = transactionDecisionValueSpec.proposedOrder
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return doResponse(response, RESPONSE_CODE_OK)
+    }
     /**
      * Get the context argument value by name from the current intent. Context
      * arguments include parameters collected in previous intents during the

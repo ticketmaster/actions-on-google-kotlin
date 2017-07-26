@@ -1,6 +1,7 @@
 package com.ticketmaster.apiai.google
 
 import com.tmsdurham.actions.Carousel
+import com.tmsdurham.actions.CustomerInfoOptions
 import com.tmsdurham.actions.RichResponse
 
 data class GoogleData(
@@ -74,7 +75,7 @@ data class GoogleData(
         }
     }
 
-    data class OrderOptions(var requestDeliveryAddress: Boolean = false)
+    data class OrderOptions(var requestDeliveryAddress: Boolean = false, var customerInfoOptions: List<String>? = null)
 
     data class ActionProvidedOptions(var paymentType: String, var displayName: String)
 
@@ -83,7 +84,7 @@ data class GoogleData(
             var prepaidCardDisallowed: Boolean,
             var tokenizationParameters: TokenizationParameters? = null)
 
-    data class TokenizationParameters(var tokenizationType: String, var parameters: Any)
+    data class TokenizationParameters(var tokenizationType: String? = null, var parameters: Any)
 
     data class PaymentOptions(var actionProvidedOptions: ActionProvidedOptions? = null, var googleProvidedOptions: GoogleData.GoogleProvidedOptions? = null)
 

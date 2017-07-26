@@ -317,16 +317,16 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      * val WELCOME_INTENT = "input.welcome"
      * val TXN_REQ_COMPLETE = "txn.req.complete"
      *
-     * let transactionConfig = {
-     *     deliveryAddressRequired: false,
-     *     type: app.Transactions.PaymentType.BANK,
-     *     displayName: "Checking-1234"
-     * };
-     * function welcomeIntent (app) {
-     *   app.askForTransactionRequirements(transactionConfig);
+     * val transactionConfig = GooglePaymentTransactionConfig(
+     *     deliveryAddressRequired = false,
+     *     type = app.Transactions.PaymentType.BANK,
+     *     displayName = "Checking-1234"
+     * )
+     * fun welcomeIntent (app) {
+     *   app.askForTransactionRequirements(transactionConfig)
      * }
      *
-     * function txnReqCheck (app) {
+     * fun txnReqCheck (app) {
      *   if (app.getTransactionRequirementsResult() === app.Transactions.ResultType.OK) {
      *     // continue cart building flow
      *   } else {
@@ -334,22 +334,22 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      *   }
      * }
      *
-     * const actionMap = new Map();
-     * actionMap.set(WELCOME_INTENT, welcomeIntent);
-     * actionMap.set(TXN_REQ_COMPLETE, txnReqCheck);
-     * app.handleRequest(actionMap);
+     * val actionMap = mapOf(
+     *      WELCOME_INTENT to ::welcomeIntent,
+     *      TXN_REQ_COMPLETE to ::txnReqCheck)
+     * app.handleRequest(actionMap)
      *
      * @param {ActionPaymentTransactionConfig|GooglePaymentTransactionConfig=}
      *     transactionConfig Configuration for the transaction. Includes payment
      *     options and order options. Optional if order has no payment or
      *     delivery.
-     * @param {Object=} dialogState JSON object the app uses to hold dialog state that
+     * @param {DialogState<U>=} dialogState JSON object the app uses to hold dialog state that
      *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
-     * @return {Object} HTTP response.
+     * @return {ResponseWrapper<S>} HTTP response.
      * @actionssdk
      * @apiai
      */
-    fun askForTransactionRequirements (transactionConfig: TransactionConfig, dialogState: DialogState<T>? = null): ResponseWrapper<S>? {
+    fun askForTransactionRequirements (transactionConfig: TransactionConfig, dialogState: DialogState<U>? = null): ResponseWrapper<S>? {
         debug("checkForTransactionRequirements: transactionConfig=$transactionConfig," +
                 " dialogState=$dialogState")
         if (transactionConfig.type?.isNullOrBlank() ?: true &&
@@ -359,12 +359,12 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
             return null
         }
         val transactionRequirementsCheckSpec = TransactionRequirementsCheckSpec()
-        if (transactionConfig?.deliveryAddressRequired ?: false) {
+        if (transactionConfig.deliveryAddressRequired ?: false) {
             transactionRequirementsCheckSpec.orderOptions = GoogleData.OrderOptions(
-                requestDeliveryAddress = transactionConfig?.deliveryAddressRequired ?: false)
+                requestDeliveryAddress = transactionConfig.deliveryAddressRequired ?: false)
         }
-        if (transactionConfig?.type != null ||
-                transactionConfig?.cardNetworks != null) {
+        if (transactionConfig.type != null ||
+                transactionConfig.cardNetworks != null) {
             transactionRequirementsCheckSpec.paymentOptions =
                     buildPaymentOptions(transactionConfig)
         }
@@ -372,10 +372,88 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
                 dialogState)
     }
 
+
+    /**
+     * Asks user to confirm transaction information.
+     *
+     * @example
+     * val app = ApiAiApp(request = request, response = response);
+     * val WELCOME_INTENT = "input.welcome"
+     * val TXN_COMPLETE = "txn.complete"
+     *
+     * val transactionConfig = GooglePaymentTransactionConfig(
+     *     deliveryAddressRequired = false,
+     *     type = app.Transactions.PaymentType.BANK,
+     *     displayName = "Checking-1234"
+     * )
+     *
+     * val order = app.buildOrder()
+     * // fill order cart
+     *
+     * fun welcomeIntent (app) {
+     *   app.askForTransaction(order, transactionConfig)
+     * }
+     *
+     * function txnComplete (app) {
+     *   // respond with order update
+     * }
+     *
+     * val actionMap = mapOf(
+     *      WELCOME_INTENT to ::welcomeIntent,
+     *      TXN_COMPLETE to ::txnComplete)
+     * app.handleRequest(actionMap)
+     *
+     * @param {Order} order Order built with buildOrder().
+     * @param {ActionPaymentTransactionConfig|GooglePaymentTransactionConfig}
+     *     transactionConfig Configuration for the transaction. Includes payment
+     *     options and order options.
+     * @param {DialogState=} dialogState JSON object the app uses to hold dialog state that
+     *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
+     * @apiai
+     */
+    fun askForTransactionDecision (order: GoogleData.Order, transactionConfig: TransactionConfig, dialogState: DialogState<U>? = null): ResponseWrapper<S>? {
+        debug("askForTransactionDecision: order=$order, transactionConfig=$transactionConfig, dialogState=$dialogState")
+        if (order == null) {
+            this.handleError("Invalid order")
+            return null
+        }
+        if (transactionConfig?.type != null &&
+                transactionConfig?.cardNetworks?.isNotEmpty() ?: false) {
+            handleError("Invalid transaction configuration. Must be of type" +
+                    "ActionPaymentTransactionConfig or GooglePaymentTransactionConfig")
+            return null
+        }
+        val transactionDecisionValueSpec = TransactionDecisionValueSpec(
+            proposedOrder = order)
+
+        if (transactionConfig.deliveryAddressRequired ?: false) {
+            transactionDecisionValueSpec.orderOptions = GoogleData.OrderOptions(
+                requestDeliveryAddress = transactionConfig.deliveryAddressRequired ?: false
+            )
+        }
+        if (transactionConfig.type?.isNotBlank() ?: false ||
+                transactionConfig.cardNetworks?.isNotEmpty() ?: false) {
+            transactionDecisionValueSpec.paymentOptions =
+                    buildPaymentOptions(transactionConfig)
+        }
+        if (transactionConfig.customerInfoOptions != null) {
+            if (transactionDecisionValueSpec.orderOptions == null) {
+                transactionDecisionValueSpec.orderOptions = GoogleData.OrderOptions()
+            }
+            transactionDecisionValueSpec.orderOptions?.customerInfoOptions =
+                    transactionConfig.customerInfoOptions
+        }
+        return fulfillTransactionDecision(transactionDecisionValueSpec,
+                dialogState)
+    }
+
+    data class TransactionDecisionValueSpec(var proposedOrder: GoogleData.Order, var orderOptions: GoogleData.OrderOptions? = null, var paymentOptions: GoogleData.PaymentOptions? = null)
+
     data class TransactionRequirementsCheckSpec(var orderOptions: GoogleData.OrderOptions? = null,
                                                 var paymentOptions: GoogleData.PaymentOptions? = null)
 
-    abstract fun  fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: TransactionRequirementsCheckSpec, dialogState: DialogState<T>? = null): ResponseWrapper<S>?
+    abstract fun  fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: TransactionRequirementsCheckSpec, dialogState: DialogState<U>? = null): ResponseWrapper<S>?
+    abstract fun  fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: DialogState<U>? = null): ResponseWrapper<S>?
 
 
     fun doResponse(response: ResponseWrapper<S>?, responseCode: Int = 0): ResponseWrapper<S>? {
@@ -449,6 +527,21 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
             optionInfo.synonyms = synonyms.toMutableList()
         }
         return OptionItem(optionInfo)
+    }
+
+
+    // ---------------------------------------------------------------------------
+    //                   Transaction Builders
+    // ---------------------------------------------------------------------------
+
+    /**
+     * Constructs Order with chainable property setters.
+     *
+     * @param {String} orderId Unique identifier for the order.
+     * @return {Order} Constructed Order.
+     */
+    fun buildOrder (orderId: String): GoogleData.Order {
+        return GoogleData.Order(id = orderId)
     }
 
     internal abstract fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest): ResponseWrapper<S>?

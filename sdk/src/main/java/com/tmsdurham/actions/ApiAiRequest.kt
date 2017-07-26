@@ -193,9 +193,6 @@ data class TransactionRequirementsCheckResult(
         CART_CHANGE_REQUESTED
     }
 
-    companion object {
-        const val CHECK_RESULT_TYPE = "type.googleapis.com/google.actions.v2.TransactionRequirementsCheckResult"
-    }
 }
 
 data class Raw_inputs(val query: String? = null, val inputType: String? = null)
