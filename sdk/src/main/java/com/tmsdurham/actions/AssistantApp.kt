@@ -342,7 +342,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      * @actionssdk
      * @apiai
      */
-    fun askForConfirmation (prompt: String, dialogState: DialogState<U>? = null): ResponseWrapper<S>? {
+    fun askForConfirmation (prompt: String = "", dialogState: DialogState<U>? = null): ResponseWrapper<S>? {
         debug("askForConfirmation: prompt=$prompt, dialogState=$dialogState")
         val confirmationValueSpec = ConfirmationValueSpec()
         if (prompt.isNotBlank()) {
