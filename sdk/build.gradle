@@ -30,22 +30,68 @@ bintray {
         licenses = ['Apache-2.0']
         vcsUrl = 'https://github.com/TicketmasterMobileStudio/actions-on-google-kotlin'
         version {
-            name = '0.2-alpha'
+            name = '0.3-alpha'
             desc = 'Actions on Google SDK - alpha'
-            vcsTag = '0.2'
+            vcsTag = '0.3'
             released = new Date()
         }
     }
 
 }
 
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+// Create the pom configuration:
+def pomConfig = {
+    licenses {
+        license {
+            name "The Apache Software License, Version 2.0"
+            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            distribution "repo"
+        }
+    }
+    developers {
+        developer {
+            name "Patrick Jackson"
+            email "patrick.jackson@ticketmaster.com"
+        }
+    }
+
+    scm {
+        url "https://github.com/TicketmasterMobileStudio/actions-on-google-kotlin"
+    }
+}
+
+
 publishing {
     publications {
         ActionsMavenPublication(MavenPublication) {
             from components.java
+            artifact sourcesJar
+            artifact javadocJar
             groupId 'com.tmsdurham.actions'
             artifactId 'actions-on-google'
-            version '0.2'
+            version '0.3'
+            pom.withXml {
+                def root = asNode()
+                root.appendNode('description', 'Unofficial Actions on Google Client Library for Kolin/Java')
+                root.appendNode('name', 'Google Actions Kolin/Java SDK')
+                root.appendNode('url', 'https://github.com/TicketmasterMobileStudio/actions-on-google-kotlin')
+                root.children().last() + pomConfig
+            }
         }
     }
 }
