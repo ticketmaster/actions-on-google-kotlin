@@ -848,8 +848,53 @@ object ActionsTest : Spek({
 
             expect(mockResponse.body).to.equal(expectedResponse)
         }
-    }
 
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON transaction requirements with Action payment options") {
+            val transactionConfig = ActionPaymentTransactionConfig(
+                    deliveryAddressRequired = true,
+                    type = "BANK",
+                    displayName = "Checking-4773"
+            )
+
+            app.askForTransactionRequirements(transactionConfig)
+
+            val expectedResponse = responseFromJson("""{
+            "speech": "PLACEHOLDER_FOR_TXN_REQUIREMENTS",
+            "data": {
+            "google": {
+            "expectUserResponse": true,
+            "isSsml": false,
+            "noInputPrompts": [],
+            "systemIntent": {
+            "intent": "actions.intent.TRANSACTION_REQUIREMENTS_CHECK",
+            "data": {
+            "@type": "type.googleapis.com/google.actions.v2.TransactionRequirementsCheckSpec",
+            "orderOptions": {
+            "requestDeliveryAddress": true
+        },
+            "paymentOptions": {
+            "actionProvidedOptions": {
+            "paymentType": "BANK",
+            "displayName": "Checking-4773"
+        }
+        }
+        }
+        }
+        }
+        },
+            "contextOut": [
+            {
+                "name": "_actions_on_google_",
+                "lifespan": 100,
+                "parameters": {}
+            }
+            ]
+        }""")
+
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+    }
 
 })
 
