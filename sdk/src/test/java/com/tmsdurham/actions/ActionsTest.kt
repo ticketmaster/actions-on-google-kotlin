@@ -896,6 +896,54 @@ object ActionsTest : Spek({
         }
     }
 
+    /**
+     * Describes the behavior for ApiAiApp askForDeliveryAddress method.
+     */
+    describe("ApiAiApp#askForDeliveryAddress") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON delivery address") {
+            val body = createLiveSessionApiAppBody()
+            val mockRequest = RequestWrapper(headerV2, body)
+            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+
+            val app = ApiAiApp(
+                    request = mockRequest,
+                    response = mockResponse
+            )
+
+            app.askForDeliveryAddress("Just because")
+
+            val expectedResponse = responseFromJson("""{
+                "speech": "PLACEHOLDER_FOR_DELIVERY_ADDRESS",
+                "data": {
+                "google": {
+                "expectUserResponse": true,
+                "isSsml": false,
+                "noInputPrompts": [],
+                "systemIntent": {
+                "intent": "actions.intent.DELIVERY_ADDRESS",
+                "data": {
+                "@type": "type.googleapis.com/google.actions.v2.DeliveryAddressValueSpec",
+                "addressOptions": {
+                "reason": "Just because"
+            }
+            }
+            }
+            }
+            },
+                "contextOut": [
+                {
+                    "name": "_actions_on_google_",
+                    "lifespan": 100,
+                    "parameters": {}
+                }
+                ]
+            }""")
+
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+    }
+
 })
 
 

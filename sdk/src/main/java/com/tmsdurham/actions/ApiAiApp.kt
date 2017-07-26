@@ -187,11 +187,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
                             listSelect = list))
         }
 
-        if (response != null) {
-            return doResponse(response, RESPONSE_CODE_OK)
-        } else {
-            return null
-        }
+        return doResponse(response, RESPONSE_CODE_OK)
     }
 
     /**
@@ -269,11 +265,62 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
                     )
             )
         }
-        if (response != null) {
-            return doResponse(response, RESPONSE_CODE_OK);
-        } else {
+        return doResponse(response, RESPONSE_CODE_OK);
+    }
+
+    /**
+     * Asks user for delivery address.
+     *
+     * @example
+     * val app = ApiAiApp(request = request, response = response)
+     * val WELCOME_INTENT = "input.welcome"
+     * val DELIVERY_INTENT = "delivery.address"
+     *
+     * fun welcomeIntent (app) {
+     *   app.askForDeliveryAddress("To make sure I can deliver to you")
+     * }
+     *
+     * fun addressIntent (app) {
+     *   val postalCode = app.getDeliveryAddress().postalAddress.postalCode
+     *   if (isInDeliveryZone(postalCode)) {
+     *     app.tell("Great looks like you\"re in our delivery area!")
+     *   } else {
+     *     app.tell("I\"m sorry it looks like we can\"t deliver to you.")
+     *   }
+     * }
+     *
+     * const actionMap = new Map();
+     * actionMap.set(WELCOME_INTENT, welcomeIntent);
+     * actionMap.set(DELIVERY_INTENT, addressIntent);
+     * app.handleRequest(actionMap);
+     *
+     * @param {string} reason Reason given to user for asking delivery address.
+     * @return {Object} HTTP response.
+     * @apiai
+     */
+    fun askForDeliveryAddress (reason: String): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("askForDeliveryAddress: reason=$reason")
+        if (reason.isBlank()) {
+            this.handleError("reason cannot be empty")
             return null
         }
+        val response = buildResponse("PLACEHOLDER_FOR_DELIVERY_ADDRESS", true)
+        response {
+            body {
+                data {
+                    google {
+                        systemIntent {
+                            intent = STANDARD_INTENTS.DELIVERY_ADDRESS
+                            data {
+                                `@type` = INPUT_VALUE_DATA_TYPES.DELIVERY_ADDRESS
+                                addressOptions = GoogleData.AddressOptions(reason)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return doResponse(response, RESPONSE_CODE_OK)
     }
 
     fun askWithCarousel(inputPrompt: RichResponse, carousel: Carousel): ResponseWrapper<ApiAiResponse<T>>? {
@@ -310,11 +357,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
                     )
             )
         }
-        if (response != null) {
-            return doResponse(response, RESPONSE_CODE_OK);
-        } else {
-            return null
-        }
+        return doResponse(response, RESPONSE_CODE_OK);
     }
 
     /**
@@ -351,11 +394,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
             return null
         }
         val response = buildResponse(richResponse, false)
-        if (response != null) {
-            return doResponse(response, RESPONSE_CODE_OK)
-        } else {
-            return null
-        }
+        return doResponse(response, RESPONSE_CODE_OK)
     }
 
     override fun tell(simpleResponse: SimpleResponse): ResponseWrapper<ApiAiResponse<T>>? {
@@ -365,11 +404,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
             return null
         }
         val response = buildResponse(simpleResponse, false)
-        if (response != null) {
-            return doResponse(response, RESPONSE_CODE_OK)
-        } else {
-            return null
-        }
+        return doResponse(response, RESPONSE_CODE_OK)
     }
 
     override fun tell(speech: String, displayText: String): ResponseWrapper<ApiAiResponse<T>>? {
@@ -379,11 +414,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
             return null
         }
         val response = buildResponse(speech, false)
-        if (response != null) {
-            return this.doResponse(response, RESPONSE_CODE_OK)
-        } else {
-            return null
-        }
+        return this.doResponse(response, RESPONSE_CODE_OK)
     }
 
     override fun getIntent(): String {
@@ -499,11 +530,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
                 }
             }
         }
-        if (response != null) {
-            return doResponse(response, RESPONSE_CODE_OK)
-        } else {
-            return null
-        }
+        return doResponse(response, RESPONSE_CODE_OK)
     }
 
     /**
@@ -536,11 +563,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
                 }
             }
         }
-        if (response != null) {
-            return doResponse(response, RESPONSE_CODE_OK)
-        } else {
-            return null
-        }
+        return doResponse(response, RESPONSE_CODE_OK)
     }
 
     /**

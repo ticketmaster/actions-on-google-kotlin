@@ -378,7 +378,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
     abstract fun  fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: TransactionRequirementsCheckSpec, dialogState: DialogState<T>? = null): ResponseWrapper<S>?
 
 
-    fun doResponse(response: ResponseWrapper<S>, responseCode: Int = 0): ResponseWrapper<S>? {
+    fun doResponse(response: ResponseWrapper<S>?, responseCode: Int = 0): ResponseWrapper<S>? {
         debug("doResponse_: responseWrapper=$response., responseCode=$responseCode")
         if (responded) {
             return null
