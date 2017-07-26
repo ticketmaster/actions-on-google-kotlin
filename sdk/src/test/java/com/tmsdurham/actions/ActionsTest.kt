@@ -978,7 +978,7 @@ object ActionsTest : Spek({
                     )
             )
 
-            app.askForTransactionDecision(GoogleData.Order(id= "order_id"), transactionConfig)
+            app.askForTransactionDecision(GoogleData.Order(id = "order_id"), transactionConfig)
 
             val expectedResponse = responseFromJson("""{
                 "speech": "PLACEHOLDER_FOR_TXN_DECISION",
@@ -1028,6 +1028,60 @@ object ActionsTest : Spek({
 
             expect(mockResponse.body).to.equal(expectedResponse)
         }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON transaction decision with Action payment options") {
+            val transactionConfig = ActionPaymentTransactionConfig(
+                    deliveryAddressRequired = true,
+                    type = "BANK",
+                    displayName = "Checking-4773",
+                    customerInfoOptions = mutableListOf(
+                            "EMAIL"
+                    )
+            )
+
+            app.askForTransactionDecision(app.buildOrder("order_id"), transactionConfig)
+
+            val expectedResponse = responseFromJson("""{
+                "speech": "PLACEHOLDER_FOR_TXN_DECISION",
+                "data": {
+                "google": {
+                "expectUserResponse": true,
+                "isSsml": false,
+                "noInputPrompts": [],
+                "systemIntent": {
+                "intent": "actions.intent.TRANSACTION_DECISION",
+                "data": {
+                "@type": "type.googleapis.com/google.actions.v2.TransactionDecisionValueSpec",
+                "proposedOrder": { "id": "order_id" },
+                "orderOptions": {
+                "requestDeliveryAddress": true,
+                "customerInfoOptions": [
+                "EMAIL"
+                ]
+            },
+                "paymentOptions": {
+                "actionProvidedOptions": {
+                "paymentType": "BANK",
+                "displayName": "Checking-4773"
+            }
+            }
+            }
+            }
+            }
+            },
+                "contextOut": [
+                {
+                    "name": "_actions_on_google_",
+                    "lifespan": 100,
+                    "parameters": {}
+                }
+                ]
+            }""")
+
+            expect(mockResponse.body).to.equal(expectedResponse);
+        }
+
     }
 })
 
