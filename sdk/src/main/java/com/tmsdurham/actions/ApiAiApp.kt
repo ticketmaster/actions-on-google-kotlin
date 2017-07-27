@@ -899,38 +899,6 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         return carousel
     }
 
-
-    /**
-     * Gets property on any object by field name via reflection
-     */
-    inline fun <P : Any> getProperty(obj: P, name: String): Any? {
-        try {
-            val field = obj.javaClass.getDeclaredField(name)
-
-            // MZ: Find the correct method
-            obj.javaClass.methods.forEach {
-                if (it.name.startsWith("get") && it.name.length === field.name.length + 3) {
-                    if (it.name.toLowerCase().endsWith(field.name.toLowerCase())) {
-                        // MZ: Method found, run it
-                        try {
-                            return it.invoke(obj)
-                        } catch (e: IllegalAccessException) {
-                            error("Could not determine method: " + it.name)
-                        } catch (e: InvocationTargetException) {
-                            error("Could not determine method: " + it.name)
-                        }
-
-                    }
-                }
-            }
-        } catch (e: NoSuchFieldException) {
-            debug("NoSuchFieldException: $name}")
-        }
-        return null
-    }
-
-    data class ContextArgument(var value: Any?, var original: Any? = null)
-
     /**
      * Returns the option key user chose from options response.
      * @example
@@ -973,6 +941,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         debug("Failed to get selected option")
         return null
     }
+
+    data class ContextArgument(var value: Any?, var original: Any? = null)
+
 
 //TODO builderResponse(richResponse,...)
 /*

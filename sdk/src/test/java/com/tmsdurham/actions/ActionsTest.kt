@@ -1,6 +1,7 @@
 package com.tmsdurham.actions
 
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
@@ -12,7 +13,7 @@ import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 
-val gson = Gson()
+val gson = GsonBuilder().setPrettyPrinting().create()
 
 //data class MockParameters(var guess: String? = null)
 
@@ -1421,8 +1422,8 @@ object ActionsTest : Spek({
             val mockResponse = ResponseWrapper<ApiAiResponse>()
 
             val app = ApiAiApp(
-                request = mockRequest,
-                response = mockResponse
+                    request = mockRequest,
+                    response = mockResponse
             )
 
             expect(app.getIntent()).to.equal("check_guess")
@@ -1447,8 +1448,8 @@ object ActionsTest : Spek({
             val mockResponse = ResponseWrapper<ApiAiResponse>()
 
             val app = ApiAiApp(
-                request = mockRequest,
-                response = mockResponse
+                    request = mockRequest,
+                    response = mockResponse
             )
 
             expect(app.getArgument("guess")).to.equal("50")
@@ -1459,8 +1460,8 @@ object ActionsTest : Spek({
                 "otherValue": {
                 "key": "value"
             }}""", Arguments::class.java))
-            }
         }
+    }
 
     /**
      * Describes the behavior for ApiAiApp getContextArgument method.
@@ -1470,29 +1471,29 @@ object ActionsTest : Spek({
         it("Should get the context argument value for the success case.") {
             val body = createLiveSessionApiAppBody()
             body.result.contexts = mutableListOf(
-                Contexts(name = "game",
-                        parameters = mutableMapOf(
-                                "guess.original" to "50",
-                                "guess" to "50"),
-                        lifespan = 5),
+                    Contexts(name = "game",
+                            parameters = mutableMapOf(
+                                    "guess.original" to "50",
+                                    "guess" to "50"),
+                            lifespan = 5),
                     Contexts(name = "previous_answer",
                             parameters = mutableMapOf(
                                     "answer" to "68",
                                     "guess.original" to "51",
                                     "guess" to "50"),
                             lifespan = 50
-                            ))
+                    ))
 
             val mockRequest = RequestWrapper(headerV1, body)
             val mockResponse = ResponseWrapper<ApiAiResponse>()
 
             val app = ApiAiApp(
-                request = mockRequest,
-                response = mockResponse
+                    request = mockRequest,
+                    response = mockResponse
             )
 
             expect(app.getContextArgument("game", "guess")).to
-                    .equal(ApiAiApp.ContextArgument(value = "50", original = "50" ))
+                    .equal(ApiAiApp.ContextArgument(value = "50", original = "50"))
             expect(app.getContextArgument("previous_answer", "answer")).to
                     .equal(ApiAiApp.ContextArgument(value = "68"))
         }
@@ -1501,7 +1502,7 @@ object ActionsTest : Spek({
     /**
      * Describes the behavior for ApiAiApp getIncomingRichResponse method.
      */
-    describe("ApiAiApp#getIncomingRichResponse" ) {
+    describe("ApiAiApp#getIncomingRichResponse") {
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should get the incoming rich response for the success case.") {
             val body = createLiveSessionApiAppBody()
@@ -1543,8 +1544,8 @@ object ActionsTest : Spek({
             val mockResponse = ResponseWrapper<ApiAiResponse>()
 
             val app = ApiAiApp(
-                request = mockRequest,
-                response = mockResponse)
+                    request = mockRequest,
+                    response = mockResponse)
 
             val expectedResponse = RichResponse()
                     .addSimpleResponse("Simple response one")
@@ -1589,15 +1590,15 @@ object ActionsTest : Spek({
                 val mockResponse = ResponseWrapper<ApiAiResponse>()
 
                 val app = ApiAiApp(
-                    request = mockRequest,
-                    response = mockResponse
+                        request = mockRequest,
+                        response = mockResponse
                 )
 
                 val expectedResponse = List()
                         .setTitle("list_title")
                         .addItems(
-                        OptionItem().setTitle("first item").setKey("first_item"),
-                        OptionItem().setTitle("second item").setKey("second_item"))
+                                OptionItem().setTitle("first item").setKey("first_item"),
+                                OptionItem().setTitle("second item").setKey("second_item"))
 
                 expect(app.getIncomingList()).to
                         .equal(expectedResponse)
@@ -1638,20 +1639,72 @@ object ActionsTest : Spek({
                 val mockResponse = ResponseWrapper<ApiAiResponse>()
 
                 val app = ApiAiApp(
-                    request = mockRequest,
-                    response = mockResponse
+                        request = mockRequest,
+                        response = mockResponse
                 )
 
                 val expectedResponse = Carousel()
                         .addItems(
-                        OptionItem().setTitle("first item").setKey("first_item")
-                                .setDescription("Your first choice"),
-                        OptionItem().setTitle("second item").setKey("second_item")
-                                .setDescription("Your second choice")
+                                OptionItem().setTitle("first item").setKey("first_item")
+                                        .setDescription("Your first choice"),
+                                OptionItem().setTitle("second item").setKey("second_item")
+                                        .setDescription("Your second choice")
                         )
 
                 expect(app.getIncomingCarousel()).to
                         .equal(expectedResponse)
+            }
+        }
+
+        /**
+         * Describes the behavior for ApiAiApp getSelectedOption method.
+         */
+        describe("ApiAiApp#getSelectedOption") {
+            var body: ApiAiRequest = ApiAiRequest()
+            var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
+            var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
+            var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
+
+            beforeEachTest {
+                mockRequest = RequestWrapper(headerV1, body)
+                mockResponse = ResponseWrapper()
+            }
+
+
+            // Success case test, when the API returns a valid 200 response with the response object
+            it("Should get the selected option when given in APIAI context.") {
+                val body = createLiveSessionApiAppBody()
+                body.originalRequest?.data?.inputs?.add(0, gson.fromJson("""{
+                    "arguments": [
+                    {
+                        "text_value": "first_item",
+                        "name": "OPTION"
+                    }
+                    ],
+                    "intent": "actions.intent.OPTION",
+                    "raw_inputs": [
+                    {
+                        "query": "firstitem",
+                        "input_type": 2,
+                        "annotation_sets": []
+                    }
+                    ]
+                }""", Inputs::class.java))
+                body.result.contexts = gson.fromJson("""[
+                {
+                    "name": "actions_intent_option",
+                    "parameters": {
+                    "OPTION": "first_item"
+                },
+                    "lifespan": 0
+                }
+                ]""", arrayOf<Contexts>().javaClass).toList()
+                mockRequest = mockRequest.copy(body = body)
+                app = ApiAiApp(
+                        request = mockRequest,
+                        response = mockResponse
+                )
+                expect(app.getSelectedOption()).to.equal("first_item")
             }
         }
     }

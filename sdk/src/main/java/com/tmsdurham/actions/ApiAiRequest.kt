@@ -120,7 +120,7 @@ data class OriginalRequestData(
         var device: Device? = null,
         var surface: Surface? = null,
         var sender: Sender? = null,
-        var inputs: List<Inputs>? = null,
+        var inputs: MutableList<Inputs>? = null,
         var isInSandbox: Boolean? = null)
 
 data class Conversation(var type: String)
@@ -161,6 +161,7 @@ data class Arguments(
         val boolValue: Boolean? = null,
         val rawText: String? = null,
         var textValue: String? = null,
+        var text_value: String? = null,
         val name: String? = null,
         val otherValue: Any? = null,
         val extension: TransactionRequirementsCheckResult? = null) {
