@@ -14,9 +14,9 @@ import org.jetbrains.spek.api.dsl.it
 
 val gson = Gson()
 
-data class MockParameters(var guess: String? = null)
+//data class MockParameters(var guess: String? = null)
 
-typealias MockHandler = Handler<ApiAiRequest<MockParameters>, ApiAiResponse<MockParameters>, MockParameters>
+typealias MockHandler = Handler<ApiAiRequest, ApiAiResponse>
 
 val headerV1 = mapOf(
         "Content-Type" to "application/json",
@@ -36,7 +36,7 @@ const val fakeConversationId = "0123456789"
 
 // Body of the ApiAi request that starts a new session
 // new session is originalRequest.data.conversation.type == 1
-fun apiAiAppRequestBodyNewSession(): ApiAiRequest<MockParameters> {
+fun apiAiAppRequestBodyNewSession(): ApiAiRequest {
     return requestFromJson("""{
         "lang": "en",
         "status": {
@@ -48,8 +48,10 @@ fun apiAiAppRequestBodyNewSession(): ApiAiRequest<MockParameters> {
         "result": {
         "parameters": {
         "city": "Rome",
-        "name": "Ana"
-    },
+        "name": "Ana",
+        "list": [ "one", "two" ],
+        "nested": { "nestedField": "n1" }
+        },
         "contexts": [],
         "resolvedQuery": "my name is Ana and I live in Rome",
         "source": "agent",
@@ -109,7 +111,7 @@ fun apiAiAppRequestBodyNewSession(): ApiAiRequest<MockParameters> {
     }""")
 }
 
-fun createLiveSessionApiAppBody(): ApiAiRequest<MockParameters> {
+fun createLiveSessionApiAppBody(): ApiAiRequest {
     var tmp = apiAiAppRequestBodyNewSession()
     tmp.originalRequest?.data?.conversation?.type = "2"
     return tmp
@@ -124,7 +126,7 @@ object ActionsTest : Spek({
      * Describes the behavior for Assistant isNotApiVersionOne_ method.
      */
     describe("ApiAiApp#isNotApiVersionOne") {
-        var mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+        var mockResponse = ResponseWrapper<ApiAiResponse>()
 
         val invalidHeader = mapOf(
                 "Content-Type" to "application/json",
@@ -142,7 +144,7 @@ object ActionsTest : Spek({
 
 
         it("Should detect Proto2 when header is not present") {
-            val mockRequest = RequestWrapper(headerV1, ApiAiRequest<MockParameters>())
+            val mockRequest = RequestWrapper(headerV1, ApiAiRequest())
 
             val app = ApiAiApp(mockRequest, mockResponse)
 
@@ -150,14 +152,14 @@ object ActionsTest : Spek({
         }
 
         it("Should detect v1 when header is present") {
-            val mockRequest = RequestWrapper(invalidHeader, ApiAiRequest<MockParameters>())
-            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+            val mockRequest = RequestWrapper(invalidHeader, ApiAiRequest())
+            val mockResponse = ResponseWrapper<ApiAiResponse>()
             val app = ApiAiApp(request = mockRequest, response = mockResponse)
             expect(app.isNotApiVersionOne()).to.equal(false)
         }
 
         it("Should detect v2 when version is present in APIAI req") {
-            val mockRequest = RequestWrapper(headerV1, apiAiRequest<MockParameters> {
+            val mockRequest = RequestWrapper(headerV1, apiAiRequest {
                 result {
                     originalRequest {
                         version = "1"
@@ -165,7 +167,7 @@ object ActionsTest : Spek({
                 }
             })
 
-            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+            val mockResponse = ResponseWrapper<ApiAiResponse>()
 
             val app = ApiAiApp(request = mockRequest, response = mockResponse)
             debug(mockRequest.toString())
@@ -177,8 +179,8 @@ object ActionsTest : Spek({
             val headers = HashMap(headerV1)
             headers["Google-Actions-API-Version"] = "2"
 
-            val mockRequest = RequestWrapper<ApiAiRequest<MockParameters>>(headers, ApiAiRequest())
-            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+            val mockRequest = RequestWrapper<ApiAiRequest>(headers, ApiAiRequest())
+            val mockResponse = ResponseWrapper<ApiAiResponse>()
 
             val app = ApiAiApp(request = mockRequest, response = mockResponse)
 
@@ -186,12 +188,12 @@ object ActionsTest : Spek({
         }
 
         it("Should detect v2 when version is present in APIAI req") {
-            val mockRequest = RequestWrapper(headerV1, apiAiRequest<MockParameters> {
+            val mockRequest = RequestWrapper(headerV1, apiAiRequest {
                 originalRequest {
                     version = "2"
                 }
             })
-            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+            val mockResponse = ResponseWrapper<ApiAiResponse>()
 
             val app = ApiAiApp(request = mockRequest, response = mockResponse)
 
@@ -205,7 +207,7 @@ object ActionsTest : Spek({
             // Success case test, when the API returns a valid 200 response with the response object
             it("Should validate SSML syntax.") {
                 val mockRequest = RequestWrapper(headerV1, apiAiAppRequestBodyNewSession())
-                val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+                val mockResponse = ResponseWrapper<ApiAiResponse>()
                 val app = ApiAiApp(request = mockRequest, response = mockResponse)
                 expect(app.isSsml("""<speak></speak>""")).to.equal(true)
                 expect(app.isSsml("""<SPEAK></SPEAK>""")).to.equal(true)
@@ -246,7 +248,7 @@ object ActionsTest : Spek({
      * Describes the behavior for ApiAiApp constructor method.
      */
     describe("ApiAiApp#constructor") {
-        var mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+        var mockResponse = ResponseWrapper<ApiAiResponse>()
 
         // Calls sessionStarted when provided
         it("Calls sessionStarted when new session") {
@@ -270,7 +272,7 @@ object ActionsTest : Spek({
     // Does not call sessionStarted when not new sessoin
     it("Does not call sessionStarted when not new session") {
         val mockRequest = RequestWrapper(headerV1, createLiveSessionApiAppBody())
-        val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+        val mockResponse = ResponseWrapper<ApiAiResponse>()
 
         val sessionStartedSpy = mock<(() -> Unit)> {}
 
@@ -292,13 +294,13 @@ object ActionsTest : Spek({
      * Describes the behavior for ApiAiApp tell method.
      */
     describe("ApiAiApp#tell") {
-        var mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
-        var body = ApiAiRequest<MockParameters>()
-        var mockRequest = RequestWrapper<ApiAiRequest<MockParameters>>(body = body)
-        var app = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+        var mockResponse = ResponseWrapper<ApiAiResponse>()
+        var body = ApiAiRequest()
+        var mockRequest = RequestWrapper<ApiAiRequest>(body = body)
+        var app = ApiAiApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
-            mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+            mockResponse = ResponseWrapper<ApiAiResponse>()
             body = createLiveSessionApiAppBody()
             mockRequest = RequestWrapper(headerV1, body)
             app = ApiAiApp(request = mockRequest, response = mockResponse)
@@ -412,10 +414,10 @@ object ActionsTest : Spek({
      */
     describe("ApiAiApp#askWithList") {
 
-        var mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
-        var body = ApiAiRequest<MockParameters>()
-        var mockRequest = RequestWrapper<ApiAiRequest<MockParameters>>(body = body)
-        var app = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+        var mockResponse = ResponseWrapper<ApiAiResponse>()
+        var body = ApiAiRequest()
+        var mockRequest = RequestWrapper<ApiAiRequest>(body = body)
+        var app = ApiAiApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
             mockResponse = ResponseWrapper()
@@ -492,10 +494,10 @@ object ActionsTest : Spek({
      * Describes the behavior for ApiAiApp askWithCarousel method.
      */
     describe("ApiAiApp#askWithCarousel") {
-        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
-        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+        var body: ApiAiRequest = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
+        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
             mockResponse = ResponseWrapper()
@@ -576,13 +578,13 @@ object ActionsTest : Spek({
      * Describes the behavior for ApiAiApp askForPermissions method in v2.
      */
     describe("ApiAiApp#askForPermissions") {
-        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
-        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+        var body: ApiAiRequest = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
+        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
-            mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+            mockResponse = ResponseWrapper<ApiAiResponse>()
             body = createLiveSessionApiAppBody()
             body.originalRequest?.version = "2"
             mockRequest = RequestWrapper(headerV1, body)
@@ -626,10 +628,10 @@ object ActionsTest : Spek({
      * Describes the behavior for ApiAiApp getUser method.
      */
     describe("ApiAiApp#getUser") {
-        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
-        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+        var body: ApiAiRequest = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
+        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
             mockResponse = ResponseWrapper()
@@ -651,10 +653,10 @@ object ActionsTest : Spek({
      * Describes the behavior for ApiAiApp getUserName method.
      */
     describe("ApiAiApp#getUserName") {
-        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
-        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+        var body: ApiAiRequest = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
+        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
             mockResponse = ResponseWrapper()
@@ -663,7 +665,7 @@ object ActionsTest : Spek({
 
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should validate assistant request user.") {
-            var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>>
+            var mockRequest: RequestWrapper<ApiAiRequest>
             body.originalRequest?.data?.user = gson.fromJson("""{
                 "userId": "11112226094657824893",
                 "profile": {
@@ -690,8 +692,8 @@ object ActionsTest : Spek({
      * Describes the behavior for ApiAiApp getUserLocale method.
      */
     describe("ApiAiApp#getUserLocale") {
-        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
-        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+        var body: ApiAiRequest = ApiAiRequest()
+        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
 
         beforeEachTest {
             mockResponse = ResponseWrapper()
@@ -700,8 +702,8 @@ object ActionsTest : Spek({
 
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should validate assistant request user with locale.") {
-            var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>>
-            val app: ApiAiApp<MockParameters>
+            var mockRequest: RequestWrapper<ApiAiRequest>
+            val app: ApiAiApp
             mockRequest = RequestWrapper(headerV1, body)
             app = ApiAiApp(request = mockRequest, response = mockResponse)
             expect(app.getUserLocale()).to.equal("en-US")
@@ -709,8 +711,8 @@ object ActionsTest : Spek({
 
         // Failure case
         it("Should return null for missing locale.") {
-            var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>>
-            val app: ApiAiApp<MockParameters>
+            var mockRequest: RequestWrapper<ApiAiRequest>
+            val app: ApiAiApp
             body.originalRequest?.data?.user?.locale = null
             mockRequest = RequestWrapper(headerV1, body)
             app = ApiAiApp(request = mockRequest, response = mockResponse)
@@ -723,10 +725,10 @@ object ActionsTest : Spek({
      * Describes the behavior for ApiAiApp getDeviceLocation method.
      */
     describe("ApiAiApp#getDeviceLocation") {
-        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
-        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+        var body: ApiAiRequest = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
+        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
             body = createLiveSessionApiAppBody()
@@ -774,10 +776,10 @@ object ActionsTest : Spek({
      * Describes the behavior for ApiAiApp askForTransactionRequirements method.
      */
     describe("ApiAiApp#askForTransactionRequirements") {
-        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
-        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+        var body: ApiAiRequest = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
+        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
             body = createLiveSessionApiAppBody();
@@ -905,7 +907,7 @@ object ActionsTest : Spek({
         it("Should return valid JSON delivery address") {
             val body = createLiveSessionApiAppBody()
             val mockRequest = RequestWrapper(headerV2, body)
-            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+            val mockResponse = ResponseWrapper<ApiAiResponse>()
 
             val app = ApiAiApp(
                     request = mockRequest,
@@ -949,10 +951,10 @@ object ActionsTest : Spek({
      * Describes the behavior for ApiAiApp askForTransactionDecision method.
      */
     describe("ApiAiApp#askForTransactionDecision") {
-        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
-        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+        var body: ApiAiRequest = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
+        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
             body = createLiveSessionApiAppBody()
@@ -1088,10 +1090,10 @@ object ActionsTest : Spek({
      * Describes the behavior for ApiAiApp askForConfirmation method.
      */
     describe("ApiAiApp#askForConfirmation") {
-        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
-        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+        var body: ApiAiRequest = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
+        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
             body = createLiveSessionApiAppBody()
@@ -1172,10 +1174,10 @@ object ActionsTest : Spek({
          * Describes the behavior for ApiAiApp askForDateTime method.
          */
         describe("ApiAiApp#askForDateTime") {
-            var body: ApiAiRequest<MockParameters> = ApiAiRequest()
-            var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
-            var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
-            var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+            var body: ApiAiRequest = ApiAiRequest()
+            var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
+            var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
+            var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
 
             beforeEachTest {
                 body = createLiveSessionApiAppBody()
@@ -1296,10 +1298,10 @@ object ActionsTest : Spek({
      * Describes the behavior for ApiAiApp askForSignIn method.
      */
     describe("ApiAiApp#askForSignIn") {
-        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
-        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+        var body: ApiAiRequest = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
+        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
             body = createLiveSessionApiAppBody()
@@ -1344,10 +1346,10 @@ object ActionsTest : Spek({
      * Describes the behavior for ApiAiApp isPermissionGranted method.
      */
     describe("ApiAiApp#isPermissionGranted") {
-        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
-        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+        var body: ApiAiRequest = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
+        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
 
         fun initMockApp() {
             mockRequest = RequestWrapper(headerV1, body)
@@ -1379,10 +1381,10 @@ object ActionsTest : Spek({
      * Describes the behavior for ApiAiApp isInSandbox method.
      */
     describe("ApiAiApp#isInSandbox") {
-        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
-        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+        var body: ApiAiRequest = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
+        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
 
         fun initMockApp() {
             mockRequest = RequestWrapper(headerV1, body)
@@ -1416,7 +1418,7 @@ object ActionsTest : Spek({
             val body = createLiveSessionApiAppBody()
             body.result.action = "check_guess"
             val mockRequest = RequestWrapper(headerV1, body)
-            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+            val mockResponse = ResponseWrapper<ApiAiResponse>()
 
             val app = ApiAiApp(
                 request = mockRequest,
@@ -1434,7 +1436,7 @@ object ActionsTest : Spek({
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should get the argument value for the success case.") {
             val body = createLiveSessionApiAppBody()
-            body.result?.parameters?.guess = "50"
+            body.result?.parameters?.set("guess", "50")
             val t = TypeToken.get(Arguments::class.java).type
             val type = TypeToken.getParameterized(List::class.java, t)
             body.originalRequest?.data?.inputs?.get(0)?.arguments =
@@ -1442,7 +1444,7 @@ object ActionsTest : Spek({
                             Arguments(rawText = "45", name = "other_value", otherValue = mapOf("key" to "value")))
 
             val mockRequest = RequestWrapper(headerV2, body)
-            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+            val mockResponse = ResponseWrapper<ApiAiResponse>()
 
             val app = ApiAiApp(
                 request = mockRequest,
@@ -1460,18 +1462,70 @@ object ActionsTest : Spek({
             }
         }
 
+    /**
+     * Describes the behavior for ApiAiApp getContextArgument method.
+     */
+    describe("ApiAiApp#getContextArgument") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should get the context argument value for the success case.") {
+            val body = createLiveSessionApiAppBody()
+            body.result.contexts = mutableListOf(
+                Contexts(name = "game",
+                        parameters = mutableMapOf(
+                                "guess.original" to "50",
+                                "guess" to "50"),
+                        lifespan = 5),
+                    Contexts(name = "previous_answer",
+                            parameters = mutableMapOf(
+                                    "answer" to "68",
+                                    "guess.original" to "51",
+                                    "guess" to "50"),
+                            lifespan = 50
+                            ))
 
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ApiAiResponse>()
+
+            val app = ApiAiApp(
+                request = mockRequest,
+                response = mockResponse
+            )
+
+            expect(app.getContextArgument("game", "guess")).to
+                    .equal(ApiAiApp.ContextArgument(value = "50", original = "50" ))
+            expect(app.getContextArgument("previous_answer", "answer")).to
+                    .equal(ApiAiApp.ContextArgument(value = "68"))
+        }
+    }
+
+    /**
+     * Tests parsing parameters with Gson and retrieving parameter values
+     * NOTE: This are an addition to the official test suite.  These are needed due to the dynamic nature of
+     * parameters.
+     */
+    describe("ApiAiResponse#Result#Parameters") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("fields should be accessible through map") {
+            val body = createLiveSessionApiAppBody()
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ApiAiResponse>()
+
+            expect(mockRequest.body.result.parameters?.get("city")).to.be.equal("Rome")
+            expect(mockRequest.body.result.parameters?.get("list")).to.be.equal(listOf("one", "two"))
+            expect(mockRequest.body.result.parameters?.get("nested")).to.be.equal(mutableMapOf("nestedField" to "n1"))
+        }
+    }
 })
 
 
-fun requestFromJson(body: String): ApiAiRequest<MockParameters> {
-    val t = TypeToken.get(MockParameters::class.java).type
-    val type = TypeToken.getParameterized(ApiAiRequest::class.java, t)
-    return gson.fromJson<ApiAiRequest<MockParameters>>(body, type.type)
+fun requestFromJson(body: String): ApiAiRequest {
+//    val t = TypeToken.get(MockParameters::class.java).type
+//    val type = TypeToken.getParameterized(ApiAiRequest::class.java, t)
+    return gson.fromJson<ApiAiRequest>(body, ApiAiRequest::class.java)
 }
 
-fun responseFromJson(body: String): ApiAiResponse<MockParameters> {
-    val t = TypeToken.get(MockParameters::class.java).type
-    val responseType = TypeToken.getParameterized(ApiAiResponse::class.java, t)
-    return gson.fromJson<ApiAiResponse<MockParameters>>(body, responseType.type)
+fun responseFromJson(body: String): ApiAiResponse {
+//    val t = TypeToken.get(MockParameters::class.java).type
+//    val responseType = TypeToken.getParameterized(ApiAiResponse::class.java, t)
+    return gson.fromJson<ApiAiResponse>(body, ApiAiResponse::class.java)
 }

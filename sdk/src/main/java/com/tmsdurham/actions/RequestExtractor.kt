@@ -8,7 +8,7 @@ import com.ticketmaster.apiai.*
  *
  * This class contains the methods to extract data from the request object.
  */
-class RequestExtractor<T, S, U>(val app: AssistantApp<T,S,U>) {
+class RequestExtractor<T, S>(val app: AssistantApp<T,S>) {
 
 
     /**
@@ -29,7 +29,7 @@ class RequestExtractor<T, S, U>(val app: AssistantApp<T,S,U>) {
     fun getUser (): User? {
         debug("getUser")
         val data = when(app.request.body) {
-            is ApiAiRequest<*> -> { app.request.body?.originalRequest?.data}
+            is ApiAiRequest -> { app.request.body?.originalRequest?.data}
             //TODO Action SDK user
             else -> null
         }
@@ -53,7 +53,7 @@ class RequestExtractor<T, S, U>(val app: AssistantApp<T,S,U>) {
     }
 
     fun requestData() = when(app.request.body) {
-            is ApiAiRequest<*> -> { app.request.body?.originalRequest?.data}
+            is ApiAiRequest -> { app.request.body?.originalRequest?.data}
             //TODO Action SDK user
             else -> null
         }

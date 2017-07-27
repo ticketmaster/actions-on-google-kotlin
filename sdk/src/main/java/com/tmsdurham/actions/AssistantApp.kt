@@ -4,7 +4,7 @@ import com.ticketmaster.apiai.*
 import com.ticketmaster.apiai.google.GoogleData
 import java.util.logging.Logger
 
-typealias Handler<T, S, U> = (AssistantApp<T, S, U>) -> Unit
+typealias Handler<T, S> = (AssistantApp<T, S>) -> Unit
 
 internal val logger = Logger.getAnonymousLogger()
 
@@ -159,7 +159,7 @@ class SignInStatus {
 }
 
 
-open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val response: ResponseWrapper<S>, val sessionStarted: (() -> Unit)? = null) {
+open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val response: ResponseWrapper<S>, val sessionStarted: (() -> Unit)? = null) {
     var actionsApiVersion: String = "1"
     lateinit var STANDARD_INTENTS: StandardIntents
     val SUPPORTED_INTENT = SupportedIntent()
@@ -172,8 +172,8 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
     var responded = false
     var apiVersion: String = ""
     var state: String = ""
-    var contexts = listOf<ContextOut<U>>()
-    val requestExtractor: RequestExtractor<T, S, U>
+    var contexts = listOf<ContextOut>()
+    val requestExtractor: RequestExtractor<T, S>
 
     init {
         debug("AssistantApp constructor");
@@ -187,10 +187,10 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
                 actionsApiVersion = request.headers[ACTIONS_CONVERSATION_API_VERSION_HEADER]!!
                 debug("Actions API version from header: " + this.actionsApiVersion);
             }
-            if (request.body is ApiAiRequest<*>) {
+            if (request.body is ApiAiRequest) {
                 if (request.body.originalRequest != null) {
                     actionsApiVersion = request.body.originalRequest?.version ?: "1"
-                    debug("Actions API version from APIAI: " + this.actionsApiVersion);
+                    debug("Actions API version from APIAI: " + this.actionsApiVersion)
                 }
             }
         }
@@ -217,14 +217,14 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
         return requestExtractor.getUser()
     }
 
-    fun handleRequest(handler: Handler<T, S, U>) {
+    fun handleRequest(handler: Handler<T, S>) {
         debug("handleRequest: handler=${handler::javaClass.get().name}")
         handler(this)
     }
 
     fun handleRequest(handler: Map<*, *>) {
         debug("handleRequest: handler=${handler::javaClass.get().name}")
-        invokeIntentHandler(handler as Map<*, Handler<T, S, U>>, getIntent())
+        invokeIntentHandler(handler as Map<*, Handler<T, S>>, getIntent())
     }
 
     /**
@@ -278,7 +278,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      * @actionssdk
      * @apiai
      */
-    fun askForPermissions(context: String, vararg permissions: String, dialogState: DialogState<T>? = null): ResponseWrapper<S>? {
+    fun askForPermissions(context: String, vararg permissions: String, dialogState: DialogState? = null): ResponseWrapper<S>? {
         debug("askForPermissions: context=$context, permissions=$permissions, dialogState=$dialogState")
         if (context.isEmpty()) {
             handleError("Assistant context can NOT be empty.")
@@ -342,7 +342,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      * @actionssdk
      * @apiai
      */
-    fun askForConfirmation (prompt: String = "", dialogState: DialogState<U>? = null): ResponseWrapper<S>? {
+    fun askForConfirmation (prompt: String = "", dialogState: DialogState? = null): ResponseWrapper<S>? {
         debug("askForConfirmation: prompt=$prompt, dialogState=$dialogState")
         val confirmationValueSpec = ConfirmationValueSpec()
         if (prompt.isNotBlank()) {
@@ -395,7 +395,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      * @actionssdk
      * @apiai
      */
-    fun askForDateTime (initialPrompt: String? = null, datePrompt: String? =null, timePrompt: String? = null, dialogState: DialogState<U>? = null): ResponseWrapper<S>? {
+    fun askForDateTime (initialPrompt: String? = null, datePrompt: String? =null, timePrompt: String? = null, dialogState: DialogState? = null): ResponseWrapper<S>? {
         debug("askForConfirmation: initialPrompt=$initialPrompt, datePrompt=$datePrompt, timePrompt=$timePrompt, dialogState=$dialogState")
         val confirmationValueSpec = ConfirmationValueSpec()
         if (initialPrompt != null || datePrompt != null || timePrompt != null) {
@@ -446,15 +446,15 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      * @actionssdk
      * @apiai
      */
-    fun askForSignIn (dialogState: DialogState<U>?= null): ResponseWrapper<S>? {
+    fun askForSignIn (dialogState: DialogState?= null): ResponseWrapper<S>? {
         debug("askForSignIn: dialogState=$dialogState")
         return fulfillSignInRequest(dialogState)
     }
 
 
-    abstract fun fulfillSignInRequest(dialogState: DialogState<U>?): ResponseWrapper<S>?
-    abstract fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState<U>?): ResponseWrapper<S>?
-    abstract fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState<U>?): ResponseWrapper<S>?
+    abstract fun fulfillSignInRequest(dialogState: DialogState?): ResponseWrapper<S>?
+    abstract fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState?): ResponseWrapper<S>?
+    abstract fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState?): ResponseWrapper<S>?
 
     data class ConfirmationValueSpec(var dialogSpec: DialogSpec? = null)
 
@@ -503,7 +503,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      * @actionssdk
      * @apiai
      */
-    fun askForTransactionRequirements (transactionConfig: TransactionConfig, dialogState: DialogState<U>? = null): ResponseWrapper<S>? {
+    fun askForTransactionRequirements (transactionConfig: TransactionConfig, dialogState: DialogState? = null): ResponseWrapper<S>? {
         debug("checkForTransactionRequirements: transactionConfig=$transactionConfig," +
                 " dialogState=$dialogState")
         if (transactionConfig.type?.isNullOrBlank() ?: true &&
@@ -565,7 +565,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
      * @apiai
      */
-    fun askForTransactionDecision (order: GoogleData.Order, transactionConfig: TransactionConfig, dialogState: DialogState<U>? = null): ResponseWrapper<S>? {
+    fun askForTransactionDecision (order: GoogleData.Order, transactionConfig: TransactionConfig, dialogState: DialogState? = null): ResponseWrapper<S>? {
         debug("askForTransactionDecision: order=$order, transactionConfig=$transactionConfig, dialogState=$dialogState")
         if (order == null) {
             this.handleError("Invalid order")
@@ -606,8 +606,8 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
     data class TransactionRequirementsCheckSpec(var orderOptions: GoogleData.OrderOptions? = null,
                                                 var paymentOptions: GoogleData.PaymentOptions? = null)
 
-    abstract fun  fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: TransactionRequirementsCheckSpec, dialogState: DialogState<U>? = null): ResponseWrapper<S>?
-    abstract fun  fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: DialogState<U>? = null): ResponseWrapper<S>?
+    abstract fun  fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: TransactionRequirementsCheckSpec, dialogState: DialogState? = null): ResponseWrapper<S>?
+    abstract fun  fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: DialogState? = null): ResponseWrapper<S>?
 
 
     fun doResponse(response: ResponseWrapper<S>?, responseCode: Int = 0): ResponseWrapper<S>? {
@@ -721,7 +721,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      * @return {boolean} true if the handler was invoked.
      * @private
      */
-    private fun invokeIntentHandler(handler: Map<*, Handler<T, S, U>>, intent: String): Boolean {
+    private fun invokeIntentHandler(handler: Map<*, Handler<T, S>>, intent: String): Boolean {
         debug("invokeIntentHandler_: handler=${handler::class.java.name}, intent=$intent")
         lastErrorMessage = null
 

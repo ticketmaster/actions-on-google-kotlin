@@ -3,11 +3,9 @@ package com.tmsdurham.actions
 import com.ticketmaster.apiai.*
 import com.ticketmaster.apiai.google.GoogleData
 import java.lang.reflect.InvocationTargetException
-import sun.reflect.misc.MethodUtil.getMethods
-import java.lang.reflect.Field
 
 
-class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
+class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
 
 
     // Constants
@@ -28,9 +26,9 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
     val TYPE = "type"
     val PLATFORM = "platform"
 
-    var data: T? = null
+    var data: MutableMap<String, Any>? = null
 
-    constructor(request: RequestWrapper<ApiAiRequest<T>>, response: ResponseWrapper<ApiAiResponse<T>>, sessionStarted: (() -> Unit)? = null) :
+    constructor(request: RequestWrapper<ApiAiRequest>, response: ResponseWrapper<ApiAiResponse>, sessionStarted: (() -> Unit)? = null) :
             super(request, response, sessionStarted) {
         debug("ApiAiApp constructor")
 
@@ -80,7 +78,7 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      * @return {Object} HTTP response.
      * @apiai
      */
-    fun ask(inputPrompt: RichResponse, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse<T>>? {
+    fun ask(inputPrompt: RichResponse, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse>? {
         debug("ask: inputPrompt=$inputPrompt, noInputs=$noInputs")
         if (inputPrompt.isEmpty()) {
             handleError("Invalid input prompt")
@@ -94,7 +92,7 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         return doResponse(response, RESPONSE_CODE_OK)
     }
 
-    fun ask(speech: String, vararg noInputs: String = arrayOf()): ResponseWrapper<ApiAiResponse<T>>? {
+    fun ask(speech: String, vararg noInputs: String = arrayOf()): ResponseWrapper<ApiAiResponse>? {
         debug("ask: speech:$speech")
         if (speech.isBlank()) {
             handleError("Invalid input prompt")
@@ -150,7 +148,7 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      * @apiai
      */
 
-    fun askWithList(richResponse: RichResponse, list: List): ResponseWrapper<ApiAiResponse<T>>? {
+    fun askWithList(richResponse: RichResponse, list: List): ResponseWrapper<ApiAiResponse>? {
         if (list.items?.size ?: 0 < 2) {
             this.handleError("List requires at least 2 items")
             return null
@@ -158,7 +156,7 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         return askWithResponseAndList(buildResponse(richResponse, true), list)
     }
 
-    fun askWithList(inputPrompt: String?, list: List): ResponseWrapper<ApiAiResponse<T>>? {
+    fun askWithList(inputPrompt: String?, list: List): ResponseWrapper<ApiAiResponse>? {
         debug("askWithList: inputPrompt=$inputPrompt, list=$list")
         if (inputPrompt.isNullOrBlank()) {
             this.handleError("Invalid input prompt");
@@ -172,7 +170,7 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         return askWithResponseAndList(buildResponse(inputPrompt ?: "", true), list)
     }
 
-    private fun askWithResponseAndList(response: ResponseWrapper<ApiAiResponse<T>>?, list: List): ResponseWrapper<ApiAiResponse<T>>? {
+    private fun askWithResponseAndList(response: ResponseWrapper<ApiAiResponse>?, list: List): ResponseWrapper<ApiAiResponse>? {
         if (response == null) {
             error("Error in building response")
             return null
@@ -234,7 +232,7 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      * @return {Object} HTTP response.
      * @apiai
      */
-    fun askWithCarousel(inputPrompt: String, carousel: Carousel): ResponseWrapper<ApiAiResponse<T>>? {
+    fun askWithCarousel(inputPrompt: String, carousel: Carousel): ResponseWrapper<ApiAiResponse>? {
         debug("askWithCarousel: inputPrompt=$inputPrompt, carousel=$carousel")
         if (inputPrompt.isNullOrBlank()) {
             handleError("Invalid input prompt");
@@ -301,7 +299,7 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      * @return {ResponseWrapper<ApiAiResponse<T>>} HTTP response.
      * @apiai
      */
-    fun askForDeliveryAddress(reason: String): ResponseWrapper<ApiAiResponse<T>>? {
+    fun askForDeliveryAddress(reason: String): ResponseWrapper<ApiAiResponse>? {
         debug("askForDeliveryAddress: reason=$reason")
         if (reason.isBlank()) {
             this.handleError("reason cannot be empty")
@@ -326,7 +324,7 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         return doResponse(response, RESPONSE_CODE_OK)
     }
 
-    fun askWithCarousel(inputPrompt: RichResponse, carousel: Carousel): ResponseWrapper<ApiAiResponse<T>>? {
+    fun askWithCarousel(inputPrompt: RichResponse, carousel: Carousel): ResponseWrapper<ApiAiResponse>? {
         debug("askWithCarousel: inputPrompt=$inputPrompt, carousel=$carousel")
         if (inputPrompt.isEmpty()) {
             handleError("Invalid input prompt");
@@ -390,7 +388,7 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      * @return The response that is sent back to Assistant.
      * @apiai
      */
-    override fun tell(richResponse: RichResponse?): ResponseWrapper<ApiAiResponse<T>>? {
+    override fun tell(richResponse: RichResponse?): ResponseWrapper<ApiAiResponse>? {
         debug("tell: richResponse=$richResponse")
         if (richResponse == null || richResponse.isEmpty()) {
             handleError("Invalid rich response")
@@ -400,7 +398,7 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         return doResponse(response, RESPONSE_CODE_OK)
     }
 
-    override fun tell(simpleResponse: SimpleResponse): ResponseWrapper<ApiAiResponse<T>>? {
+    override fun tell(simpleResponse: SimpleResponse): ResponseWrapper<ApiAiResponse>? {
         debug("tell: speechResponse=$simpleResponse")
         if (simpleResponse.isEmpty()) {
             handleError("Invalid speech response")
@@ -410,7 +408,7 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         return doResponse(response, RESPONSE_CODE_OK)
     }
 
-    override fun tell(speech: String, displayText: String): ResponseWrapper<ApiAiResponse<T>>? {
+    override fun tell(speech: String, displayText: String): ResponseWrapper<ApiAiResponse>? {
         debug("tell: speechResponse=$speech")
         if (speech.isEmpty()) {
             handleError("Invalid speech response")
@@ -465,8 +463,8 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         }
         val parameters = request.body.result.parameters
         if (parameters != null) {
-            if (getProperty(parameters, argName) != null) {
-                return getProperty(parameters, argName)
+            if (parameters[argName] != null) {
+                return parameters[argName]
             }
         }
         return requestExtractor.getArgumentCommon(argName)
@@ -487,7 +485,7 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      * @private
      * @apiai
      */
-    override fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest): ResponseWrapper<ApiAiResponse<T>>? {
+    override fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest): ResponseWrapper<ApiAiResponse>? {
         debug("fulfillPermissionsRequest_: permissionsSpec=$permissionsSpec")
         val inputPrompt = "PLACEHOLDER_FOR_PERMISSION"
         val response = buildResponse(inputPrompt, true)
@@ -549,7 +547,7 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      * @apiai
      */
     override fun fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: TransactionRequirementsCheckSpec,
-                                                     dialogState: DialogState<T>?): ResponseWrapper<ApiAiResponse<T>>? {
+                                                     dialogState: DialogState?): ResponseWrapper<ApiAiResponse>? {
         debug("fulfillTransactionRequirementsCheck_: transactionRequirementsSpec=%s")
         val response = buildResponse("PLACEHOLDER_FOR_TXN_REQUIREMENTS", true)
         response {
@@ -581,7 +579,7 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      * @private
      * @apiai
      */
-    override fun fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: DialogState<T>?): ResponseWrapper<ApiAiResponse<T>>? {
+    override fun fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: DialogState?): ResponseWrapper<ApiAiResponse>? {
         debug("fulfillTransactionDecision_: transactionDecisionValueSpec=$transactionDecisionValueSpec")
         val response = buildResponse("PLACEHOLDER_FOR_TXN_DECISION", true)
         response {
@@ -614,7 +612,7 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      * @private
      * @apiai
      */
-    override fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState<T>?): ResponseWrapper<ApiAiResponse<T>>? {
+    override fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState?): ResponseWrapper<ApiAiResponse>? {
         debug("fulfillConfirmationRequest_: confirmationValueSpec=$confirmationValueSpec")
         val response = this.buildResponse("PLACEHOLDER_FOR_CONFIRMATION", true)
         response {
@@ -643,7 +641,7 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      * @private
      * @apiai
      */
-    override fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState<T>?): ResponseWrapper<ApiAiResponse<T>>? {
+    override fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState?): ResponseWrapper<ApiAiResponse>? {
         debug("fulfillDateTimeRequest_: dateTimeValueSpec=$confirmationValueSpec")
         val response = buildResponse("PLACEHOLDER_FOR_DATETIME", true)
         response {
@@ -671,7 +669,7 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      * @private
      * @apiai
      */
-    override fun fulfillSignInRequest(dialogState: DialogState<T>?): ResponseWrapper<ApiAiResponse<T>>? {
+    override fun fulfillSignInRequest(dialogState: DialogState?): ResponseWrapper<ApiAiResponse>? {
         debug("fulfillSignInRequest_")
         val response = buildResponse("PLACEHOLDER_FOR_SIGN_IN", true)
         response {
@@ -744,11 +742,10 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         request.body.result.contexts.forEach {
             if (it.name === contextName) {
                 if (it.parameters != null) {
-                    val argument = ContextArgument(value = getProperty(it.parameters, argName))
-//                if (context.parameters[argName + ORIGINAL_SUFFIX]) {
-//                    argument.original = context.parameters[argName + ORIGINAL_SUFFIX]
-//                }
-                    //TODO set original value from context
+                    val argument = ContextArgument(value = it.parameters[argName])
+                    if (it.parameters[argName + ORIGINAL_SUFFIX] != null) {
+                        argument.original = it.parameters[argName + ORIGINAL_SUFFIX]
+                    }
                     return argument
                 }
             }
@@ -854,7 +851,7 @@ class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         return null
     }
 
-    data class ContextArgument(var value: Any?)
+    data class ContextArgument(var value: Any?, var original: Any? = null)
 
     /**
      * Returns the option key user chose from options response.
@@ -926,7 +923,7 @@ if (!isStringResponse) {
      * @private
      * @apiai
      */
-    fun buildResponse(simpleResponse: SimpleResponse, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse<T>>? {
+    fun buildResponse(simpleResponse: SimpleResponse, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse>? {
         debug("buildResponse_: simpleResponse=$simpleResponse, expectUserResponse=$expectUserResponse, noInputs=$noInputs")
         if (simpleResponse.isEmpty()) {
             handleError("Invalid text to speech")
@@ -946,7 +943,7 @@ if (!isStringResponse) {
      * @private
      * @apiai
      */
-    fun buildResponse(richResponse: RichResponse, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse<T>>? {
+    fun buildResponse(richResponse: RichResponse, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse>? {
         debug("buildResponse_: textToSpeech=$richResponse, expectUserResponse=$expectUserResponse, noInputs=$noInputs")
         if (richResponse.isEmpty()) {
             handleError("Invalid text to speech")
@@ -975,7 +972,7 @@ if (!isStringResponse) {
         } else {
             noInputsFinal = mutableListOf()
         }
-        val response = ApiAiResponse<T>(
+        val response = ApiAiResponse(
                 speech = speech)
         response.data.google = GoogleData(
                 expectUserResponse = expectUserResponse,
@@ -1005,7 +1002,7 @@ if (!isStringResponse) {
      * @private
      * @apiai
      */
-    fun buildResponse(textToSpeech: String, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse<T>>? {
+    fun buildResponse(textToSpeech: String, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse>? {
         debug("buildResponse_: textToSpeech=$textToSpeech, expectUserResponse=$expectUserResponse, noInputs=$noInputs")
         if (textToSpeech.isEmpty()) {
             handleError("Invalid text to speech")
@@ -1029,7 +1026,7 @@ if (!isStringResponse) {
         } else {
             noInputsFinal = mutableListOf()
         }
-        val response = ApiAiResponse<T>(
+        val response = ApiAiResponse(
                 speech = textToSpeech)
         response.data.google = GoogleData(
                 expectUserResponse = expectUserResponse,

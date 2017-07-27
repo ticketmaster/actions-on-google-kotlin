@@ -5,23 +5,23 @@ import com.tmsdurham.actions.Buttons
 import com.tmsdurham.actions.Image
 import com.tmsdurham.actions.Suggestions
 
-fun <T>apiAiRequest(init: ApiAiRequest<T>.() -> Unit): ApiAiRequest<T> {
-    val request = ApiAiRequest<T>()
+fun apiAiRequest(init: ApiAiRequest.() -> Unit): ApiAiRequest {
+    val request = ApiAiRequest()
     request.init()
     return request
 }
 
-data class ApiAiRequest<T>(
+data class ApiAiRequest(
         var id: String? = null,
         val timestamp: String? = null,
         val lang: String? = null,
-        var result: Result<T> = Result<T>(),
+        var result: Result = Result(),
         var data: Data = Data.empty,
         val status: Status? = null,
         val sessionId: String? = null,
         var originalRequest: OriginalRequest? = null) {
 
-    inline fun result(f: Result<T>.() -> Unit) = result.f()
+    inline fun result(f: Result.() -> Unit) = result.f()
 
     fun originalRequest(init: OriginalRequest.() -> Unit) {
         originalRequest = OriginalRequest()
@@ -29,7 +29,7 @@ data class ApiAiRequest<T>(
     }
 }
 
-fun <T> request(f: ApiAiRequest<T>.() -> Unit): ApiAiRequest<T>.() -> Unit = f
+fun <T> request(f: ApiAiRequest.() -> Unit): ApiAiRequest.() -> Unit = f
 
 data class Metadata(
         val intentId: String? = null,
@@ -76,13 +76,13 @@ data class Data(
     }
 }
 
-data class Result<T>(
-        val contexts: List<Contexts<T>> = listOf(),
+data class Result(
+        var contexts: List<Contexts> = listOf(),
         val source: String = "",
         val resolvedQuery: String = "",
         var action: String = "",
         val actionIncomplete: Boolean = false,
-        val parameters: T? = null,
+        val parameters: MutableMap<String, Any>? = null,
         val metadata: Metadata? = null,
         val fulfillment: Fulfillment? = null,
         val score: Float = 0f) {
@@ -94,13 +94,13 @@ data class Status(
         val code: Int = 0,
         val errorType: String? = null)
 
-data class Contexts<out T>(
+data class Contexts(
         val name: String = "",
-        val parameters: T? = null,
+        val parameters: MutableMap<String, Any>? = null,
         val lifespan: Int = 0) {
 
     override fun equals(other: Any?) =
-        if (other is Contexts<*>) {
+        if (other is Contexts) {
             this.name.toLowerCase().equals(other.name.toLowerCase())
         } else {
             false
@@ -203,5 +203,5 @@ data class Inputs(
         val intent: String? = null,
         val rawInputs: List<Raw_inputs>? = null)
 
-data class DialogState<out T>(val state: String = "", val data:T? = null)
+data class DialogState(val state: String = "", val data: MutableMap<String, Any>? = null)
 
