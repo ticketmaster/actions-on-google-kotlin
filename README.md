@@ -11,15 +11,17 @@ __Goals of this project__:
  * pass all tests from nodejs SDK (using Spek framework)
  * support Api.Ai and Actions SDK (Api.Ai is top priority)
  * port samples
- * release artifact to maven central
+ * release artifact to maven central & jCenter
 
 # *** Work in progress ***
 
-This project is in early stages and is a work in progress.  Currently the Multimodal API and conversation-components sample are 100% ported. You are welcome to use, make contributions, and report issues on this project.
+Currently the Multimodal API and conversation-components sample are 100% ported. The Transaction API is partially ported. 
+
+You are welcome to use, make contributions, and report issues on this project.
 
 Sample of what actions-on-google-koltin looks like:
 
-    fun welcome(app: MyAction) =
+    fun welcome(app: ApiAiApp) =
         app.ask(app.buildRichResponse()
                 .addSimpleResponse(speech = "Hi there!", displayText = "Hello there!")
                 .addSimpleResponse(
@@ -29,9 +31,9 @@ Sample of what actions-on-google-koltin looks like:
                     "well as suggestions"""")
                 .addSuggestions("Basic Card", "List", "Carousel", "Suggestions"))
                 
-    fun normalAsk(app: MyAction) = app.ask("Ask me to show you a list, carousel, or basic card")
+    fun normalAsk(app: ApiAiApp) = app.ask("Ask me to show you a list, carousel, or basic card")
 
-    fun suggestions(app: MyAction) {
+    fun suggestions(app: ApiAiApp) {
         app.ask(app
             .buildRichResponse()
             .addSimpleResponse("This is a simple response for suggestions")
@@ -49,7 +51,7 @@ Sample of what actions-on-google-koltin looks like:
     class WebHook : HttpServlet() {
 
     override fun doPost(req: HttpServletRequest, resp: HttpServletResponse) {
-            GAction(req, resp, Parameters::class.java).handleRequest(actionMap)
+            GAction(req, resp).handleRequest(actionMap)
         }
     }
 
@@ -57,18 +59,15 @@ Sample of what actions-on-google-koltin looks like:
 
 ## Setup Instructions
 
-Currently this lib is not synced to maven central, however it will be soon.  For now you must add this repository:
+This library is available on jCenter and mavenCentral.  If your using gradle simply add the dependency as follows:
 
     repositories {
-        mavenCentral()
-            maven {
-                url 'https://dl.bintray.com/patjackson52/maven/'
-            }
+            jCenter()
         }
     }
     
     dependencies {
-        compile 'com.tmsdurham.actions:actions-on-google:0.2'
+        compile 'com.tmsdurham.actions:actions-on-google:0.4'
     }
 
 
