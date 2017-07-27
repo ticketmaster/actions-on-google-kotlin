@@ -1224,7 +1224,72 @@ object ActionsTest : Spek({
 
                 expect(mockResponse.body).to.equal(expectedResponse);
             }
+
+            // Success case test, when the API returns a valid 200 response with the response object
+            it("Should return valid JSON datetime request with partial prompts") {
+                app.askForDateTime("When do you want to come in?", null)
+                val expectedResponse = responseFromJson("""{
+                    "speech": "PLACEHOLDER_FOR_DATETIME",
+                    "data": {
+                    "google": {
+                    "expectUserResponse": true,
+                    "isSsml": false,
+                    "noInputPrompts": [],
+                    "systemIntent": {
+                    "intent": "actions.intent.DATETIME",
+                    "data": {
+                    "@type": "type.googleapis.com/google.actions.v2.DateTimeValueSpec",
+                    "dialogSpec": {
+                    "requestDatetimeText": "When do you want to come in?"
+                }
+                }
+                }
+                }
+                },
+                    "contextOut": [
+                    {
+                        "name": "_actions_on_google_",
+                        "lifespan": 100,
+                        "parameters": {}
+                    }
+                    ]
+                }""")
+
+                expect(mockResponse.body).to.equal(expectedResponse)
+            }
+
+            // Success case test, when the API returns a valid 200 response with the response object
+            it("Should return valid JSON datetime request withouts prompt") {
+                app.askForDateTime()
+
+                val expectedResponse = responseFromJson("""{
+                    "speech": "PLACEHOLDER_FOR_DATETIME",
+                    "data": {
+                    "google": {
+                    "expectUserResponse": true,
+                    "isSsml": false,
+                    "noInputPrompts": [],
+                    "systemIntent": {
+                    "intent": "actions.intent.DATETIME",
+                    "data": {
+                    "@type": "type.googleapis.com/google.actions.v2.DateTimeValueSpec"
+                }
+                }
+                }
+                },
+                    "contextOut": [
+                    {
+                        "name": "_actions_on_google_",
+                        "lifespan": 100,
+                        "parameters": {}
+                    }
+                    ]
+                }""")
+
+                expect(mockResponse.body).to.equal(expectedResponse)
+            }
         }
+
     }
 
 })
