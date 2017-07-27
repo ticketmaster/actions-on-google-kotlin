@@ -937,6 +937,7 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
     }
 
     fun isPermissionGranted() = requestExtractor.isPermissionGranted()
+    fun isInSandbox() = requestExtractor.isInSandbox()
 }
 
 fun debug(msg: String) {
