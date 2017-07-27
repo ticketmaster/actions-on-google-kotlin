@@ -30,7 +30,7 @@ data class ApiAiRequest(
     }
 }
 
-fun <T> request(f: ApiAiRequest.() -> Unit): ApiAiRequest.() -> Unit = f
+fun request(f: ApiAiRequest.() -> Unit): ApiAiRequest.() -> Unit = f
 
 data class Metadata(
         val intentId: String? = null,
@@ -145,16 +145,8 @@ data class Profile(var displayName: String? = null, var givenName: String? = nul
 data class Surface(
         val capabilities: List<Capabilities>? = null)
 
-data class Capabilities(
-        val name: String? = null) {
+data class Capabilities(val name: String? = null)
 
-    companion object {
-        val AUDIO_INPUT = "actions.capability.AUDIO_INPUT"
-        val AUDIO_OUTPUT = "actions.capability.AUDIO_OUTPUT"
-        val SCREEN_OUTPUT = "actions.capability.SCREEN_OUTPUT"
-        val SCREEN_INPUT = "actions.capability.SCREEN_INPUT"
-    }
-}
 
 data class Arguments(
         val datetimeValue: String? = null,
@@ -164,12 +156,7 @@ data class Arguments(
         var text_value: String? = null,
         val name: String? = null,
         val otherValue: Any? = null,
-        val extension: TransactionRequirementsCheckResult? = null) {
-    companion object {
-        val TRANSACTION_REQUIREMENTS_CHECK_RESULT = "TRANSACTION_REQUIREMENTS_CHECK_RESULT"
-        val TRANSACTION_DECISION_VALUE = "TRANSACTION_DECISION_VALUE"
-    }
-}
+        val extension: TransactionRequirementsCheckResult? = null)
 
 
 data class FinalOrderHolder(val finalOrder: GoogleData.Order? = null, val  orderDate: String = "", val googleOrderId: String = "")
@@ -179,25 +166,8 @@ data class TransactionRequirementsCheckResult(
         val resultType: String = "",
         val userDecision: String = "",
         val status: String = "",
-        val order: FinalOrderHolder? = null) {
+        val order: FinalOrderHolder? = null)
 
-    enum class ResultType {
-        OK,
-        RESULT_TYPE_UNSPECIFIED,
-        USER_ACTION_REQUIRED,
-        ASSISTANT_SURFACE_NOT_SUPPORTED,
-        REGION_NOT_SUPPORTED
-    }
-
-    enum class TransactionUserDecision {
-        UNKNOWN_USER_DECISION,
-        ORDER_ACCEPTED,
-        ORDER_REJECTED,
-        DELIVERY_ADDRESS_UPDATED,
-        CART_CHANGE_REQUESTED
-    }
-
-}
 
 data class RawInputs(val query: String? = null, val inputType: String? = null)
 

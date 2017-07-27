@@ -2,7 +2,6 @@ package com.ticketmaster.apiai.google
 
 import com.tmsdurham.actions.AssistantApp
 import com.tmsdurham.actions.Carousel
-import com.tmsdurham.actions.CustomerInfoOptions
 import com.tmsdurham.actions.RichResponse
 
 data class GoogleData(
@@ -91,10 +90,6 @@ data class GoogleData(
     data class PaymentOptions(var actionProvidedOptions: ActionProvidedOptions? = null, var googleProvidedOptions: GoogleData.GoogleProvidedOptions? = null)
 
     data class AddressOptions(var reason: String? = null)
-
-    data class TransactionRequirementsCheckSpec(
-            var orderOptions: OrderOptions? = null,
-            var paymentOptions: PaymentOptions? = null)
 
     data class Price(
             var type: String? = null,
