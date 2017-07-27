@@ -331,6 +331,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T,S>) {
     fun getInputType (): String? {
         debug("getInputType")
         val data = requestData()
+        debug(data.toString())
         data?.inputs?.forEach {
             it.rawInputs?.forEach {
                 if (it?.inputType != null) {

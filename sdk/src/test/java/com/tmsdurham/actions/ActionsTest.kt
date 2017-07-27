@@ -168,7 +168,6 @@ object ActionsTest : Spek({
             val mockResponse = ResponseWrapper<ApiAiResponse>()
 
             val app = ApiAiApp(request = mockRequest, response = mockResponse)
-            debug(mockRequest.toString())
 
             expect(app.isNotApiVersionOne()).to.equal(false)
         }
@@ -259,7 +258,6 @@ object ActionsTest : Spek({
                     response = mockResponse,
                     sessionStarted = sessionStartedSpy
             )
-            debug(mockRequest.toString())
 
             app.handleRequest(handler = {})
 
@@ -1468,12 +1466,12 @@ object ActionsTest : Spek({
         it("Should get the context argument value for the success case.") {
             val body = createLiveSessionApiAppBody()
             body.result.contexts = mutableListOf(
-                    Contexts(name = "game",
+                    Context(name = "game",
                             parameters = mutableMapOf(
                                     "guess.original" to "50",
                                     "guess" to "50"),
                             lifespan = 5),
-                    Contexts(name = "previous_answer",
+                    Context(name = "previous_answer",
                             parameters = mutableMapOf(
                                     "answer" to "68",
                                     "guess.original" to "51",
@@ -1695,7 +1693,7 @@ object ActionsTest : Spek({
                 },
                     "lifespan": 0
                 }
-                ]""", arrayOf<Contexts>().javaClass).toList()
+                ]""", arrayOf<Context>().javaClass).toList()
                 mockRequest = mockRequest.copy(body = body)
                 app = ApiAiApp(
                         request = mockRequest,
@@ -1704,10 +1702,10 @@ object ActionsTest : Spek({
                 expect(app.getSelectedOption()).to.equal("first_item")
             }
 
-        // Success case test, when the API returns a valid 200 response with the response object
-        it("Should get the selected option when not given in APIAI context.")  {
-            val body = createLiveSessionApiAppBody ()
-            body.originalRequest?.data?.inputs?.add(gson.fromJson("""{
+            // Success case test, when the API returns a valid 200 response with the response object
+            it("Should get the selected option when not given in APIAI context.") {
+                val body = createLiveSessionApiAppBody()
+                body.originalRequest?.data?.inputs?.add(gson.fromJson("""{
                 "arguments": [
                 {
                     "text_value": "first_item",
@@ -1723,14 +1721,14 @@ object ActionsTest : Spek({
                 }
                 ]
             }""", Inputs::class.java))
-            mockRequest = mockRequest.copy(body = body)
-            app = ApiAiApp (
-                request = mockRequest,
-                response = mockResponse
-            )
-            expect(app.getSelectedOption()).to.equal("first_item")
+                mockRequest = mockRequest.copy(body = body)
+                app = ApiAiApp(
+                        request = mockRequest,
+                        response = mockResponse
+                )
+                expect(app.getSelectedOption()).to.equal("first_item")
+            }
         }
-    }
         /**
          * Describes the behavior for ApiAiApp isRequestFromApiAi method.
          */
@@ -1743,8 +1741,8 @@ object ActionsTest : Spek({
                 val mockResponse = ResponseWrapper<ApiAiResponse>()
 
                 val app = ApiAiApp(
-                    request = mockRequest,
-                    response = mockResponse
+                        request = mockRequest,
+                        response = mockResponse
                 )
 
                 val HEADER_KEY = "Google-Assistant-Signature"
@@ -1760,13 +1758,12 @@ object ActionsTest : Spek({
                 val mockResponse = ResponseWrapper<ApiAiResponse>()
 
                 val app = ApiAiApp(
-                    request = mockRequest,
-                    response = mockResponse
+                        request = mockRequest,
+                        response = mockResponse
                 )
 
                 val HEADER_KEY = "Google-Assistant-Signature"
                 val HEADER_VALUE = "YOUR_PRIVATE_KEY"
-                debug(header.toString())
 
                 expect(app.isRequestFromApiAi(HEADER_KEY, HEADER_VALUE)).to.equal(false)
             }
@@ -1774,23 +1771,335 @@ object ActionsTest : Spek({
 
     }
 
+    /**
+     * Describes the behavior for ApiAiApp hasSurfaceCapability method.
+     */
+    describe("ApiAiApp#hasSurfaceCapability") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return true for a valid capability from incoming JSON for the success case.") {
+            val body = createLiveSessionApiAppBody()
+            body.originalRequest?.data?.surface = gson.fromJson("""{
+                "capabilities": [
+                {
+                    "name": "actions.capability.AUDIO_OUTPUT"
+                },
+                {
+                    "name": "actions.capability.SCREEN_OUTPUT"
+                }
+                ]
+            }""", Surface::class.java)
 
-        /**
-         * Tests parsing parameters with Gson and retrieving parameter values
-         * NOTE: This are an addition to the official test suite.  These are needed due to the dynamic nature of
-         * parameters.
-         */
-        describe ("ApiAiResponse#Result#Parameters") {
-    // Success case test, when the API returns a valid 200 response with the response object
-    it("fields should be accessible through map") {
-        val body = createLiveSessionApiAppBody()
-        val mockRequest = RequestWrapper(headerV1, body)
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ApiAiResponse>()
 
-        expect(mockRequest.body.result.parameters?.get("city")).to.be.equal("Rome")
-        expect(mockRequest.body.result.parameters?.get("list")).to.be.equal(listOf("one", "two"))
-        expect(mockRequest.body.result.parameters?.get("nested")).to.be.equal(mutableMapOf("nestedField" to "n1"))
+            val app = ApiAiApp(
+                request = mockRequest,
+                response = mockResponse
+            )
+
+            val hasScreenOutput =
+            app.hasSurfaceCapability(app.SURFACE_CAPABILITIES.SCREEN_OUTPUT)
+            val hasMagicPowers =
+            app.hasSurfaceCapability("MAGIC_POWERS")
+            expect(hasScreenOutput).to.be.equal(true)
+            expect(hasMagicPowers).to.be.equal(false)
+        }
     }
-}
+
+    /**
+     * Describes the behavior for ApiAiApp getSurfaceCapabilities method.
+     */
+    describe("ApiAiApp#getSurfaceCapabilities") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid list of capabilities from incoming JSON for the success case.") {
+            val body = createLiveSessionApiAppBody()
+            body.originalRequest?.data?.surface = gson.fromJson("""{
+                "capabilities": [
+                {
+                    "name": "actions.capability.AUDIO_OUTPUT"
+                },
+                {
+                    "name": "actions.capability.SCREEN_OUTPUT"
+                }
+                ]
+            }""", Surface::class.java)
+
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ApiAiResponse>()
+
+            val app = ApiAiApp(
+                request = mockRequest,
+                response = mockResponse
+            )
+
+            val capabilities = app.getSurfaceCapabilities()
+            expect(capabilities).to.equal(mutableListOf(
+            app.SURFACE_CAPABILITIES.AUDIO_OUTPUT,
+            app.SURFACE_CAPABILITIES.SCREEN_OUTPUT
+            ))
+        }
+    }
+
+    /**
+     * Describes the behavior for ApiAiApp getInputType method.
+     */
+    describe("ApiAiApp#getInputType") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid input type from incoming JSON for the success case." ) {
+            val body = createLiveSessionApiAppBody()
+            val KEYBOARD = 3
+            body.originalRequest?.data?.inputs = gson.fromJson("""[
+            {
+                "rawInputs": [
+                {
+                    "inputType": $KEYBOARD
+                }
+                ]
+            }
+            ]""", arrayOf<Inputs>().javaClass).toMutableList()
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ApiAiResponse>()
+            val app = ApiAiApp(
+                request = mockRequest,
+                response = mockResponse
+            )
+
+            val inputType = app.getInputType()
+            expect(inputType).to.equal(app.INPUT_TYPES.KEYBOARD)
+        }
+    }
+
+    /**
+     * Describes the behavior for ApiAiApp getRawInput method.
+     */
+    describe("ApiAiApp#getRawInput") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should raw input from API.ai.") {
+            val body = createLiveSessionApiAppBody()
+            body.result?.resolvedQuery = "is it 667"
+
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ApiAiResponse>()
+
+            val app = ApiAiApp(
+                request = mockRequest,
+                response = mockResponse
+            )
+
+            expect(app.getRawInput()).to.equal("is it 667")
+        }
+    }
+
+    /**
+     * Describes the behavior for ApiAiApp setContext method.
+     */
+    describe("ApiAiApp#setContext") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return the valid JSON in the response object for the success case.") {
+            val body = createLiveSessionApiAppBody()
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ApiAiResponse>()
+            val app = ApiAiApp(
+                request = mockRequest,
+                response = mockResponse
+            )
+
+            val CONTEXT_NUMBER = "number"
+            app.setContext(CONTEXT_NUMBER)
+            app.ask("Welcome to action snippets! Say a number.")
+
+            // Validating the response object
+            val expectedResponse = responseFromJson("""{
+                "speech": "Welcome to action snippets! Say a number.",
+                "data": {
+                "google": {
+                "expectUserResponse": true,
+                "isSsml": false,
+                "noInputPrompts": [
+
+                ]
+            }
+            },
+                "contextOut": [
+                {
+                    "name": "_actions_on_google_",
+                    "lifespan": 100,
+                    "parameters": {
+
+                }
+                },
+                {
+                    "name": $CONTEXT_NUMBER,
+                    "lifespan": 1
+                }
+                ]
+            }""")
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+    }
+
+    /**
+     * Describes the behavior for ApiAiApp getContexts method.
+     */
+    describe("ApiAiApp#getContexts") {
+        var body: ApiAiRequest = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
+        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
+
+        fun initMockApp() {
+            app = ApiAiApp(
+                    request = mockRequest,
+                    response = mockResponse
+            )
+        }
+
+        beforeEachTest {
+            body = createLiveSessionApiAppBody()
+            mockRequest = RequestWrapper(headerV1, body)
+            mockResponse = ResponseWrapper<ApiAiResponse>()
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return the active contexts from incoming JSON for the success case.") {
+//             let body = createLiveSessionApiAppBody();
+            mockRequest.body.result.contexts = gson.fromJson("""[
+            {
+                "name": "_actions_on_google_"
+            },
+            {
+                "name": "number",
+                "lifespan": 5,
+                "parameters": {
+                "parameterOne": "23",
+                "parameterTwo": "24"
+            }
+            },
+            {
+                "name": "word",
+                "lifespan": 1,
+                "parameters": {
+                "parameterOne": "wordOne",
+                "parameterTwo": "wordTwo"
+            }
+            }
+            ]""", arrayOf<Context>().javaClass).toMutableList()
+            initMockApp()
+            val mockContexts = app.getContexts()
+            val expectedContexts = gson.fromJson("""[
+                    {
+                        "name": "number",
+                        "lifespan": 5,
+                        "parameters": {
+                        "parameterOne": "23",
+                        "parameterTwo": "24"
+                    }
+                    },
+                    {
+                        "name": "word",
+                        "lifespan": 1,
+                        "parameters": {
+                        "parameterOne": "wordOne",
+                        "parameterTwo": "wordTwo"
+                    }
+                    }
+                    ]""", arrayOf<Context>().javaClass).toMutableList()
+            expect(mockContexts).to.equal(expectedContexts)
+        }
+        it("Should return the active contexts from incoming JSON when only app.data incoming") {
+            body.result.contexts = listOf(Context(name = "_actions_on_google_"))
+
+            mockRequest = mockRequest.copy(body = body)
+            initMockApp()
+            val mockContexts = app.getContexts()
+            val expectedContexts = mutableListOf<Context>()
+
+            expect(mockContexts).to.equal(expectedContexts)
+        }
+        it("Should return the active contexts from incoming JSON when no contexts provided.") {
+            // Check the empty case
+            mockRequest.body.result.contexts = mutableListOf()
+            initMockApp()
+            val mockContexts = app.getContexts()
+            val expectedContexts = mutableListOf<Context>()
+            expect(mockContexts).to.equal(expectedContexts)
+        }
+    }
+
+    /**
+     * Describes the behavior for ApiAiApp getContext method.
+     */
+    describe("ApiAiApp#getContext") {
+        var body: ApiAiRequest = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
+        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
+
+        beforeEachTest {
+            body = createLiveSessionApiAppBody()
+            mockRequest = RequestWrapper(headerV1, body)
+            mockResponse = ResponseWrapper<ApiAiResponse>()
+        }
+
+        fun initMockApp() {
+            app = ApiAiApp(
+                    request = mockRequest,
+                    response = mockResponse
+            )
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return the context by name from incoming JSON for the success case.") {
+            mockRequest.body.result.contexts = gson.fromJson("""[{
+                "name": "number",
+                "lifespan": 5,
+                "parameters": {
+                "parameterOne": "23",
+                "parameterTwo": "24"
+            }
+            }]""", arrayOf<Context>().javaClass).toMutableList()
+
+            initMockApp()
+
+            val mockContext = app.getContext("number")
+            val expectedContext = gson.fromJson("""{
+                "name": "number",
+                "lifespan": 5,
+                "parameters": {
+                "parameterOne": "23",
+                "parameterTwo": "24"
+            }
+            }""", Context::class.java)
+            expect(mockContext).to.equal(expectedContext)
+        }
+
+        it("Should return the context by name from incoming JSON when no context provided.") {
+            //  Check the empty case
+            body.result.contexts = mutableListOf()
+            mockRequest = mockRequest.copy(body = body)
+            initMockApp()
+            val mockContext = app.getContext("name")
+            val expectedContext = null
+            expect(mockContext).to.equal(expectedContext)
+        }
+    }
+
+    /**
+     * Tests parsing parameters with Gson and retrieving parameter values
+     * NOTE: This are an addition to the official test suite.  These are needed due to the dynamic nature of
+     * parameters.
+     */
+    describe("ApiAiResponse#Result#Parameters") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("fields should be accessible through map") {
+            val body = createLiveSessionApiAppBody()
+            val mockRequest = RequestWrapper(headerV1, body)
+
+            expect(mockRequest.body.result.parameters?.get("city")).to.be.equal("Rome")
+            expect(mockRequest.body.result.parameters?.get("list")).to.be.equal(listOf("one", "two"))
+            expect(mockRequest.body.result.parameters?.get("nested")).to.be.equal(mutableMapOf("nestedField" to "n1"))
+        }
+    }
 })
 
 

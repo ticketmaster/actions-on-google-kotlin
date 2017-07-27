@@ -2,7 +2,6 @@ package com.tmsdurham.actions
 
 import com.ticketmaster.apiai.*
 import com.ticketmaster.apiai.google.GoogleData
-import java.lang.reflect.InvocationTargetException
 
 
 class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
@@ -441,9 +440,175 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         return this.doResponse(response, RESPONSE_CODE_OK)
     }
 
+    /**
+     * Set a new context for the current intent.
+     *
+     * @example
+     * val app = ApiAiApp(request = request, response = response)
+     * val CONTEXT_NUMBER = "number"
+     * val NUMBER_ARGUMENT = "myNumber"
+     *
+     * fun welcomeIntent (app: ApiAiApp) {
+     *   app.setContext(CONTEXT_NUMBER)
+     *   app.ask("Welcome to action snippets! Say a number.")
+     * }
+     *
+     * fun numberIntent (app: ApiAiApp) {
+     *   val number = app.getArgument(NUMBER_ARGUMENT)
+     *   app.tell("You said " + number)
+     * }
+     *
+     * val actionMap = mapOf(
+     *      WELCOME_INTENT to ::welcomeIntent,
+     *      NUMBER_INTENT to ::numberIntent)
+     * app.handleRequest(actionMap)
+     *
+     * @param {String} name Name of the context. API.AI converts to lowercase.
+     * @param {Int} [lifespan=1] Context lifespan.
+     * @param {Map<String, Any?>=} parameters Context JSON parameters.
+     * @apiai
+     */
+    fun setContext (name: String, lifespan: Int? = null, parameters: MutableMap<String, Any>? = null): Unit {
+        debug("setContext: context=$contexts, lifespan=$lifespan, parameters=$parameters")
+        if (name.isEmpty()) {
+            handleError("Invalid context name")
+            return
+        }
+        val newContext = Context(
+            name = name,
+            lifespan = 1
+        )
+        if (lifespan != null) {
+            newContext.lifespan = lifespan
+        }
+        if (parameters != null) {
+            newContext.parameters = parameters
+        }
+        this.contexts[name] = newContext
+    }
+
+    /**
+     * Returns the incoming contexts for this intent.
+     *
+     * @example
+     * val app = ApiAiApp(request = request, response = response)
+     * val CONTEXT_NUMBER = "number"
+     * val NUMBER_ARGUMENT = "myNumber"
+     *
+     * function welcomeIntent (app: ApiAiApp) {
+     *   app.setContext(CONTEXT_NUMBER)
+     *   app.ask("Welcome to action snippets! Say a number.")
+     * }
+     *
+     * fun numberIntent (app: ApiAiApp) {
+     *   val contexts = app.getContexts()
+     *   // contexts === [{
+     *   //   name: "number",
+     *   //   lifespan: 0,
+     *   //   parameters: {
+     *   //     myNumber: "23",
+     *   //     myNumber.original: "23"
+     *   //   }
+     *   // }]
+     *   val number = app.getArgument(NUMBER_ARGUMENT)
+     *   app.tell("You said " + number)
+     * }
+     *
+     * val actionMap = mapOf(
+     *      WELCOME_INTENT to ::welcomeIntent,
+     *      NUMBER_INTENT to numberIntent)
+     * app.handleRequest(actionMap)
+     *
+     * @return {MutableList<Context>} Empty if no active contexts.
+     * @apiai
+     */
+    fun getContexts (): MutableList<Context> {
+        debug("getContexts")
+        if (request.body.result?.contexts?.isEmpty()) {
+            handleError("No contexts included in request")
+            return mutableListOf()
+        }
+        debug("HERE!!! + $request")
+        return request.body.result?.contexts?.filter { it.name != ACTIONS_API_AI_CONTEXT }?.filterNotNull().toMutableList()
+    }
+
+    /**
+     * Returns the incoming context by name for this intent.
+     *
+     * @example
+     * val app = ApiAiapp(request = request, response = response)
+     * val CONTEXT_NUMBER = "number"
+     * val NUMBER_ARGUMENT = "myNumber"
+     *
+     * fun welcomeIntent (app: ApiAiApp) {
+     *   app.setContext(CONTEXT_NUMBER)
+     *   app.ask("Welcome to action snippets! Say a number.")
+     * }
+     *
+     * fun numberIntent (app: ApiAiApp) {
+     *   val context = app.getContext(CONTEXT_NUMBER)
+     *   // context === {
+     *   //   name: "number",
+     *   //   lifespan: 0,
+     *   //   parameters: {
+     *   //     myNumber: "23",
+     *   //     myNumber.original: "23"
+     *   //   }
+     *   // }
+     *   val number = app.getArgument(NUMBER_ARGUMENT)
+     *   app.tell("You said " + number)
+     * }
+     *
+     * const actionMap = mapOf(
+     *      WELCOME_INTENT to ::welcomeIntent,
+     *      NUMBER_INTENT to ::numberIntent)
+     * app.handleRequest(actionMap)
+     *
+     * @return {Object} Context value matching name
+     *     or null if no matching context.
+     * @apiai
+     */
+
+    fun getContext (name: String): Context? {
+        debug("getContext: name=$name")
+        if (request.body.result.contexts == null) {
+            handleError("No contexts included in request")
+            return null
+        }
+        request.body.result.contexts.forEach {
+            if (it.name == name) {
+                return it
+            }
+        }
+        debug("Failed to get context: $name")
+        return null
+    }
+
+
     override fun getIntent(): String {
         debug("getIntent_");
         return request.body.result.action
+    }
+
+    /**
+     * Gets the user"s raw input query.
+
+     * @example
+     * * val app = ApiAiApp(request = request, response = response)
+     * * app.tell("You said " + app.getRawInput())
+     * *
+     * *
+     * @return {String} User"s raw query or null if no value.
+     * *
+     * @apiai
+     */
+    fun getRawInput(): String? {
+        debug("getRawInput")
+        if (request.body.result.resolvedQuery.isEmpty()) {
+            handleError("No raw input")
+            return null
+        }
+        return request.body.result.resolvedQuery
     }
 
     /**
@@ -765,9 +930,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         request.body.result.contexts.forEach {
             if (it.name === contextName) {
                 if (it.parameters != null) {
-                    val argument = ContextArgument(value = it.parameters[argName])
-                    if (it.parameters[argName + ORIGINAL_SUFFIX] != null) {
-                        argument.original = it.parameters[argName + ORIGINAL_SUFFIX]
+                    val argument = ContextArgument(value = it.parameters!![argName])
+                    if (it.parameters!![argName + ORIGINAL_SUFFIX] != null) {
+                        argument.original = it.parameters!![argName + ORIGINAL_SUFFIX]
                     }
                     return argument
                 }
@@ -1053,12 +1218,12 @@ if (!isStringResponse) {
                 noInputPrompts = noInputsFinal)
         if (expectUserResponse) {
             response.contextOut.add(
-                    ContextOut(
+                    Context(
                             name = ACTIONS_API_AI_CONTEXT,
                             lifespan = MAX_LIFESPAN,
                             parameters = dialogState.data))
         }
-        response.contextOut.addAll(contexts)
+        response.contextOut = response.contextOut.plus(contexts.values).toMutableList()
         this.response.body = response
         return this.response
     }
@@ -1106,12 +1271,12 @@ if (!isStringResponse) {
                 noInputPrompts = noInputsFinal)
         if (expectUserResponse) {
             response.contextOut.add(
-                    ContextOut(
+                    Context(
                             name = ACTIONS_API_AI_CONTEXT,
                             lifespan = MAX_LIFESPAN,
                             parameters = dialogState.data))
         }
-        response.contextOut.addAll(contexts)
+        response.contextOut.addAll(contexts.values)
         this.response.body = response
         return this.response
     }

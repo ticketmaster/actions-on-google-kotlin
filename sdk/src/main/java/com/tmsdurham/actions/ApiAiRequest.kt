@@ -79,9 +79,9 @@ data class Data(
 }
 
 data class Result(
-        var contexts: List<Contexts> = listOf(),
+        var contexts: List<Context> = listOf(),
         val source: String = "",
-        val resolvedQuery: String = "",
+        var resolvedQuery: String = "",
         var action: String = "",
         val actionIncomplete: Boolean = false,
         val parameters: MutableMap<String, Any>? = null,
@@ -96,13 +96,13 @@ data class Status(
         val code: Int = 0,
         val errorType: String? = null)
 
-data class Contexts(
+data class Context(
         val name: String = "",
-        val parameters: MutableMap<String, Any>? = null,
-        val lifespan: Int = 0) {
+        var parameters: MutableMap<String, Any>? = null,
+        var lifespan: Int = 0) {
 
     override fun equals(other: Any?) =
-        if (other is Contexts) {
+        if (other is Context) {
             this.name.toLowerCase().equals(other.name.toLowerCase())
         } else {
             false
@@ -199,12 +199,12 @@ data class TransactionRequirementsCheckResult(
 
 }
 
-data class Raw_inputs(val query: String? = null, val inputType: String? = null)
+data class RawInputs(val query: String? = null, val inputType: String? = null)
 
 data class Inputs(
         var arguments: List<Arguments>? = null,
         val intent: String? = null,
-        val rawInputs: List<Raw_inputs>? = null)
+        val rawInputs: List<RawInputs>? = null)
 
 data class DialogState(val state: String = "", val data: MutableMap<String, Any>? = null)
 
