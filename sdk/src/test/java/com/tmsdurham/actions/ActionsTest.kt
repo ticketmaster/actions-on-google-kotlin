@@ -1499,6 +1499,114 @@ object ActionsTest : Spek({
     }
 
     /**
+     * Describes the behavior for ApiAiApp getIncomingRichResponse method.
+     */
+    describe("ApiAiApp#getIncomingRichResponse" ) {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should get the incoming rich response for the success case.") {
+            val body = createLiveSessionApiAppBody()
+            body.result?.fulfillment?.messages = gson.fromJson(
+                    """[
+            {
+                "type": "simple_response",
+                "platform": "google",
+                "textToSpeech": "Simple response one"
+            },
+            {
+                "type": "basic_card",
+                "platform": "google",
+                "formattedText": "my text",
+                "buttons": []
+            },
+            {
+                "type": "suggestion_chips",
+                "platform": "google",
+                "suggestions": [
+                {
+                    "title": "suggestion one"
+                }
+                ]
+            },
+            {
+                "type": "link_out_chip",
+                "platform": "google",
+                "destinationName": "google",
+                "url": "google.com"
+            },
+            {
+                "type": 0,
+                "speech": "Good day!"
+            }
+            ]""", arrayOf<Messages>().javaClass)?.toMutableList()
+
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ApiAiResponse>()
+
+            val app = ApiAiApp(
+                request = mockRequest,
+                response = mockResponse)
+
+            val expectedResponse = RichResponse()
+                    .addSimpleResponse("Simple response one")
+                    .addBasicCard(BasicCard()
+                            .setBodyText("my text"))
+                    .addSuggestions("suggestion one")
+                    .addSuggestionLink("google", "google.com")
+
+            expect(app.getIncomingRichResponse()).to
+                    .equal(expectedResponse)
+        }
+
+        /**
+         * Describes the behavior for ApiAiApp getIncomingList method.
+         */
+        describe("ApiAiApp#getIncomingList") {
+            // Success case test, when the API returns a valid 200 response with the response object
+            it("Should get the incoming list for the success case.") {
+                val body = createLiveSessionApiAppBody()
+                body.result.fulfillment?.messages?.add(gson.fromJson("""{
+                    "type": "list_card",
+                    "platform": "google",
+                    "title": "list_title",
+                    "items": [
+                    {
+                        "optionInfo": {
+                        "key": "first_item",
+                        "synonyms": []
+                    },
+                        "title": "first item"
+                    },
+                    {
+                        "optionInfo": {
+                        "key": "second_item",
+                        "synonyms": []
+                    },
+                        "title": "second item"
+                    }
+                    ]
+                }""", Messages::class.java))
+                val mockRequest = RequestWrapper(headerV1, body)
+                val mockResponse = ResponseWrapper<ApiAiResponse>()
+
+                val app = ApiAiApp(
+                    request = mockRequest,
+                    response = mockResponse
+                )
+
+                val expectedResponse = List()
+                        .setTitle("list_title")
+                        .addItems(
+                        OptionItem().setTitle("first item").setKey("first_item"),
+                        OptionItem().setTitle("second item").setKey("second_item"))
+
+                expect(app.getIncomingList()).to
+                        .equal(expectedResponse)
+            }
+        }
+    }
+
+
+    /**
      * Tests parsing parameters with Gson and retrieving parameter values
      * NOTE: This are an addition to the official test suite.  These are needed due to the dynamic nature of
      * parameters.
@@ -1508,7 +1616,6 @@ object ActionsTest : Spek({
         it("fields should be accessible through map") {
             val body = createLiveSessionApiAppBody()
             val mockRequest = RequestWrapper(headerV1, body)
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
 
             expect(mockRequest.body.result.parameters?.get("city")).to.be.equal("Rome")
             expect(mockRequest.body.result.parameters?.get("list")).to.be.equal(listOf("one", "two"))

@@ -3,6 +3,7 @@ package com.ticketmaster.apiai
 import com.ticketmaster.apiai.google.GoogleData
 import com.tmsdurham.actions.Buttons
 import com.tmsdurham.actions.Image
+import com.tmsdurham.actions.OptionItem
 import com.tmsdurham.actions.Suggestions
 
 fun apiAiRequest(init: ApiAiRequest.() -> Unit): ApiAiRequest {
@@ -42,6 +43,7 @@ data class Metadata(
  */
 data class Messages(
         var type: String = "",
+        var items: MutableList<OptionItem>? = null,
         var speech: String? = null,
         var textToSpeech: String? = null,
         var displayText: String? = null,
@@ -58,7 +60,7 @@ data class Fulfillment(
         val speech: String? = null,
         val source: String? = null,
         val displayText: String? = null,
-        val messages: List<Messages>? = null,
+        var messages: MutableList<Messages>? = null,
         val data: Data? = null)
 
 data class Data(

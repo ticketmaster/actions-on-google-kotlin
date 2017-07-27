@@ -42,9 +42,9 @@ data class RichResponse(
         }
         if (items!!.size > 0 && (items!![0].basicCard != null ||
                 items!![0].structuredResponse != null)) {
-            items!!.add(0, simpleResponseObj)
-        } else {
             items!!.add(simpleResponseObj)
+        } else {
+            items!!.add(0, simpleResponseObj)
         }
         return this
     }
@@ -81,7 +81,11 @@ data class RichResponse(
         }
         val item = RichResponseItem()
         item.basicCard = basicCard
-        items!!.add(item)
+        if (items?.size == 0) {
+            items?.add(item)
+        } else {
+            items?.add(0, item)
+        }
 
         return this
     }
@@ -195,11 +199,11 @@ data class SimpleResponse(
  * Ordered list of buttons to show below card. Optional.
  * @type {Array<Button>}
  */
-class BasicCard(var title: String = "",
+data class BasicCard(var title: String = "",
                 var formattedText: String? = null,
                 var subtitle: String? = null,
                 var image: Image? = null,
-                var buttons: MutableList<Buttons>? = null) {
+                var buttons: MutableList<Buttons> = mutableListOf()) {
 
     /**
      * Sets the title for this Basic Card.

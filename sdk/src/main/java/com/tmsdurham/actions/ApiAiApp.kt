@@ -802,7 +802,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
                 BASIC_CARD -> {
                     val item = BasicCard()
                     item.formattedText = it.formattedText
-                    item.buttons = it.buttons
+                    if (it.buttons != null) {
+                        item.buttons = it.buttons!!
+                    }
                     item.image = it.image
                     item.subtitle = it.subtitle
                     item.title = it.title ?: ""
@@ -819,6 +821,44 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
             }
         }
         return response
+    }
+
+    /**
+     * Returns the List constructed in API.AI response builder.
+     *
+     * @example
+     * val app = ApiAiApp(request = req, response = res)
+     *
+     * fun pickOption (app: ApiAiApp) {
+     * if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+     *     app.askWithList("Which of these looks good?",
+     *       app.getIncomingList().addItems(
+     *         app.buildOptionItem("another_choice", ["Another choice"]).
+     *         setTitle("Another choice")))
+     *   } else {
+     *     app.ask("What would you like?")
+     *   }
+     * }
+     *
+     * val actionMap = mapOf(
+     *      "pick.option" to ::pickOption)
+     *
+     * app.handleRequest(actionMap)
+     *
+     * @return {List} List created in API.AI. If no List was created, an empty
+     *     List is returned.
+     * @apiai
+     */
+    fun getIncomingList (): List {
+        debug("getIncomingList")
+        val list = buildList()
+        request.body.result.fulfillment?.messages?.forEach {
+                if (it.type == LIST) {
+                    list.title = it.title
+                    list.items = it.items
+                }
+            }
+        return list
     }
 
 
