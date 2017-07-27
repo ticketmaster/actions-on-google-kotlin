@@ -158,7 +158,7 @@ data class Arguments(
         val datetimeValue: String? = null,
         val boolValue: Boolean? = null,
         val rawText: String? = null,
-        val textValue: String? = null,
+        var textValue: String? = null,
         val name: String? = null,
         val extension: TransactionRequirementsCheckResult? = null) {
     companion object {
@@ -198,7 +198,7 @@ data class TransactionRequirementsCheckResult(
 data class Raw_inputs(val query: String? = null, val inputType: String? = null)
 
 data class Inputs(
-        val arguments: List<Arguments>? = null,
+        var arguments: List<Arguments>? = null,
         val intent: String? = null,
         val rawInputs: List<Raw_inputs>? = null)
 

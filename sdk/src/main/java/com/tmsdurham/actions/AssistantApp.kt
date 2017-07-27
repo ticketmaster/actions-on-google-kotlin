@@ -935,6 +935,8 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
         }
         return paymentOptions;
     }
+
+    fun isPermissionGranted() = requestExtractor.isPermissionGranted()
 }
 
 fun debug(msg: String) {

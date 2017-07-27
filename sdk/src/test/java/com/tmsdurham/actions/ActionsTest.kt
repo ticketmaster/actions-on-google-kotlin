@@ -1297,19 +1297,19 @@ object ActionsTest : Spek({
      */
     describe("ApiAiApp#askForSignIn") {
         var body: ApiAiRequest<MockParameters> = ApiAiRequest()
-            var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
-            var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
-            var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
 
-            beforeEachTest {
-                body = createLiveSessionApiAppBody()
-                mockRequest = RequestWrapper(headerV2, body)
-                mockResponse = ResponseWrapper()
-                app = ApiAiApp(
-                        request = mockRequest,
-                        response = mockResponse
-                )
-            }
+        beforeEachTest {
+            body = createLiveSessionApiAppBody()
+            mockRequest = RequestWrapper(headerV2, body)
+            mockResponse = ResponseWrapper()
+            app = ApiAiApp(
+                    request = mockRequest,
+                    response = mockResponse
+            )
+        }
 
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should return valid JSON sign in request") {
@@ -1339,6 +1339,42 @@ object ActionsTest : Spek({
             expect(mockResponse.body).to.equal(expectedResponse)
         }
     }
+
+    /**
+     * Describes the behavior for ApiAiApp isPermissionGranted method.
+     */
+    describe("ApiAiApp#isPermissionGranted") {
+        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+
+        fun initMockApp() {
+            mockRequest = RequestWrapper(headerV1, body)
+            mockResponse = ResponseWrapper()
+            app = ApiAiApp(
+                    request = mockRequest,
+                    response = mockResponse
+            )
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant request user.") {
+            body = createLiveSessionApiAppBody()
+            body?.originalRequest?.data?.inputs?.get(0)?.arguments = listOf(Arguments(
+                    name = "permission_granted",
+                    textValue = "true")
+            )
+            initMockApp()
+            expect(app.isPermissionGranted()).to.equal(true)
+
+            // Test the false case
+            body.originalRequest?.data?.inputs?.get(0)?.arguments?.get(0)?.textValue = "false"
+            initMockApp()
+            expect(app.isPermissionGranted()).to.equal(false)
+        }
+    }
+
 
 })
 
