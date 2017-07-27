@@ -1,15 +1,10 @@
 package com.tmsdurham.apiai.sample
 
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.reflect.TypeToken
 import com.ticketmaster.apiai.ApiAiRequest
-import com.ticketmaster.apiai.ApiAiResponse
 import com.tmsdurham.actions.ApiAiApp
-import com.tmsdurham.actions.Handler
 import com.tmsdurham.actions.RequestWrapper
 import com.tmsdurham.actions.ResponseWrapper
-import java.io.InputStreamReader
 import java.util.logging.Logger
 import javax.servlet.annotation.WebServlet
 import javax.servlet.http.HttpServlet
@@ -17,8 +12,7 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 
-typealias MyAction = ApiAiApp<Parameters>
-val logger = Logger.getAnonymousLogger()
+val logger: Logger = Logger.getAnonymousLogger()
 
 const val NORMAL_ASK = "normal.ask"
 const val NORMAL_BYE = "normal.ask"
@@ -48,7 +42,7 @@ const val IMG_URL_GOOGLE_PIXEL = "https://storage.googleapis.com/madebygoog/v1" 
         "/Pixel/Pixel_ColorPicker/Pixel_Device_Angled_Black-720w.png"
 const val IMG_URL_GOOGLE_ALLO = "https://allo.google.com/images/allo-logo.png"
 
-fun welcome(app: MyAction) =
+fun welcome(app: ApiAiApp) =
         app.ask(app.buildRichResponse()
                 .addSimpleResponse(speech = "Hi there!", displayText = "Hello there!")
                 .addSimpleResponse(
@@ -56,9 +50,9 @@ fun welcome(app: MyAction) =
                         displayText = """I can show you basic cards, lists and carousels as well as suggestions""")
                 .addSuggestions("Basic Card", "List", "Carousel", "Suggestions"))
 
-fun normalAsk(app: MyAction) = app.ask("Ask me to show you a list, carousel, or basic card")
+fun normalAsk(app: ApiAiApp) = app.ask("Ask me to show you a list, carousel, or basic card")
 
-fun suggestions(app: MyAction) =
+fun suggestions(app: ApiAiApp) =
     app.ask(app
             .buildRichResponse()
             .addSimpleResponse("This is a simple response for suggestions")
@@ -66,7 +60,7 @@ fun suggestions(app: MyAction) =
             .addSuggestions("Basic Card", "List", "Carousel")
             .addSuggestionLink("Suggestion Link", "https://assistant.google.com/"))
 
-fun basicCard(app: MyAction) =
+fun basicCard(app: ApiAiApp) =
     app.ask(app.buildRichResponse()
             .addSimpleResponse("This is the first simple response for a basic card")
             .addSuggestions(
@@ -88,7 +82,7 @@ fun basicCard(app: MyAction) =
     )
 
 
-fun list(app: MyAction) {
+fun list(app: ApiAiApp) {
     app.askWithList(app.buildRichResponse()
             .addSimpleResponse("This is a simple response for a list")
             .addSuggestions("Basic Card", "List", "Carousel", "Suggestions"),
@@ -126,7 +120,7 @@ fun list(app: MyAction) {
 }
 
 // Carousel
-fun carousel(app: MyAction) {
+fun carousel(app: ApiAiApp) {
     app.askWithCarousel(app.buildRichResponse()
             .addSimpleResponse("This is a simple response for a carousel")
             .addSuggestions("Basic Card", "List", "Carousel", "Suggestions"),
@@ -164,7 +158,7 @@ fun carousel(app: MyAction) {
 }
 
 // React to list or carousel selection
-fun itemSelected(app: MyAction) {
+fun itemSelected(app: ApiAiApp) {
     app.getIntent()
     val param = app.getSelectedOption()
     logger.info("USER SELECTED: $param")
@@ -179,7 +173,7 @@ fun itemSelected(app: MyAction) {
 }
 
 // Receive a rich response from API.AI and modify it
-fun cardBuilder(app: MyAction) =
+fun cardBuilder(app: ApiAiApp) =
     app.ask(app.getIncomingRichResponse()
             .addBasicCard(app.buildBasicCard("""Actions on Google let you build for
             the Google Assistant. Reach users right when they need you. Users don’t
@@ -192,16 +186,16 @@ fun cardBuilder(app: MyAction) =
                     "L6uxdLBl=s1376", "Actions on Google")))
 
 // Leave conversation with card
-fun byeCard(app: MyAction) =
+fun byeCard(app: ApiAiApp) =
     app.tell(app.buildRichResponse()
             .addSimpleResponse("Goodbye, World!")
             .addBasicCard(app.buildBasicCard("This is a goodbye card.")))
 
-fun byeResponse(action: MyAction) =
+fun byeResponse(action: ApiAiApp) =
         action.tell(speech = "Okay see you later",
                 displayText = "OK see you later!")
 
-fun normalBye(action: MyAction) = action.tell("Okay see you later!")
+fun normalBye(action: ApiAiApp) = action.tell("Okay see you later!")
 
 val actionMap = mapOf(
         WELCOME to ::welcome,
@@ -220,7 +214,7 @@ val actionMap = mapOf(
 class WebHook : HttpServlet() {
 
     override fun doPost(req: HttpServletRequest, resp: HttpServletResponse) {
-        GAction(req, resp, Parameters::class.java).handleRequest(actionMap)
+        GAction(req, resp).handleRequest(actionMap)
     }
 }
 
@@ -228,15 +222,13 @@ class WebHook : HttpServlet() {
  * Gson & Servlet Action - possibly move this into separate module for users of gson & servlet.
  * Intentionally not in sdk module so gson & servlet are not a dependency of the SDK.
  */
-class GAction<T>(req: HttpServletRequest, resp: HttpServletResponse, clazz: Class<T>, val gson: Gson = Gson()) {
-    val action: ApiAiApp<T>
+class GAction(req: HttpServletRequest, resp: HttpServletResponse, val gson: Gson = Gson()) {
+    val action: ApiAiApp
 
     init {
-        val t = TypeToken.get(clazz).type
-        val type = TypeToken.getParameterized(ApiAiRequest::class.java, t)
         val jsonStr = convertStreamToString(req.inputStream)
         Logger.getAnonymousLogger().info(jsonStr)
-        val request = gson.fromJson<ApiAiRequest<T>>(jsonStr, type.type)
+        val request = gson.fromJson<ApiAiRequest>(jsonStr, ApiAiRequest::class.java)
         action = ApiAiApp(RequestWrapper(body = request), ResponseWrapper(sendAction = {
             val bodyStr = gson.toJson(body)
             headers.forEach {

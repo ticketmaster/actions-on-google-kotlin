@@ -1,7 +1,7 @@
 package com.ticketmaster.apiai
 
-data class ApiAiResponse<T>(var speech: String = "", var displayText: String = "", var secondDisplayText: String = "",
-                            var data: Data = Data.empty, var contextOut: MutableList<ContextOut<T>> = mutableListOf(), var source: String = "") {
+data class ApiAiResponse(var speech: String = "", var displayText: String = "", var secondDisplayText: String = "",
+                            var data: Data = Data.empty, var contextOut: MutableList<ContextOut> = mutableListOf(), var source: String = "") {
     fun data(init: Data.() -> Unit): Data {
         if (data == null) {
             this.data = Data()
@@ -11,9 +11,9 @@ data class ApiAiResponse<T>(var speech: String = "", var displayText: String = "
     }
 }
 
-data class ContextOut<T>(var name: String, var lifespan: Int, var parameters: T? = null) {
+data class ContextOut(var name: String, var lifespan: Int, var parameters: MutableMap<String, Any>? = null) {
     override fun equals(other: Any?): Boolean {
-        if (other is ContextOut<*>) {
+        if (other is ContextOut) {
             if (parameters != null) {
                 return super.equals(other)
             } else {
@@ -26,8 +26,8 @@ data class ContextOut<T>(var name: String, var lifespan: Int, var parameters: T?
     }
 }
 
-fun <T> apiAiResponse(init: ApiAiResponse<T>.() -> Unit): ApiAiResponse<T> {
-    val r = ApiAiResponse<T>()
+fun <T> apiAiResponse(init: ApiAiResponse.() -> Unit): ApiAiResponse {
+    val r = ApiAiResponse()
     r.init()
     return r
 }
