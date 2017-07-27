@@ -138,7 +138,7 @@ class RequestExtractor<T, S, U>(val app: AssistantApp<T,S,U>) {
      *     or null if no matching argument.
      * @requestextractor
      */
-    fun getArgumentCommon (argName: String): String? {
+    fun getArgumentCommon (argName: String): Any? {
         debug("getArgument: argName=$argName")
         if (argName.isBlank()) {
             this.app.handleError("Invalid argument name")
@@ -152,10 +152,11 @@ class RequestExtractor<T, S, U>(val app: AssistantApp<T,S,U>) {
             return argument?.textValue
         } else {
             if (!this.app.isNotApiVersionOne()) {
+                return argument
                 //TODO version 1
 //                return transformToSnakeCase(argument)
             } else {
-                return argument.textValue
+                return argument
             }
         }
         return null

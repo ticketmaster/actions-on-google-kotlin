@@ -14,7 +14,7 @@ import org.jetbrains.spek.api.dsl.it
 
 val gson = Gson()
 
-class MockParameters
+data class MockParameters(var guess: String? = null)
 
 typealias MockHandler = Handler<ApiAiRequest<MockParameters>, ApiAiResponse<MockParameters>, MockParameters>
 
@@ -978,7 +978,7 @@ object ActionsTest : Spek({
                     )
             )
 
-            app.askForTransactionDecision(GoogleData.Order(id= "order_id"), transactionConfig)
+            app.askForTransactionDecision(GoogleData.Order(id = "order_id"), transactionConfig)
 
             val expectedResponse = responseFromJson("""{
                 "speech": "PLACEHOLDER_FOR_TXN_DECISION",
@@ -1028,7 +1028,439 @@ object ActionsTest : Spek({
 
             expect(mockResponse.body).to.equal(expectedResponse)
         }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON transaction decision with Action payment options") {
+            val transactionConfig = ActionPaymentTransactionConfig(
+                    deliveryAddressRequired = true,
+                    type = "BANK",
+                    displayName = "Checking-4773",
+                    customerInfoOptions = mutableListOf(
+                            "EMAIL"
+                    )
+            )
+
+            app.askForTransactionDecision(app.buildOrder("order_id"), transactionConfig)
+
+            val expectedResponse = responseFromJson("""{
+                "speech": "PLACEHOLDER_FOR_TXN_DECISION",
+                "data": {
+                "google": {
+                "expectUserResponse": true,
+                "isSsml": false,
+                "noInputPrompts": [],
+                "systemIntent": {
+                "intent": "actions.intent.TRANSACTION_DECISION",
+                "data": {
+                "@type": "type.googleapis.com/google.actions.v2.TransactionDecisionValueSpec",
+                "proposedOrder": { "id": "order_id" },
+                "orderOptions": {
+                "requestDeliveryAddress": true,
+                "customerInfoOptions": [
+                "EMAIL"
+                ]
+            },
+                "paymentOptions": {
+                "actionProvidedOptions": {
+                "paymentType": "BANK",
+                "displayName": "Checking-4773"
+            }
+            }
+            }
+            }
+            }
+            },
+                "contextOut": [
+                {
+                    "name": "_actions_on_google_",
+                    "lifespan": 100,
+                    "parameters": {}
+                }
+                ]
+            }""")
+
+            expect(mockResponse.body).to.equal(expectedResponse);
+        }
+
     }
+
+    /**
+     * Describes the behavior for ApiAiApp askForConfirmation method.
+     */
+    describe("ApiAiApp#askForConfirmation") {
+        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+
+        beforeEachTest {
+            body = createLiveSessionApiAppBody()
+            mockRequest = RequestWrapper(headerV2, body)
+            mockResponse = ResponseWrapper()
+            app = ApiAiApp(
+                    request = mockRequest,
+                    response = mockResponse
+            )
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON confirmation request") {
+            app.askForConfirmation("You want to do that?")
+            val expectedResponse = responseFromJson("""{
+                "speech": "PLACEHOLDER_FOR_CONFIRMATION",
+                "data": {
+                "google": {
+                "expectUserResponse": true,
+                "isSsml": false,
+                "noInputPrompts": [],
+                "systemIntent": {
+                "intent": "actions.intent.CONFIRMATION",
+                "data": {
+                "@type": "type.googleapis.com/google.actions.v2.ConfirmationValueSpec",
+                "dialogSpec": {
+                "requestConfirmationText": "You want to do that?"
+            }
+            }
+            }
+            }
+            },
+                "contextOut": [
+                {
+                    "name": "_actions_on_google_",
+                    "lifespan": 100,
+                    "parameters": {}
+                }
+                ]
+            }""")
+
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON confirmation request without prompt") {
+            app.askForConfirmation()
+
+            val expectedResponse = responseFromJson("""{
+            "speech": "PLACEHOLDER_FOR_CONFIRMATION",
+            "data": {
+            "google": {
+            "expectUserResponse": true,
+            "isSsml": false,
+            "noInputPrompts": [],
+            "systemIntent": {
+            "intent": "actions.intent.CONFIRMATION",
+            "data": {
+            "@type": "type.googleapis.com/google.actions.v2.ConfirmationValueSpec"
+        }
+        }
+        }
+        },
+            "contextOut": [
+            {
+                "name": "_actions_on_google_",
+                "lifespan": 100,
+                "parameters": {}
+            }
+            ]
+        }""")
+
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+
+
+        /**
+         * Describes the behavior for ApiAiApp askForDateTime method.
+         */
+        describe("ApiAiApp#askForDateTime") {
+            var body: ApiAiRequest<MockParameters> = ApiAiRequest()
+            var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
+            var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+            var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+
+            beforeEachTest {
+                body = createLiveSessionApiAppBody()
+                mockRequest = RequestWrapper(headerV2, body)
+                mockResponse = ResponseWrapper()
+                app = ApiAiApp(
+                        request = mockRequest,
+                        response = mockResponse
+                )
+            }
+
+            // Success case test, when the API returns a valid 200 response with the response object
+            it("Should return valid JSON datetime request") {
+                app.askForDateTime("When do you want to come in?",
+                        "What is the best date for you?",
+                        "What time of day works best for you?")
+
+                val expectedResponse = responseFromJson("""{
+                    "speech": "PLACEHOLDER_FOR_DATETIME",
+                    "data": {
+                    "google": {
+                    "expectUserResponse": true,
+                    "isSsml": false,
+                    "noInputPrompts": [],
+                    "systemIntent": {
+                    "intent": "actions.intent.DATETIME",
+                    "data": {
+                    "@type": "type.googleapis.com/google.actions.v2.DateTimeValueSpec",
+                    "dialogSpec": {
+                    "requestDatetimeText": "When do you want to come in?",
+                    "requestDateText": "What is the best date for you?",
+                    "requestTimeText": "What time of day works best for you?"
+                }
+                }
+                }
+                }
+                },
+                    "contextOut": [
+                    {
+                        "name": "_actions_on_google_",
+                        "lifespan": 100,
+                        "parameters": {}
+                    }
+                    ]
+                }""")
+
+                expect(mockResponse.body).to.equal(expectedResponse);
+            }
+
+            // Success case test, when the API returns a valid 200 response with the response object
+            it("Should return valid JSON datetime request with partial prompts") {
+                app.askForDateTime("When do you want to come in?", null)
+                val expectedResponse = responseFromJson("""{
+                    "speech": "PLACEHOLDER_FOR_DATETIME",
+                    "data": {
+                    "google": {
+                    "expectUserResponse": true,
+                    "isSsml": false,
+                    "noInputPrompts": [],
+                    "systemIntent": {
+                    "intent": "actions.intent.DATETIME",
+                    "data": {
+                    "@type": "type.googleapis.com/google.actions.v2.DateTimeValueSpec",
+                    "dialogSpec": {
+                    "requestDatetimeText": "When do you want to come in?"
+                }
+                }
+                }
+                }
+                },
+                    "contextOut": [
+                    {
+                        "name": "_actions_on_google_",
+                        "lifespan": 100,
+                        "parameters": {}
+                    }
+                    ]
+                }""")
+
+                expect(mockResponse.body).to.equal(expectedResponse)
+            }
+
+            // Success case test, when the API returns a valid 200 response with the response object
+            it("Should return valid JSON datetime request withouts prompt") {
+                app.askForDateTime()
+
+                val expectedResponse = responseFromJson("""{
+                    "speech": "PLACEHOLDER_FOR_DATETIME",
+                    "data": {
+                    "google": {
+                    "expectUserResponse": true,
+                    "isSsml": false,
+                    "noInputPrompts": [],
+                    "systemIntent": {
+                    "intent": "actions.intent.DATETIME",
+                    "data": {
+                    "@type": "type.googleapis.com/google.actions.v2.DateTimeValueSpec"
+                }
+                }
+                }
+                },
+                    "contextOut": [
+                    {
+                        "name": "_actions_on_google_",
+                        "lifespan": 100,
+                        "parameters": {}
+                    }
+                    ]
+                }""")
+
+                expect(mockResponse.body).to.equal(expectedResponse)
+            }
+        }
+
+    }
+
+    /**
+     * Describes the behavior for ApiAiApp askForSignIn method.
+     */
+    describe("ApiAiApp#askForSignIn") {
+        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+
+        beforeEachTest {
+            body = createLiveSessionApiAppBody()
+            mockRequest = RequestWrapper(headerV2, body)
+            mockResponse = ResponseWrapper()
+            app = ApiAiApp(
+                    request = mockRequest,
+                    response = mockResponse
+            )
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON sign in request") {
+            app.askForSignIn()
+            val expectedResponse = responseFromJson("""{
+                "speech": "PLACEHOLDER_FOR_SIGN_IN",
+                "data": {
+                "google": {
+                "expectUserResponse": true,
+                "isSsml": false,
+                "noInputPrompts": [],
+                "systemIntent": {
+                "intent": "actions.intent.SIGN_IN",
+                "data": {}
+            }
+            }
+            },
+                "contextOut": [
+                {
+                    "name": "_actions_on_google_",
+                    "lifespan": 100,
+                    "parameters": {}
+                }
+                ]
+            }""")
+
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+    }
+
+    /**
+     * Describes the behavior for ApiAiApp isPermissionGranted method.
+     */
+    describe("ApiAiApp#isPermissionGranted") {
+        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+
+        fun initMockApp() {
+            mockRequest = RequestWrapper(headerV1, body)
+            mockResponse = ResponseWrapper()
+            app = ApiAiApp(
+                    request = mockRequest,
+                    response = mockResponse
+            )
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant request user.") {
+            body = createLiveSessionApiAppBody()
+            body?.originalRequest?.data?.inputs?.get(0)?.arguments = listOf(Arguments(
+                    name = "permission_granted",
+                    textValue = "true")
+            )
+            initMockApp()
+            expect(app.isPermissionGranted()).to.equal(true)
+
+            // Test the false case
+            body.originalRequest?.data?.inputs?.get(0)?.arguments?.get(0)?.textValue = "false"
+            initMockApp()
+            expect(app.isPermissionGranted()).to.equal(false)
+        }
+    }
+
+    /**
+     * Describes the behavior for ApiAiApp isInSandbox method.
+     */
+    describe("ApiAiApp#isInSandbox") {
+        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
+        var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+        var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+
+        fun initMockApp() {
+            mockRequest = RequestWrapper(headerV1, body)
+            mockResponse = ResponseWrapper()
+            app = ApiAiApp(
+                    request = mockRequest,
+                    response = mockResponse
+            )
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant request user.") {
+            body = createLiveSessionApiAppBody()
+            body.originalRequest?.data?.isInSandbox = true
+            initMockApp()
+            expect(app.isInSandbox()).to.equal(true)
+
+            // Test the false case
+            body.originalRequest?.data?.isInSandbox = false
+            initMockApp()
+            expect(app.isInSandbox()).to.equal(false)
+        }
+    }
+
+    /**
+     * Describes the behavior for ApiAiApp getIntent method.
+     */
+    describe("ApiAiApp#getIntent") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should get the intent value for the success case.") {
+            val body = createLiveSessionApiAppBody()
+            body.result.action = "check_guess"
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+
+            val app = ApiAiApp(
+                request = mockRequest,
+                response = mockResponse
+            )
+
+            expect(app.getIntent()).to.equal("check_guess")
+        }
+    }
+
+    /**
+     * Describes the behavior for ApiAiApp getArgument method.
+     */
+    describe("ApiAiApp#getArgument") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should get the argument value for the success case.") {
+            val body = createLiveSessionApiAppBody()
+            body.result?.parameters?.guess = "50"
+            val t = TypeToken.get(Arguments::class.java).type
+            val type = TypeToken.getParameterized(List::class.java, t)
+            body.originalRequest?.data?.inputs?.get(0)?.arguments =
+                    listOf(Arguments(rawText = "raw text one", textValue = "text value one", name = "arg_value_one"),
+                            Arguments(rawText = "45", name = "other_value", otherValue = mapOf("key" to "value")))
+
+            val mockRequest = RequestWrapper(headerV2, body)
+            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+
+            val app = ApiAiApp(
+                request = mockRequest,
+                response = mockResponse
+            )
+
+            expect(app.getArgument("guess")).to.equal("50")
+            expect(app.getArgument("arg_value_one")).to.equal("text value one")
+            expect(app.getArgument("other_value")).to.equal(gson.fromJson("""{
+                "name": "other_value",
+                "rawText": "45",
+                "otherValue": {
+                "key": "value"
+            }}""", Arguments::class.java))
+            }
+        }
+
+
 })
 
 

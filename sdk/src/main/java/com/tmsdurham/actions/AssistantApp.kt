@@ -310,6 +310,160 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
     }
 
     /**
+     * Asks user for a confirmation.
+     *
+     * @example
+     * val app = ApiAiApp(request, response)
+     * val WELCOME_INTENT = "input.welcome"
+     * val CONFIRMATION = "confirmation"
+     *
+     * fun welcomeIntent (app: MyAction) {
+     *   app.askForConfirmation("Are you sure you want to do that?")
+     * }
+     *
+     * fun confirmation (app: MyAction) {
+     *   if (app.getUserConfirmation()) {
+     *     app.tell("Great! I\"m glad you want to do it!")
+     *   } else {
+     *     app.tell("That\"s okay. Let\"s not do it now.")
+     *   }
+     * }
+     *
+     * val actionMap = mapOf(
+     *      WELCOME_INTENT to ::welcomeIntent,
+     *      CONFIRMATION to ::confirmation)
+     * app.handleRequest(actionMap)
+     *
+     * @param {String=} prompt The confirmation prompt presented to the user to
+     *     query for an affirmative or negative response. If undefined or null,
+     *     Google will use a generic yes/no prompt.
+     * @param {DialogState?=} dialogState JSON object the app uses to hold dialog state that
+     *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
+     * @actionssdk
+     * @apiai
+     */
+    fun askForConfirmation (prompt: String = "", dialogState: DialogState<U>? = null): ResponseWrapper<S>? {
+        debug("askForConfirmation: prompt=$prompt, dialogState=$dialogState")
+        val confirmationValueSpec = ConfirmationValueSpec()
+        if (prompt.isNotBlank()) {
+            confirmationValueSpec.dialogSpec = DialogSpec(
+                requestConfirmationText = prompt)
+        }
+        return fulfillConfirmationRequest(confirmationValueSpec, dialogState)
+    }
+
+
+    /**
+     * Asks user for a timezone-agnostic date and time.
+     *
+     * @example
+     * val app = ApiAiApp(request, response )
+     * val WELCOME_INTENT = "input.welcome"
+     * val DATETIME = "datetime"
+     *
+     * fun welcomeIntent (app: MyAction) {
+     *   app.askForDateTime("When do you want to come in?",
+     *     "Which date works best for you?",
+     *     "What time of day works best for you?")
+     * }
+     *
+     * function datetime (app: MyAction) {
+     *   app.tell({speech: "Great see you at your appointment!",
+     *     displayText: "Great, we will see you on "
+     *     + app.getDateTime().date.month
+     *     + "/" + app.getDateTime().date.day
+     *     + " at " + app.getDateTime().time.hours
+     *     + (app.getDateTime().time.minutes || "")})
+     * }
+     *
+     * val actionMap = mapOf(
+     *      WELCOME_INTENT to ::welcomeIntent,
+     *      DATETIME, ::datetime)
+     * app.handleRequest(actionMap)
+     *
+     * @param {String=} initialPrompt The initial prompt used to ask for a
+     *     date and time. If undefined or null, Google will use a generic
+     *     prompt.
+     * @param {String=} datePrompt The prompt used to specifically ask for the
+     *     date if not provided by user. If undefined or null, Google will use a
+     *     generic prompt.
+     * @param {String=} timePrompt The prompt used to specifically ask for the
+     *     time if not provided by user. If undefined or null, Google will use a
+     *     generic prompt.
+     * @param {DialogState<T>?=} dialogState JSON object the app uses to hold dialog state that
+     *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
+     * @actionssdk
+     * @apiai
+     */
+    fun askForDateTime (initialPrompt: String? = null, datePrompt: String? =null, timePrompt: String? = null, dialogState: DialogState<U>? = null): ResponseWrapper<S>? {
+        debug("askForConfirmation: initialPrompt=$initialPrompt, datePrompt=$datePrompt, timePrompt=$timePrompt, dialogState=$dialogState")
+        val confirmationValueSpec = ConfirmationValueSpec()
+        if (initialPrompt != null || datePrompt != null || timePrompt != null) {
+            confirmationValueSpec.dialogSpec = DialogSpec(
+                requestDatetimeText = initialPrompt,
+                requestDateText = datePrompt,
+                requestTimeText = timePrompt)
+        }
+        return fulfillDateTimeRequest(confirmationValueSpec, dialogState)
+    }
+
+    /**
+     * Hands the user off to a web sign in flow. App sign in and OAuth credentials
+     * are set in the {@link https://console.actions.google.com|Actions Console}.
+     * Retrieve the access token in subsequent intents using
+     * app.getUser().accessToken.
+     *
+     * Note: Currently this API requires enabling the app for Transactions APIs.
+     * To do this, fill out the App Info section of the Actions Console project
+     * and check the box indicating the use of Transactions under "Privacy and
+     * consent".
+     *
+     * @example
+     * val app = ApiAiApp(request, response)
+     * val WELCOME_INTENT = "input.welcome"
+     * val SIGN_IN = "sign.in"
+     *
+     * fun welcomeIntent (app: MyAction) {
+     *   app.askForSignIn()
+     * }
+     *
+     * fun signIn (app: MyAction) {
+     *   if (app.getSignInStatus() == app.SignInstatus.OK) {
+     *     val accessToken = app.getUser().accessToken
+     *     app.ask("Great, thanks for signing in!")
+     *   } else {
+     *     app.ask("I won\"t be able to save your data, but let\"s continue!")
+     *   }
+     * }
+     *
+     * val actionMap = mapOf(
+     *      WELCOME_INTENT to ::welcomeIntent,
+     *      SIGN_IN to ::signIn)
+     * app.handleRequest(actionMap)
+     *
+     * @param {DialogState?=} dialogState JSON object the app uses to hold dialog state that
+     *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
+     * @actionssdk
+     * @apiai
+     */
+    fun askForSignIn (dialogState: DialogState<U>?= null): ResponseWrapper<S>? {
+        debug("askForSignIn: dialogState=$dialogState")
+        return fulfillSignInRequest(dialogState)
+    }
+
+
+    abstract fun fulfillSignInRequest(dialogState: DialogState<U>?): ResponseWrapper<S>?
+    abstract fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState<U>?): ResponseWrapper<S>?
+    abstract fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState<U>?): ResponseWrapper<S>?
+
+    data class ConfirmationValueSpec(var dialogSpec: DialogSpec? = null)
+
+    data class DialogSpec(var requestConfirmationText: String? = null,
+                          var requestDatetimeText: String? = null,
+                          var requestDateText: String? = null,
+                          var requestTimeText: String? = null)
+    
+    /**
      * Checks whether user is in transactable state.
      *
      * @example
@@ -781,6 +935,9 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
         }
         return paymentOptions;
     }
+
+    fun isPermissionGranted() = requestExtractor.isPermissionGranted()
+    fun isInSandbox() = requestExtractor.isInSandbox()
 }
 
 fun debug(msg: String) {

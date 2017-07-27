@@ -1,5 +1,6 @@
 package com.ticketmaster.apiai.google
 
+import com.tmsdurham.actions.AssistantApp
 import com.tmsdurham.actions.Carousel
 import com.tmsdurham.actions.CustomerInfoOptions
 import com.tmsdurham.actions.RichResponse
@@ -65,7 +66,8 @@ data class GoogleData(
             var name: String? = null,
             var paymentOptions: PaymentOptions? = null,
             var addressOptions: AddressOptions? = null,
-            var orderOptions: OrderOptions? = null) {
+            var orderOptions: OrderOptions? = null,
+            var dialogSpec: AssistantApp.DialogSpec? = null) {
 
         inline fun paymentOptions(init: PaymentOptions.() -> Unit) {
             if (paymentOptions == null) {

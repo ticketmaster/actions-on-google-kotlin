@@ -2,9 +2,12 @@ package com.tmsdurham.actions
 
 import com.ticketmaster.apiai.*
 import com.ticketmaster.apiai.google.GoogleData
+import java.lang.reflect.InvocationTargetException
+import sun.reflect.misc.MethodUtil.getMethods
+import java.lang.reflect.Field
 
 
-class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
+class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
 
 
     // Constants
@@ -298,7 +301,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      * @return {ResponseWrapper<ApiAiResponse<T>>} HTTP response.
      * @apiai
      */
-    fun askForDeliveryAddress (reason: String): ResponseWrapper<ApiAiResponse<T>>? {
+    fun askForDeliveryAddress(reason: String): ResponseWrapper<ApiAiResponse<T>>? {
         debug("askForDeliveryAddress: reason=$reason")
         if (reason.isBlank()) {
             this.handleError("reason cannot be empty")
@@ -449,7 +452,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      *  NUMBER_INTENT to numberIntent)
      * app.handleRequest(actionMap)
      *
-     * @param {string} argName Name of the argument.
+     * @param {String} argName Name of the argument.
      * @return {Object} Argument value matching argName
      *     or null if no matching argument.
      * @apiai
@@ -461,8 +464,10 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
             return null
         }
         val parameters = request.body.result.parameters
-        if (getProperty(parameters, argName) != null) {
-            return getProperty(parameters, argName)
+        if (parameters != null) {
+            if (getProperty(parameters, argName) != null) {
+                return getProperty(parameters, argName)
+            }
         }
         return requestExtractor.getArgumentCommon(argName)
     }
@@ -565,7 +570,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         }
         return doResponse(response, RESPONSE_CODE_OK)
     }
-    
+
     /**
      * Uses TransactionDecisionValueSpec to construct and send a transaction
      * requirements request to Google.
@@ -576,7 +581,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      * @private
      * @apiai
      */
-    override fun  fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: DialogState<T>?): ResponseWrapper<ApiAiResponse<T>>? {
+    override fun fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: DialogState<T>?): ResponseWrapper<ApiAiResponse<T>>? {
         debug("fulfillTransactionDecision_: transactionDecisionValueSpec=$transactionDecisionValueSpec")
         val response = buildResponse("PLACEHOLDER_FOR_TXN_DECISION", true)
         response {
@@ -598,6 +603,92 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         }
         return doResponse(response, RESPONSE_CODE_OK)
     }
+
+
+    /**
+     * Uses ConfirmationValueSpec to construct and send a confirmation request to
+     * Google.
+     *
+     * @param {Object} confirmationValueSpec ConfirmationValueSpec object.
+     * @return {Object} HTTP response.
+     * @private
+     * @apiai
+     */
+    override fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState<T>?): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("fulfillConfirmationRequest_: confirmationValueSpec=$confirmationValueSpec")
+        val response = this.buildResponse("PLACEHOLDER_FOR_CONFIRMATION", true)
+        response {
+            body {
+                data {
+                    google {
+                        systemIntent {
+                            intent = STANDARD_INTENTS.CONFIRMATION
+                            data {
+                                `@type` = INPUT_VALUE_DATA_TYPES.CONFIRMATION
+                                dialogSpec = confirmationValueSpec.dialogSpec
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return doResponse(response, RESPONSE_CODE_OK)
+    }
+
+    /**
+     * Uses DateTimeValueSpec to construct and send a datetime request to Google.
+     *
+     * @param {Object} dateTimeValueSpec DateTimeValueSpec object.
+     * @return {Object} HTTP response.
+     * @private
+     * @apiai
+     */
+    override fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState<T>?): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("fulfillDateTimeRequest_: dateTimeValueSpec=$confirmationValueSpec")
+        val response = buildResponse("PLACEHOLDER_FOR_DATETIME", true)
+        response {
+            body {
+                data {
+                    google {
+                        systemIntent {
+                            intent = STANDARD_INTENTS.DATETIME
+                            data {
+                                `@type` = INPUT_VALUE_DATA_TYPES.DATETIME
+                                dialogSpec = confirmationValueSpec.dialogSpec
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return doResponse(response, RESPONSE_CODE_OK)
+    }
+
+    /**
+     * Constructs and sends a sign in request to Google.
+     *
+     * @return {ResponseWrapper<ApiAiResponse<T>>} HTTP response.
+     * @private
+     * @apiai
+     */
+    override fun fulfillSignInRequest(dialogState: DialogState<T>?): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("fulfillSignInRequest_")
+        val response = buildResponse("PLACEHOLDER_FOR_SIGN_IN", true)
+        response {
+            body {
+                data {
+                    google {
+                        systemIntent {
+                            intent = STANDARD_INTENTS.SIGN_IN
+                            data { }
+                        }
+                    }
+                }
+            }
+        }
+        return doResponse(response, RESPONSE_CODE_OK)
+    }
+
     /**
      * Get the context argument value by name from the current intent. Context
      * arguments include parameters collected in previous intents during the
@@ -652,12 +743,14 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         }
         request.body.result.contexts.forEach {
             if (it.name === contextName) {
-                val argument = ContextArgument(value = getProperty(it.parameters, argName))
+                if (it.parameters != null) {
+                    val argument = ContextArgument(value = getProperty(it.parameters, argName))
 //                if (context.parameters[argName + ORIGINAL_SUFFIX]) {
 //                    argument.original = context.parameters[argName + ORIGINAL_SUFFIX]
 //                }
-                //TODO set original value from context
-                return argument
+                    //TODO set original value from context
+                    return argument
+                }
             }
         }
         debug("Failed to get context argument value: $argName")
@@ -735,14 +828,28 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
     /**
      * Gets property on any object by field name via reflection
      */
-    fun getProperty(obj: Any?, name: String): Any? {
-        if (obj == null) return null
+    inline fun <P : Any> getProperty(obj: P, name: String): Any? {
         try {
-            return obj.javaClass
-                    .getMethod(name)
-                    .invoke(obj)
-        } catch (e: NoSuchMethodException) {
+            val field = obj.javaClass.getDeclaredField(name)
 
+            // MZ: Find the correct method
+            obj.javaClass.methods.forEach {
+                if (it.name.startsWith("get") && it.name.length === field.name.length + 3) {
+                    if (it.name.toLowerCase().endsWith(field.name.toLowerCase())) {
+                        // MZ: Method found, run it
+                        try {
+                            return it.invoke(obj)
+                        } catch (e: IllegalAccessException) {
+                            error("Could not determine method: " + it.name)
+                        } catch (e: InvocationTargetException) {
+                            error("Could not determine method: " + it.name)
+                        }
+
+                    }
+                }
+            }
+        } catch (e: NoSuchFieldException) {
+            debug("NoSuchFieldException: $name}")
         }
         return null
     }
