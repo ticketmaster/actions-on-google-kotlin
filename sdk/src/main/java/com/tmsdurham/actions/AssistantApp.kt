@@ -352,11 +352,70 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
         return fulfillConfirmationRequest(confirmationValueSpec, dialogState)
     }
 
+
+    /**
+     * Asks user for a timezone-agnostic date and time.
+     *
+     * @example
+     * val app = ApiAiApp(request, response )
+     * val WELCOME_INTENT = "input.welcome"
+     * val DATETIME = "datetime"
+     *
+     * fun welcomeIntent (app: MyAction) {
+     *   app.askForDateTime("When do you want to come in?",
+     *     "Which date works best for you?",
+     *     "What time of day works best for you?")
+     * }
+     *
+     * function datetime (app: MyAction) {
+     *   app.tell({speech: "Great see you at your appointment!",
+     *     displayText: "Great, we will see you on "
+     *     + app.getDateTime().date.month
+     *     + "/" + app.getDateTime().date.day
+     *     + " at " + app.getDateTime().time.hours
+     *     + (app.getDateTime().time.minutes || "")})
+     * }
+     *
+     * val actionMap = mapOf(
+     *      WELCOME_INTENT to ::welcomeIntent,
+     *      DATETIME, ::datetime)
+     * app.handleRequest(actionMap)
+     *
+     * @param {String=} initialPrompt The initial prompt used to ask for a
+     *     date and time. If undefined or null, Google will use a generic
+     *     prompt.
+     * @param {String=} datePrompt The prompt used to specifically ask for the
+     *     date if not provided by user. If undefined or null, Google will use a
+     *     generic prompt.
+     * @param {String=} timePrompt The prompt used to specifically ask for the
+     *     time if not provided by user. If undefined or null, Google will use a
+     *     generic prompt.
+     * @param {DialogState<T>?=} dialogState JSON object the app uses to hold dialog state that
+     *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
+     * @actionssdk
+     * @apiai
+     */
+    fun askForDateTime (initialPrompt: String? = null, datePrompt: String? =null, timePrompt: String? = null, dialogState: DialogState<U>? = null): ResponseWrapper<S>? {
+        debug("askForConfirmation: initialPrompt=$initialPrompt, datePrompt=$datePrompt, timePrompt=$timePrompt, dialogState=$dialogState")
+        val confirmationValueSpec = ConfirmationValueSpec()
+        if (initialPrompt != null || datePrompt != null || timePrompt != null) {
+            confirmationValueSpec.dialogSpec = DialogSpec(
+                requestDatetimeText = initialPrompt,
+                requestDateText = datePrompt,
+                requestTimeText = timePrompt)
+        }
+        return fulfillDateTimeRequest(confirmationValueSpec, dialogState)
+    }
+
+    abstract fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState<U>?): ResponseWrapper<S>?
     abstract fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState<U>?): ResponseWrapper<S>?
 
     data class ConfirmationValueSpec(var dialogSpec: DialogSpec? = null)
 
-    data class DialogSpec(var requestConfirmationText: String? = null)
+    data class DialogSpec(var requestConfirmationText: String? = null,
+                          var requestDatetimeText: String? = null,
+                          var requestDateText: String? = null,
+                          var requestTimeText: String? = null)
     
     /**
      * Checks whether user is in transactable state.

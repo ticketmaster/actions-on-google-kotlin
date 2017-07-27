@@ -631,6 +631,35 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
     }
 
     /**
+     * Uses DateTimeValueSpec to construct and send a datetime request to Google.
+     *
+     * @param {Object} dateTimeValueSpec DateTimeValueSpec object.
+     * @return {Object} HTTP response.
+     * @private
+     * @apiai
+     */
+    override fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState<T>?): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("fulfillDateTimeRequest_: dateTimeValueSpec=$confirmationValueSpec")
+        val response = buildResponse("PLACEHOLDER_FOR_DATETIME", true)
+        response {
+            body {
+                data {
+                    google {
+                        systemIntent {
+                            intent = STANDARD_INTENTS.DATETIME
+                            data {
+                                `@type`= INPUT_VALUE_DATA_TYPES.DATETIME
+                                dialogSpec = confirmationValueSpec.dialogSpec
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return doResponse(response, RESPONSE_CODE_OK)
+    }
+
+    /**
      * Get the context argument value by name from the current intent. Context
      * arguments include parameters collected in previous intents during the
      * lifespan of the given context. If the context argument has an original
