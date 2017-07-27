@@ -648,9 +648,34 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
                         systemIntent {
                             intent = STANDARD_INTENTS.DATETIME
                             data {
-                                `@type`= INPUT_VALUE_DATA_TYPES.DATETIME
+                                `@type` = INPUT_VALUE_DATA_TYPES.DATETIME
                                 dialogSpec = confirmationValueSpec.dialogSpec
                             }
+                        }
+                    }
+                }
+            }
+        }
+        return doResponse(response, RESPONSE_CODE_OK)
+    }
+
+    /**
+     * Constructs and sends a sign in request to Google.
+     *
+     * @return {ResponseWrapper<ApiAiResponse<T>>} HTTP response.
+     * @private
+     * @apiai
+     */
+    override fun fulfillSignInRequest(dialogState: DialogState<T>?): ResponseWrapper<ApiAiResponse<T>>? {
+        debug("fulfillSignInRequest_")
+        val response = buildResponse("PLACEHOLDER_FOR_SIGN_IN", true)
+        response {
+            body {
+                data {
+                    google {
+                        systemIntent {
+                            intent = STANDARD_INTENTS.SIGN_IN
+                            data { }
                         }
                     }
                 }

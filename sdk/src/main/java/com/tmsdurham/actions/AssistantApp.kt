@@ -407,6 +407,52 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
         return fulfillDateTimeRequest(confirmationValueSpec, dialogState)
     }
 
+    /**
+     * Hands the user off to a web sign in flow. App sign in and OAuth credentials
+     * are set in the {@link https://console.actions.google.com|Actions Console}.
+     * Retrieve the access token in subsequent intents using
+     * app.getUser().accessToken.
+     *
+     * Note: Currently this API requires enabling the app for Transactions APIs.
+     * To do this, fill out the App Info section of the Actions Console project
+     * and check the box indicating the use of Transactions under "Privacy and
+     * consent".
+     *
+     * @example
+     * const app = new ApiAiApp({ request, response });
+     * const WELCOME_INTENT = "input.welcome";
+     * const SIGN_IN = "sign.in";
+     *
+     * function welcomeIntent (app) {
+     *   app.askForSignIn();
+     * }
+     *
+     * function signIn (app) {
+     *   if (app.getSignInStatus() === app.SignInstatus.OK) {
+     *     let accessToken = app.getUser().accessToken;
+     *     app.ask("Great, thanks for signing in!");
+     *   } else {
+     *     app.ask("I won\"t be able to save your data, but let\"s continue!");
+     *   }
+     * }
+     *
+     * const actionMap = new Map();
+     * actionMap.set(WELCOME_INTENT, welcomeIntent);
+     * actionMap.set(SIGN_IN, signIn);
+     * app.handleRequest(actionMap);
+     *
+     * @param {Object=} dialogState JSON object the app uses to hold dialog state that
+     *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
+     * @actionssdk
+     * @apiai
+     */
+    fun askForSignIn (dialogState: DialogState<U>?= null): ResponseWrapper<S>? {
+        debug("askForSignIn: dialogState=$dialogState")
+        return fulfillSignInRequest(dialogState)
+    }
+
+
+    abstract fun fulfillSignInRequest(dialogState: DialogState<U>?): ResponseWrapper<S>?
     abstract fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState<U>?): ResponseWrapper<S>?
     abstract fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState<U>?): ResponseWrapper<S>?
 

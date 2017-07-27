@@ -1292,6 +1292,54 @@ object ActionsTest : Spek({
 
     }
 
+    /**
+     * Describes the behavior for ApiAiApp askForSignIn method.
+     */
+    describe("ApiAiApp#askForSignIn") {
+        var body: ApiAiRequest<MockParameters> = ApiAiRequest()
+            var mockRequest: RequestWrapper<ApiAiRequest<MockParameters>> = RequestWrapper(body = body)
+            var mockResponse: ResponseWrapper<ApiAiResponse<MockParameters>> = ResponseWrapper()
+            var app: ApiAiApp<MockParameters> = ApiAiApp<MockParameters>(mockRequest, mockResponse, { false })
+
+            beforeEachTest {
+                body = createLiveSessionApiAppBody()
+                mockRequest = RequestWrapper(headerV2, body)
+                mockResponse = ResponseWrapper()
+                app = ApiAiApp(
+                        request = mockRequest,
+                        response = mockResponse
+                )
+            }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON sign in request") {
+            app.askForSignIn()
+            val expectedResponse = responseFromJson("""{
+                "speech": "PLACEHOLDER_FOR_SIGN_IN",
+                "data": {
+                "google": {
+                "expectUserResponse": true,
+                "isSsml": false,
+                "noInputPrompts": [],
+                "systemIntent": {
+                "intent": "actions.intent.SIGN_IN",
+                "data": {}
+            }
+            }
+            },
+                "contextOut": [
+                {
+                    "name": "_actions_on_google_",
+                    "lifespan": 100,
+                    "parameters": {}
+                }
+                ]
+            }""")
+
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+    }
+
 })
 
 
