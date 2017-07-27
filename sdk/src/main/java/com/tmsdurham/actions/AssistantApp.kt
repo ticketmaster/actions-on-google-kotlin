@@ -419,29 +419,29 @@ open abstract class AssistantApp<T, S, U>(val request: RequestWrapper<T>, val re
      * consent".
      *
      * @example
-     * const app = new ApiAiApp({ request, response });
-     * const WELCOME_INTENT = "input.welcome";
-     * const SIGN_IN = "sign.in";
+     * val app = ApiAiApp(request, response)
+     * val WELCOME_INTENT = "input.welcome"
+     * val SIGN_IN = "sign.in"
      *
-     * function welcomeIntent (app) {
-     *   app.askForSignIn();
+     * fun welcomeIntent (app: MyAction) {
+     *   app.askForSignIn()
      * }
      *
-     * function signIn (app) {
-     *   if (app.getSignInStatus() === app.SignInstatus.OK) {
-     *     let accessToken = app.getUser().accessToken;
-     *     app.ask("Great, thanks for signing in!");
+     * fun signIn (app: MyAction) {
+     *   if (app.getSignInStatus() == app.SignInstatus.OK) {
+     *     val accessToken = app.getUser().accessToken
+     *     app.ask("Great, thanks for signing in!")
      *   } else {
-     *     app.ask("I won\"t be able to save your data, but let\"s continue!");
+     *     app.ask("I won\"t be able to save your data, but let\"s continue!")
      *   }
      * }
      *
-     * const actionMap = new Map();
-     * actionMap.set(WELCOME_INTENT, welcomeIntent);
-     * actionMap.set(SIGN_IN, signIn);
-     * app.handleRequest(actionMap);
+     * val actionMap = mapOf(
+     *      WELCOME_INTENT to ::welcomeIntent,
+     *      SIGN_IN to ::signIn)
+     * app.handleRequest(actionMap)
      *
-     * @param {Object=} dialogState JSON object the app uses to hold dialog state that
+     * @param {DialogState?=} dialogState JSON object the app uses to hold dialog state that
      *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
      * @actionssdk
      * @apiai

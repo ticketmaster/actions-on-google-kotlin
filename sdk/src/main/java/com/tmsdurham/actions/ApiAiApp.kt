@@ -2,9 +2,12 @@ package com.tmsdurham.actions
 
 import com.ticketmaster.apiai.*
 import com.ticketmaster.apiai.google.GoogleData
+import java.lang.reflect.InvocationTargetException
+import sun.reflect.misc.MethodUtil.getMethods
+import java.lang.reflect.Field
 
 
-class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
+class ApiAiApp<T : Any> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
 
 
     // Constants
@@ -449,7 +452,7 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
      *  NUMBER_INTENT to numberIntent)
      * app.handleRequest(actionMap)
      *
-     * @param {string} argName Name of the argument.
+     * @param {String} argName Name of the argument.
      * @return {Object} Argument value matching argName
      *     or null if no matching argument.
      * @apiai
@@ -461,8 +464,10 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
             return null
         }
         val parameters = request.body.result.parameters
-        if (getProperty(parameters, argName) != null) {
-            return getProperty(parameters, argName)
+        if (parameters != null) {
+            if (getProperty(parameters, argName) != null) {
+                return getProperty(parameters, argName)
+            }
         }
         return requestExtractor.getArgumentCommon(argName)
     }
@@ -738,12 +743,14 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
         }
         request.body.result.contexts.forEach {
             if (it.name === contextName) {
-                val argument = ContextArgument(value = getProperty(it.parameters, argName))
+                if (it.parameters != null) {
+                    val argument = ContextArgument(value = getProperty(it.parameters, argName))
 //                if (context.parameters[argName + ORIGINAL_SUFFIX]) {
 //                    argument.original = context.parameters[argName + ORIGINAL_SUFFIX]
 //                }
-                //TODO set original value from context
-                return argument
+                    //TODO set original value from context
+                    return argument
+                }
             }
         }
         debug("Failed to get context argument value: $argName")
@@ -821,14 +828,28 @@ class ApiAiApp<T> : AssistantApp<ApiAiRequest<T>, ApiAiResponse<T>, T> {
     /**
      * Gets property on any object by field name via reflection
      */
-    fun getProperty(obj: Any?, name: String): Any? {
-        if (obj == null) return null
+    inline fun <P : Any> getProperty(obj: P, name: String): Any? {
         try {
-            return obj.javaClass
-                    .getMethod(name)
-                    .invoke(obj)
-        } catch (e: NoSuchMethodException) {
+            val field = obj.javaClass.getDeclaredField(name)
 
+            // MZ: Find the correct method
+            obj.javaClass.methods.forEach {
+                if (it.name.startsWith("get") && it.name.length === field.name.length + 3) {
+                    if (it.name.toLowerCase().endsWith(field.name.toLowerCase())) {
+                        // MZ: Method found, run it
+                        try {
+                            return it.invoke(obj)
+                        } catch (e: IllegalAccessException) {
+                            error("Could not determine method: " + it.name)
+                        } catch (e: InvocationTargetException) {
+                            error("Could not determine method: " + it.name)
+                        }
+
+                    }
+                }
+            }
+        } catch (e: NoSuchFieldException) {
+            debug("NoSuchFieldException: $name}")
         }
         return null
     }

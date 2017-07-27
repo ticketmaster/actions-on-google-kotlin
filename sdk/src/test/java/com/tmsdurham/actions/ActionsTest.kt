@@ -14,7 +14,7 @@ import org.jetbrains.spek.api.dsl.it
 
 val gson = Gson()
 
-class MockParameters
+data class MockParameters(var guess: String? = null)
 
 typealias MockHandler = Handler<ApiAiRequest<MockParameters>, ApiAiResponse<MockParameters>, MockParameters>
 
@@ -1406,6 +1406,59 @@ object ActionsTest : Spek({
             expect(app.isInSandbox()).to.equal(false)
         }
     }
+
+    /**
+     * Describes the behavior for ApiAiApp getIntent method.
+     */
+    describe("ApiAiApp#getIntent") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should get the intent value for the success case.") {
+            val body = createLiveSessionApiAppBody()
+            body.result.action = "check_guess"
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+
+            val app = ApiAiApp(
+                request = mockRequest,
+                response = mockResponse
+            )
+
+            expect(app.getIntent()).to.equal("check_guess")
+        }
+    }
+
+    /**
+     * Describes the behavior for ApiAiApp getArgument method.
+     */
+    describe("ApiAiApp#getArgument") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should get the argument value for the success case.") {
+            val body = createLiveSessionApiAppBody()
+            body.result?.parameters?.guess = "50"
+            val t = TypeToken.get(Arguments::class.java).type
+            val type = TypeToken.getParameterized(List::class.java, t)
+            body.originalRequest?.data?.inputs?.get(0)?.arguments =
+                    listOf(Arguments(rawText = "raw text one", textValue = "text value one", name = "arg_value_one"),
+                            Arguments(rawText = "45", name = "other_value", otherValue = mapOf("key" to "value")))
+
+            val mockRequest = RequestWrapper(headerV2, body)
+            val mockResponse = ResponseWrapper<ApiAiResponse<MockParameters>>()
+
+            val app = ApiAiApp(
+                request = mockRequest,
+                response = mockResponse
+            )
+
+            expect(app.getArgument("guess")).to.equal("50")
+            expect(app.getArgument("arg_value_one")).to.equal("text value one")
+            expect(app.getArgument("other_value")).to.equal(gson.fromJson("""{
+                "name": "other_value",
+                "rawText": "45",
+                "otherValue": {
+                "key": "value"
+            }}""", Arguments::class.java))
+            }
+        }
 
 
 })

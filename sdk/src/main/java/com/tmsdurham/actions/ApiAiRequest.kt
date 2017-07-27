@@ -80,7 +80,7 @@ data class Result<T>(
         val contexts: List<Contexts<T>> = listOf(),
         val source: String = "",
         val resolvedQuery: String = "",
-        val action: String = "",
+        var action: String = "",
         val actionIncomplete: Boolean = false,
         val parameters: T? = null,
         val metadata: Metadata? = null,
@@ -160,6 +160,7 @@ data class Arguments(
         val rawText: String? = null,
         var textValue: String? = null,
         val name: String? = null,
+        val otherValue: Any? = null,
         val extension: TransactionRequirementsCheckResult? = null) {
     companion object {
         val TRANSACTION_REQUIREMENTS_CHECK_RESULT = "TRANSACTION_REQUIREMENTS_CHECK_RESULT"
