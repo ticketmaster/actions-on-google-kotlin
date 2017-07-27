@@ -2085,6 +2085,56 @@ object ActionsTest : Spek({
     }
 
     /**
+     * Describes the behavior for ApiAiApp ask with no inputs method.
+     */
+    describe("ApiAiApp#ask") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return the valid JSON in the response object for the success case.") {
+            val body = createLiveSessionApiAppBody()
+            val mockRequest = RequestWrapper(headerV2, body)
+            val mockResponse = ResponseWrapper<ApiAiResponse>()
+            val app = ApiAiApp(
+                request = mockRequest,
+                response = mockResponse
+                )
+
+            app.ask("Welcome to action snippets! Say a number.",
+                    "Say any number", "Pick a number", "What is the number?")
+
+            val expectedResponse = responseFromJson("""{
+                "speech": "Welcome to action snippets! Say a number.",
+                "data": {
+                "google": {
+                "expectUserResponse": true,
+                "isSsml": false,
+                "noInputPrompts": [
+                {
+                    "textToSpeech": "Say any number"
+                },
+                {
+                    "textToSpeech": "Pick a number"
+                },
+                {
+                    "textToSpeech": "What is the number?"
+                }
+                ]
+            }
+            },
+                "contextOut": [
+                {
+                    "name": "_actions_on_google_",
+                    "lifespan": 100,
+                    "parameters": {
+
+                }
+                }
+                ]
+            }""")
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+    }
+
+    /**
      * Tests parsing parameters with Gson and retrieving parameter values
      * NOTE: This are an addition to the official test suite.  These are needed due to the dynamic nature of
      * parameters.

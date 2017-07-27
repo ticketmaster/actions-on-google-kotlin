@@ -884,17 +884,17 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * * val REQUEST_PERMISSION_ACTION = "request_permission"
      * * val SAY_NAME_ACTION = "get_name"
      * *
-     * * fun requestPermission (app) {
-     * *   const permission = app.SupportedPermissions.NAME;
-     * *   app.askForPermission("To know who you are", permission);
+     * * fun requestPermission (app: ApiAiApp) {
+     * *   val permission = app.SupportedPermissions.NAME
+     * *   app.askForPermission("To know who you are", permission)
      * * }
      * *
-     * * fun sayName (app) {
+     * * fun sayName (app: ApiAiApp) {
      * *   if (app.isPermissionGranted()) {
-     * *     app.tell("Your name is " + app.getUserName().displayName));
+     * *     app.tell("Your name is " + app.getUserName().displayName))
      * *   } else {
      * *     // Response shows that user did not grant permission
-     * *     app.tell("Sorry, I could not get your name.");
+     * *     app.tell("Sorry, I could not get your name.")
      * *   }
      * * }
      * * val actionMap = mapOf(
@@ -941,19 +941,19 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @return {boolean} True if user device has the given capability.
      *
      * @example
-     * const app = new ApiAIApp({request: req, response: res});
-     * const DESCRIBE_SOMETHING = "DESCRIBE_SOMETHING";
+     * val app = ApiAIApp(request = req, response = res)
+     * val DESCRIBE_SOMETHING = "DESCRIBE_SOMETHING"
      *
-     * function describe (app) {
+     * fun describe (app: ApiAiApp) {
      *   if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
-     *     app.tell(richResponseWithBasicCard);
+     *     app.tell(richResponseWithBasicCard)
      *   } else {
-     *     app.tell("Let me tell you about ...");
+     *     app.tell("Let me tell you about ...")
      *   }
      * }
-     * const actionMap = new Map();
-     * actionMap.set(DESCRIBE_SOMETHING, describe);
-     * app.handleRequest(actionMap);
+     * val actionMap = mapOf(
+     *      DESCRIBE_SOMETHING to ::describe)
+     * app.handleRequest(actionMap)
      *
      * @apiai
      * @actionssdk
