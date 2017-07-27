@@ -30,9 +30,9 @@ bintray {
         licenses = ['Apache-2.0']
         vcsUrl = 'https://github.com/TicketmasterMobileStudio/actions-on-google-kotlin'
         version {
-            name = '0.3-alpha'
+            name = project.ext.sdkVersion + '-alpha'
             desc = 'Actions on Google SDK - alpha'
-            vcsTag = '0.3'
+            vcsTag = project.ext.sdkVersion
             released = new Date()
         }
     }
@@ -84,7 +84,7 @@ publishing {
             artifact javadocJar
             groupId 'com.tmsdurham.actions'
             artifactId 'actions-on-google'
-            version '0.3'
+            version project.ext.sdkVersion
             pom.withXml {
                 def root = asNode()
                 root.appendNode('description', 'Unofficial Actions on Google Client Library for Kolin/Java')

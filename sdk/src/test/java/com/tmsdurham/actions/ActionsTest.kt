@@ -1482,7 +1482,7 @@ object ActionsTest : Spek({
                                     "guess" to "50"),
                             lifespan = 50
                             ))
-                    
+
             val mockRequest = RequestWrapper(headerV1, body)
             val mockResponse = ResponseWrapper<ApiAiResponse>()
 
