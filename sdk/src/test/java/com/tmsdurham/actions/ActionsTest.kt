@@ -1706,26 +1706,53 @@ object ActionsTest : Spek({
                 )
                 expect(app.getSelectedOption()).to.equal("first_item")
             }
-        }
-    }
 
-
-    /**
-     * Tests parsing parameters with Gson and retrieving parameter values
-     * NOTE: This are an addition to the official test suite.  These are needed due to the dynamic nature of
-     * parameters.
-     */
-    describe("ApiAiResponse#Result#Parameters") {
         // Success case test, when the API returns a valid 200 response with the response object
-        it("fields should be accessible through map") {
-            val body = createLiveSessionApiAppBody()
-            val mockRequest = RequestWrapper(headerV1, body)
-
-            expect(mockRequest.body.result.parameters?.get("city")).to.be.equal("Rome")
-            expect(mockRequest.body.result.parameters?.get("list")).to.be.equal(listOf("one", "two"))
-            expect(mockRequest.body.result.parameters?.get("nested")).to.be.equal(mutableMapOf("nestedField" to "n1"))
+        it("Should get the selected option when not given in APIAI context.")  {
+            val body = createLiveSessionApiAppBody ()
+            body.originalRequest?.data?.inputs?.add(gson.fromJson("""{
+                "arguments": [
+                {
+                    "text_value": "first_item",
+                    "name": "OPTION"
+                }
+                ],
+                "intent": "actions.intent.OPTION",
+                "raw_inputs": [
+                {
+                    "query": "firstitem",
+                    "input_type": 2,
+                    "annotation_sets": []
+                }
+                ]
+            }""", Inputs::class.java))
+            mockRequest = mockRequest.copy(body = body)
+            app = ApiAiApp (
+                request = mockRequest,
+                response = mockResponse
+            )
+            expect(app.getSelectedOption()).to.equal("first_item")
         }
     }
+}
+
+
+        /**
+         * Tests parsing parameters with Gson and retrieving parameter values
+         * NOTE: This are an addition to the official test suite.  These are needed due to the dynamic nature of
+         * parameters.
+         */
+        describe ("ApiAiResponse#Result#Parameters") {
+    // Success case test, when the API returns a valid 200 response with the response object
+    it("fields should be accessible through map") {
+        val body = createLiveSessionApiAppBody()
+        val mockRequest = RequestWrapper(headerV1, body)
+
+        expect(mockRequest.body.result.parameters?.get("city")).to.be.equal("Rome")
+        expect(mockRequest.body.result.parameters?.get("list")).to.be.equal(listOf("one", "two"))
+        expect(mockRequest.body.result.parameters?.get("nested")).to.be.equal(mutableMapOf("nestedField" to "n1"))
+    }
+}
 })
 
 
