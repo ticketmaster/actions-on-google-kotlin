@@ -860,6 +860,44 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
             }
         return list
     }
+    
+    
+    /**
+     * Returns the Carousel constructed in API.AI response builder.
+     *
+     * @example
+     * val app = ApiAiApp(request = req, response = res)
+     *
+     * fun pickOption (app: ApiAiApp) {
+     * if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+     *     app.askWithCarousel("Which of these looks good?",
+     *       app.getIncomingCarousel().addItems(
+     *         app.buildOptionItem("another_choice", ["Another choice"]).
+     *         setTitle("Another choice").setDescription("Choose me!")))
+     *   } else {
+     *     app.ask("What would you like?")
+     *   }
+     * }
+     *
+     * val actionMap = mapOf(
+     *  "pick.option" to ::pickOption)
+     *
+     * app.handleRequest(actionMap)
+     *
+     * @return {Carousel} Carousel created in API.AI. If no Carousel was created,
+     *     an empty Carousel is returned.
+     * @apiai
+     */
+    fun getIncomingCarousel (): Carousel {
+        debug("getIncomingCarousel")
+        val carousel = buildCarousel()
+        request.body.result.fulfillment?.messages?.forEach {
+                if (it.type == CAROUSEL) {
+                    carousel.items = it.items ?: mutableListOf()
+                }
+        }
+        return carousel
+    }
 
 
     /**

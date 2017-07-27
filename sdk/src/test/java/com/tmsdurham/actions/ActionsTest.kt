@@ -1603,6 +1603,57 @@ object ActionsTest : Spek({
                         .equal(expectedResponse)
             }
         }
+
+        /**
+         * Describes the behavior for ApiAiApp getIncomingCarousel method.
+         */
+        describe("ApiAiApp#getIncomingCarousel") {
+            // Success case test, when the API returns a valid 200 response with the response object
+            it("Should get the incoming list for the success case.") {
+                val body = createLiveSessionApiAppBody()
+                body.result.fulfillment?.messages?.add(gson.fromJson("""{
+                    "type": "carousel_card",
+                    "platform": "google",
+                    "items": [
+                    {
+                        "optionInfo": {
+                        "key": "first_item",
+                        "synonyms": []
+                    },
+                        "title": "first item",
+                        "description": "Your first choice"
+                    },
+                    {
+                        "optionInfo": {
+                        "key": "second_item",
+                        "synonyms": []
+                    },
+                        "title": "second item",
+                        "description": "Your second choice"
+                    }
+                    ]
+                }""", Messages::class.java))
+
+                val mockRequest = RequestWrapper(headerV1, body)
+                val mockResponse = ResponseWrapper<ApiAiResponse>()
+
+                val app = ApiAiApp(
+                    request = mockRequest,
+                    response = mockResponse
+                )
+
+                val expectedResponse = Carousel()
+                        .addItems(
+                        OptionItem().setTitle("first item").setKey("first_item")
+                                .setDescription("Your first choice"),
+                        OptionItem().setTitle("second item").setKey("second_item")
+                                .setDescription("Your second choice")
+                        )
+
+                expect(app.getIncomingCarousel()).to
+                        .equal(expectedResponse)
+            }
+        }
     }
 
 
