@@ -127,6 +127,50 @@ class ConversationStages(val isNotVersionOne: Boolean) {
 }
 
 /**
+ * List of surface capabilities supported by the app.
+ * @readonly
+ * @enum {string}
+ * @actionssdk
+ * @apiai
+ */
+class SurfaceCapabilities {
+    /**
+     * The ability to output audio.
+     */
+    val AUDIO_OUTPUT = "actions.capability.AUDIO_OUTPUT"
+    /**
+     * The ability to output on a screen
+     */
+    val SCREEN_OUTPUT = "actions.capability.SCREEN_OUTPUT"
+}
+
+/**
+ * List of possible user input types.
+ * @readonly
+ * @enum {number}
+ * @actionssdk
+ * @apiai
+ */
+class InputTypes(val isNotApiVersionOne: Boolean){
+    /**
+     * Unspecified.
+     */
+    val UNSPECIFIED = if (isNotApiVersionOne) "UNSPECIFIED" else "0"
+    /**
+     * Input given by touch.
+     */
+    val TOUCH = if (isNotApiVersionOne) "TOUCH" else "1"
+    /**
+     * Input given by voice (spoken).
+     */
+    val VOICE = if (isNotApiVersionOne) "VOICE" else "2"
+    /**
+     * Input given by keyboard (typed).
+     */
+    val KEYBOARD = if (isNotApiVersionOne) "KEYBOARD" else "3"
+}
+
+/**
  * List of supported permissions the app supports.
  */
 class SupportedPermissions {
@@ -166,17 +210,19 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     lateinit var BUILT_IN_ARG_NAMES: BuiltInArgNames
     val INPUT_VALUE_DATA_TYPES = InputValueDataTypes()
     lateinit var CONVERSATION_STAGES: ConversationStages
+    val SURFACE_CAPABILITIES = SurfaceCapabilities()
+    lateinit var INPUT_TYPES: InputTypes
     val SUPPORTED_PERMISSIONS = SupportedPermissions()
     val SIGN_IN_STATUS = SignInStatus()
 
     var responded = false
     var apiVersion: String = ""
     var state: String = ""
-    var contexts = listOf<ContextOut>()
+    var contexts = mutableMapOf<String, Context>()
     val requestExtractor: RequestExtractor<T, S>
 
     init {
-        debug("AssistantApp constructor");
+        debug("AssistantApp constructor")
 
         if (request == null) {
             handleError("Request can NOT be empty.")
@@ -197,6 +243,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         STANDARD_INTENTS = StandardIntents(isNotApiVersionOne())
         BUILT_IN_ARG_NAMES = BuiltInArgNames(isNotApiVersionOne())
         CONVERSATION_STAGES = ConversationStages(isNotApiVersionOne())
+        INPUT_TYPES = InputTypes(isNotApiVersionOne())
 
         /**
          * API version describes version of the Assistant request.
@@ -462,7 +509,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
                           var requestDatetimeText: String? = null,
                           var requestDateText: String? = null,
                           var requestTimeText: String? = null)
-    
+
     /**
      * Checks whether user is in transactable state.
      *
@@ -837,17 +884,17 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * * val REQUEST_PERMISSION_ACTION = "request_permission"
      * * val SAY_NAME_ACTION = "get_name"
      * *
-     * * fun requestPermission (app) {
-     * *   const permission = app.SupportedPermissions.NAME;
-     * *   app.askForPermission("To know who you are", permission);
+     * * fun requestPermission (app: ApiAiApp) {
+     * *   val permission = app.SupportedPermissions.NAME
+     * *   app.askForPermission("To know who you are", permission)
      * * }
      * *
-     * * fun sayName (app) {
+     * * fun sayName (app: ApiAiApp) {
      * *   if (app.isPermissionGranted()) {
-     * *     app.tell("Your name is " + app.getUserName().displayName));
+     * *     app.tell("Your name is " + app.getUserName().displayName))
      * *   } else {
      * *     // Response shows that user did not grant permission
-     * *     app.tell("Sorry, I could not get your name.");
+     * *     app.tell("Sorry, I could not get your name.")
      * *   }
      * * }
      * * val actionMap = mapOf(
@@ -887,6 +934,51 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         return getUser()?.locale
     }
 
+    /**
+     * Returns true if user device has a given surface capability.
+     *
+     * @param {string} capability Must be one of {@link SurfaceCapabilities}.
+     * @return {boolean} True if user device has the given capability.
+     *
+     * @example
+     * val app = ApiAIApp(request = req, response = res)
+     * val DESCRIBE_SOMETHING = "DESCRIBE_SOMETHING"
+     *
+     * fun describe (app: ApiAiApp) {
+     *   if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+     *     app.tell(richResponseWithBasicCard)
+     *   } else {
+     *     app.tell("Let me tell you about ...")
+     *   }
+     * }
+     * val actionMap = mapOf(
+     *      DESCRIBE_SOMETHING to ::describe)
+     * app.handleRequest(actionMap)
+     *
+     * @apiai
+     * @actionssdk
+     */
+    fun hasSurfaceCapability (requestedCapability: String): Boolean {
+        debug("hasSurfaceCapability: requestedCapability=$requestedCapability")
+        val capabilities = getSurfaceCapabilities()
+        if (capabilities?.isEmpty() ?: false) {
+            error("No incoming capabilities to search " +
+                    "for request capability: $requestedCapability")
+            return false
+        }
+        return capabilities?.contains(requestedCapability) ?: false
+    }
+
+    /**
+     * Gets surface capabilities of user device.
+     *
+     * Implemented in RequestExtractor
+     * @return {List<String>?} HTTP response.
+     * @apiai
+     * @actionssdk
+     */
+    fun getSurfaceCapabilities () = requestExtractor.getSurfaceCapabilities()
+
     fun handleError(text: String?) {
         debug("handleError_: text=%$text")
         if (text.isNullOrEmpty()) {
@@ -903,7 +995,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         this.response.status(RESPONSE_CODE_BAD_REQUEST).send(API_ERROR_MESSAGE_PREFIX + text)
         this.responded = true;
     }
-    
+
     /**
      * Helper to process a transaction config and create a payment options object.
      *
@@ -938,6 +1030,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
 
     fun isPermissionGranted() = requestExtractor.isPermissionGranted()
     fun isInSandbox() = requestExtractor.isInSandbox()
+    fun getInputType() = requestExtractor.getInputType()
 }
 
 fun debug(msg: String) {

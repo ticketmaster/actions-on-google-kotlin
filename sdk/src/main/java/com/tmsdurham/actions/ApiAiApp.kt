@@ -2,7 +2,6 @@ package com.tmsdurham.actions
 
 import com.ticketmaster.apiai.*
 import com.ticketmaster.apiai.google.GoogleData
-import java.lang.reflect.InvocationTargetException
 
 
 class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
@@ -43,6 +42,29 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
                 CONVERSATION_STAGES.NEW) && sessionStarted != null) {
             sessionStarted()
         }
+    }
+    
+    /**
+     * Verifies whether the request comes from API.AI.
+     *
+     * @param {String} key The header key specified by the developer in the
+     *     API.AI Fulfillment settings of the app.
+     * @param {String} value The private value specified by the developer inside the
+     *     fulfillment header.
+     * @return {Boolean} True if the request comes from API.AI.
+     * @apiai
+     */
+    fun isRequestFromApiAi (key: String, value: String): Boolean {
+        debug("isRequestFromApiAi: key=$key, value=$value")
+        if (key.isBlank()) {
+            handleError("key must be specified.")
+            return false
+        }
+        if (value.isBlank()) {
+            handleError("value must be specified.")
+            return false
+        }
+        return request.get(key) == value
     }
 
     /**
@@ -418,9 +440,175 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         return this.doResponse(response, RESPONSE_CODE_OK)
     }
 
+    /**
+     * Set a new context for the current intent.
+     *
+     * @example
+     * val app = ApiAiApp(request = request, response = response)
+     * val CONTEXT_NUMBER = "number"
+     * val NUMBER_ARGUMENT = "myNumber"
+     *
+     * fun welcomeIntent (app: ApiAiApp) {
+     *   app.setContext(CONTEXT_NUMBER)
+     *   app.ask("Welcome to action snippets! Say a number.")
+     * }
+     *
+     * fun numberIntent (app: ApiAiApp) {
+     *   val number = app.getArgument(NUMBER_ARGUMENT)
+     *   app.tell("You said " + number)
+     * }
+     *
+     * val actionMap = mapOf(
+     *      WELCOME_INTENT to ::welcomeIntent,
+     *      NUMBER_INTENT to ::numberIntent)
+     * app.handleRequest(actionMap)
+     *
+     * @param {String} name Name of the context. API.AI converts to lowercase.
+     * @param {Int} [lifespan=1] Context lifespan.
+     * @param {Map<String, Any?>=} parameters Context JSON parameters.
+     * @apiai
+     */
+    fun setContext (name: String, lifespan: Int? = null, parameters: MutableMap<String, Any>? = null): Unit {
+        debug("setContext: context=$contexts, lifespan=$lifespan, parameters=$parameters")
+        if (name.isEmpty()) {
+            handleError("Invalid context name")
+            return
+        }
+        val newContext = Context(
+            name = name,
+            lifespan = 1
+        )
+        if (lifespan != null) {
+            newContext.lifespan = lifespan
+        }
+        if (parameters != null) {
+            newContext.parameters = parameters
+        }
+        this.contexts[name] = newContext
+    }
+
+    /**
+     * Returns the incoming contexts for this intent.
+     *
+     * @example
+     * val app = ApiAiApp(request = request, response = response)
+     * val CONTEXT_NUMBER = "number"
+     * val NUMBER_ARGUMENT = "myNumber"
+     *
+     * function welcomeIntent (app: ApiAiApp) {
+     *   app.setContext(CONTEXT_NUMBER)
+     *   app.ask("Welcome to action snippets! Say a number.")
+     * }
+     *
+     * fun numberIntent (app: ApiAiApp) {
+     *   val contexts = app.getContexts()
+     *   // contexts === [{
+     *   //   name: "number",
+     *   //   lifespan: 0,
+     *   //   parameters: {
+     *   //     myNumber: "23",
+     *   //     myNumber.original: "23"
+     *   //   }
+     *   // }]
+     *   val number = app.getArgument(NUMBER_ARGUMENT)
+     *   app.tell("You said " + number)
+     * }
+     *
+     * val actionMap = mapOf(
+     *      WELCOME_INTENT to ::welcomeIntent,
+     *      NUMBER_INTENT to numberIntent)
+     * app.handleRequest(actionMap)
+     *
+     * @return {MutableList<Context>} Empty if no active contexts.
+     * @apiai
+     */
+    fun getContexts (): MutableList<Context> {
+        debug("getContexts")
+        if (request.body.result?.contexts?.isEmpty()) {
+            handleError("No contexts included in request")
+            return mutableListOf()
+        }
+        debug("HERE!!! + $request")
+        return request.body.result?.contexts?.filter { it.name != ACTIONS_API_AI_CONTEXT }?.filterNotNull().toMutableList()
+    }
+
+    /**
+     * Returns the incoming context by name for this intent.
+     *
+     * @example
+     * val app = ApiAiapp(request = request, response = response)
+     * val CONTEXT_NUMBER = "number"
+     * val NUMBER_ARGUMENT = "myNumber"
+     *
+     * fun welcomeIntent (app: ApiAiApp) {
+     *   app.setContext(CONTEXT_NUMBER)
+     *   app.ask("Welcome to action snippets! Say a number.")
+     * }
+     *
+     * fun numberIntent (app: ApiAiApp) {
+     *   val context = app.getContext(CONTEXT_NUMBER)
+     *   // context === {
+     *   //   name: "number",
+     *   //   lifespan: 0,
+     *   //   parameters: {
+     *   //     myNumber: "23",
+     *   //     myNumber.original: "23"
+     *   //   }
+     *   // }
+     *   val number = app.getArgument(NUMBER_ARGUMENT)
+     *   app.tell("You said " + number)
+     * }
+     *
+     * const actionMap = mapOf(
+     *      WELCOME_INTENT to ::welcomeIntent,
+     *      NUMBER_INTENT to ::numberIntent)
+     * app.handleRequest(actionMap)
+     *
+     * @return {Object} Context value matching name
+     *     or null if no matching context.
+     * @apiai
+     */
+
+    fun getContext (name: String): Context? {
+        debug("getContext: name=$name")
+        if (request.body.result.contexts == null) {
+            handleError("No contexts included in request")
+            return null
+        }
+        request.body.result.contexts.forEach {
+            if (it.name == name) {
+                return it
+            }
+        }
+        debug("Failed to get context: $name")
+        return null
+    }
+
+
     override fun getIntent(): String {
         debug("getIntent_");
         return request.body.result.action
+    }
+
+    /**
+     * Gets the user"s raw input query.
+
+     * @example
+     * * val app = ApiAiApp(request = request, response = response)
+     * * app.tell("You said " + app.getRawInput())
+     * *
+     * *
+     * @return {String} User"s raw query or null if no value.
+     * *
+     * @apiai
+     */
+    fun getRawInput(): String? {
+        debug("getRawInput")
+        if (request.body.result.resolvedQuery.isEmpty()) {
+            handleError("No raw input")
+            return null
+        }
+        return request.body.result.resolvedQuery
     }
 
     /**
@@ -742,9 +930,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         request.body.result.contexts.forEach {
             if (it.name === contextName) {
                 if (it.parameters != null) {
-                    val argument = ContextArgument(value = it.parameters[argName])
-                    if (it.parameters[argName + ORIGINAL_SUFFIX] != null) {
-                        argument.original = it.parameters[argName + ORIGINAL_SUFFIX]
+                    val argument = ContextArgument(value = it.parameters!![argName])
+                    if (it.parameters!![argName + ORIGINAL_SUFFIX] != null) {
+                        argument.original = it.parameters!![argName + ORIGINAL_SUFFIX]
                     }
                     return argument
                 }
@@ -802,7 +990,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
                 BASIC_CARD -> {
                     val item = BasicCard()
                     item.formattedText = it.formattedText
-                    item.buttons = it.buttons
+                    if (it.buttons != null) {
+                        item.buttons = it.buttons!!
+                    }
                     item.image = it.image
                     item.subtitle = it.subtitle
                     item.title = it.title ?: ""
@@ -821,37 +1011,81 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         return response
     }
 
-
     /**
-     * Gets property on any object by field name via reflection
+     * Returns the List constructed in API.AI response builder.
+     *
+     * @example
+     * val app = ApiAiApp(request = req, response = res)
+     *
+     * fun pickOption (app: ApiAiApp) {
+     * if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+     *     app.askWithList("Which of these looks good?",
+     *       app.getIncomingList().addItems(
+     *         app.buildOptionItem("another_choice", ["Another choice"]).
+     *         setTitle("Another choice")))
+     *   } else {
+     *     app.ask("What would you like?")
+     *   }
+     * }
+     *
+     * val actionMap = mapOf(
+     *      "pick.option" to ::pickOption)
+     *
+     * app.handleRequest(actionMap)
+     *
+     * @return {List} List created in API.AI. If no List was created, an empty
+     *     List is returned.
+     * @apiai
      */
-    inline fun <P : Any> getProperty(obj: P, name: String): Any? {
-        try {
-            val field = obj.javaClass.getDeclaredField(name)
-
-            // MZ: Find the correct method
-            obj.javaClass.methods.forEach {
-                if (it.name.startsWith("get") && it.name.length === field.name.length + 3) {
-                    if (it.name.toLowerCase().endsWith(field.name.toLowerCase())) {
-                        // MZ: Method found, run it
-                        try {
-                            return it.invoke(obj)
-                        } catch (e: IllegalAccessException) {
-                            error("Could not determine method: " + it.name)
-                        } catch (e: InvocationTargetException) {
-                            error("Could not determine method: " + it.name)
-                        }
-
-                    }
+    fun getIncomingList (): List {
+        debug("getIncomingList")
+        val list = buildList()
+        request.body.result.fulfillment?.messages?.forEach {
+                if (it.type == LIST) {
+                    list.title = it.title
+                    list.items = it.items
                 }
             }
-        } catch (e: NoSuchFieldException) {
-            debug("NoSuchFieldException: $name}")
-        }
-        return null
+        return list
     }
-
-    data class ContextArgument(var value: Any?, var original: Any? = null)
+    
+    
+    /**
+     * Returns the Carousel constructed in API.AI response builder.
+     *
+     * @example
+     * val app = ApiAiApp(request = req, response = res)
+     *
+     * fun pickOption (app: ApiAiApp) {
+     * if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+     *     app.askWithCarousel("Which of these looks good?",
+     *       app.getIncomingCarousel().addItems(
+     *         app.buildOptionItem("another_choice", ["Another choice"]).
+     *         setTitle("Another choice").setDescription("Choose me!")))
+     *   } else {
+     *     app.ask("What would you like?")
+     *   }
+     * }
+     *
+     * val actionMap = mapOf(
+     *  "pick.option" to ::pickOption)
+     *
+     * app.handleRequest(actionMap)
+     *
+     * @return {Carousel} Carousel created in API.AI. If no Carousel was created,
+     *     an empty Carousel is returned.
+     * @apiai
+     */
+    fun getIncomingCarousel (): Carousel {
+        debug("getIncomingCarousel")
+        val carousel = buildCarousel()
+        request.body.result.fulfillment?.messages?.forEach {
+                if (it.type == CAROUSEL) {
+                    carousel.items = it.items ?: mutableListOf()
+                }
+        }
+        return carousel
+    }
 
     /**
      * Returns the option key user chose from options response.
@@ -895,6 +1129,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         debug("Failed to get selected option")
         return null
     }
+
+    data class ContextArgument(var value: Any?, var original: Any? = null)
+
 
 //TODO builderResponse(richResponse,...)
 /*
@@ -981,12 +1218,12 @@ if (!isStringResponse) {
                 noInputPrompts = noInputsFinal)
         if (expectUserResponse) {
             response.contextOut.add(
-                    ContextOut(
+                    Context(
                             name = ACTIONS_API_AI_CONTEXT,
                             lifespan = MAX_LIFESPAN,
                             parameters = dialogState.data))
         }
-        response.contextOut.addAll(contexts)
+        response.contextOut = response.contextOut.plus(contexts.values).toMutableList()
         this.response.body = response
         return this.response
     }
@@ -1034,12 +1271,12 @@ if (!isStringResponse) {
                 noInputPrompts = noInputsFinal)
         if (expectUserResponse) {
             response.contextOut.add(
-                    ContextOut(
+                    Context(
                             name = ACTIONS_API_AI_CONTEXT,
                             lifespan = MAX_LIFESPAN,
                             parameters = dialogState.data))
         }
-        response.contextOut.addAll(contexts)
+        response.contextOut.addAll(contexts.values)
         this.response.body = response
         return this.response
     }

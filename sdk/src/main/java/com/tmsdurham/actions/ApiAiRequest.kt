@@ -3,6 +3,7 @@ package com.ticketmaster.apiai
 import com.ticketmaster.apiai.google.GoogleData
 import com.tmsdurham.actions.Buttons
 import com.tmsdurham.actions.Image
+import com.tmsdurham.actions.OptionItem
 import com.tmsdurham.actions.Suggestions
 
 fun apiAiRequest(init: ApiAiRequest.() -> Unit): ApiAiRequest {
@@ -42,6 +43,7 @@ data class Metadata(
  */
 data class Messages(
         var type: String = "",
+        var items: MutableList<OptionItem>? = null,
         var speech: String? = null,
         var textToSpeech: String? = null,
         var displayText: String? = null,
@@ -58,7 +60,7 @@ data class Fulfillment(
         val speech: String? = null,
         val source: String? = null,
         val displayText: String? = null,
-        val messages: List<Messages>? = null,
+        var messages: MutableList<Messages>? = null,
         val data: Data? = null)
 
 data class Data(
@@ -77,9 +79,9 @@ data class Data(
 }
 
 data class Result(
-        var contexts: List<Contexts> = listOf(),
+        var contexts: List<Context> = listOf(),
         val source: String = "",
-        val resolvedQuery: String = "",
+        var resolvedQuery: String = "",
         var action: String = "",
         val actionIncomplete: Boolean = false,
         val parameters: MutableMap<String, Any>? = null,
@@ -94,13 +96,13 @@ data class Status(
         val code: Int = 0,
         val errorType: String? = null)
 
-data class Contexts(
+data class Context(
         val name: String = "",
-        val parameters: MutableMap<String, Any>? = null,
-        val lifespan: Int = 0) {
+        var parameters: MutableMap<String, Any>? = null,
+        var lifespan: Int = 0) {
 
     override fun equals(other: Any?) =
-        if (other is Contexts) {
+        if (other is Context) {
             this.name.toLowerCase().equals(other.name.toLowerCase())
         } else {
             false
@@ -118,7 +120,7 @@ data class OriginalRequestData(
         var device: Device? = null,
         var surface: Surface? = null,
         var sender: Sender? = null,
-        var inputs: List<Inputs>? = null,
+        var inputs: MutableList<Inputs>? = null,
         var isInSandbox: Boolean? = null)
 
 data class Conversation(var type: String)
@@ -159,6 +161,7 @@ data class Arguments(
         val boolValue: Boolean? = null,
         val rawText: String? = null,
         var textValue: String? = null,
+        var text_value: String? = null,
         val name: String? = null,
         val otherValue: Any? = null,
         val extension: TransactionRequirementsCheckResult? = null) {
@@ -196,12 +199,12 @@ data class TransactionRequirementsCheckResult(
 
 }
 
-data class Raw_inputs(val query: String? = null, val inputType: String? = null)
+data class RawInputs(val query: String? = null, val inputType: String? = null)
 
 data class Inputs(
         var arguments: List<Arguments>? = null,
         val intent: String? = null,
-        val rawInputs: List<Raw_inputs>? = null)
+        val rawInputs: List<RawInputs>? = null)
 
 data class DialogState(val state: String = "", val data: MutableMap<String, Any>? = null)
 
