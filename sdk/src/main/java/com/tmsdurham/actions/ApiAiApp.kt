@@ -44,6 +44,29 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
             sessionStarted()
         }
     }
+    
+    /**
+     * Verifies whether the request comes from API.AI.
+     *
+     * @param {String} key The header key specified by the developer in the
+     *     API.AI Fulfillment settings of the app.
+     * @param {String} value The private value specified by the developer inside the
+     *     fulfillment header.
+     * @return {Boolean} True if the request comes from API.AI.
+     * @apiai
+     */
+    fun isRequestFromApiAi (key: String, value: String): Boolean {
+        debug("isRequestFromApiAi: key=$key, value=$value")
+        if (key.isBlank()) {
+            handleError("key must be specified.")
+            return false
+        }
+        if (value.isBlank()) {
+            handleError("value must be specified.")
+            return false
+        }
+        return request.get(key) == value
+    }
 
     /**
      * Asks to collect the user"s input.

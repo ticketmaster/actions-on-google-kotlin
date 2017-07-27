@@ -1,6 +1,5 @@
 package com.tmsdurham.actions
 
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.nhaarman.mockito_kotlin.mock
@@ -14,8 +13,6 @@ import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 
 val gson = GsonBuilder().setPrettyPrinting().create()
-
-//data class MockParameters(var guess: String? = null)
 
 typealias MockHandler = Handler<ApiAiRequest, ApiAiResponse>
 
@@ -1734,7 +1731,48 @@ object ActionsTest : Spek({
             expect(app.getSelectedOption()).to.equal("first_item")
         }
     }
-}
+        /**
+         * Describes the behavior for ApiAiApp isRequestFromApiAi method.
+         */
+        describe("ApiAiApp#isRequestFromApiAi") {
+            // Success case test, when the API returns a valid 200 response with the response object
+            it("Should confirm request is from API.ai.") {
+                val header = headerV1.toMutableMap()
+                header["Google-Assistant-Signature"] = "YOUR_PRIVATE_KEY"
+                val mockRequest = RequestWrapper(header, createLiveSessionApiAppBody())
+                val mockResponse = ResponseWrapper<ApiAiResponse>()
+
+                val app = ApiAiApp(
+                    request = mockRequest,
+                    response = mockResponse
+                )
+
+                val HEADER_KEY = "Google-Assistant-Signature"
+                val HEADER_VALUE = "YOUR_PRIVATE_KEY"
+
+                expect(app.isRequestFromApiAi(HEADER_KEY, HEADER_VALUE)).to.equal(true)
+            }
+
+            it("Should confirm request is NOT from API.ai.") {
+                val header = headerV1
+                val body = createLiveSessionApiAppBody()
+                val mockRequest = RequestWrapper(header, body)
+                val mockResponse = ResponseWrapper<ApiAiResponse>()
+
+                val app = ApiAiApp(
+                    request = mockRequest,
+                    response = mockResponse
+                )
+
+                val HEADER_KEY = "Google-Assistant-Signature"
+                val HEADER_VALUE = "YOUR_PRIVATE_KEY"
+                debug(header.toString())
+
+                expect(app.isRequestFromApiAi(HEADER_KEY, HEADER_VALUE)).to.equal(false)
+            }
+        }
+
+    }
 
 
         /**
