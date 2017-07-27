@@ -386,7 +386,7 @@ class TransactionValues {
         /**
          * Transactions are not supported for current region/country.
          */
-        REGION_NOT_SUPPORTED("ASSISTANT_SURFACE_NOT_SUPPORTED)";
+        REGION_NOT_SUPPORTED("ASSISTANT_SURFACE_NOT_SUPPORTED");
 
         override fun toString() = value
     }
@@ -464,6 +464,823 @@ class TransactionValues {
          */
         RESERVATION_SLOT
     }
-   
+
 
 }
+
+/**
+ * Class for initializing and constructing Order with chainable interface.
+ *
+ * Constructor for Order.
+ *
+ * ID for the order. Required.
+ * @type {string}
+ * @param {string} orderId Unique identifier for the order.
+ */
+data class Order(val orderId: String) {
+
+    /**
+     * Cart for the order.
+     * @type {Cart}
+     */
+    var cart: Cart? = null
+
+    /**
+     * Items not held in the order cart.
+     * @type {MutableList<LineItem>}
+     */
+    val otherItems = mutableListOf<LineItem>()
+
+    /**
+     * Image for the order.
+     * @type {Image}
+     */
+    val image = null
+
+    /**
+     * TOS for the order.
+     * @type {String}
+     */
+    var termsOfServiceUrl: String? = null
+
+    /**
+     * Total price for the order.
+     * @type {Price}
+     */
+    val totalPrice = null
+
+    /**
+     * Extensions for this order. Used for vertical-specific order attributes,
+     * like times and locations.
+     * @type {Object}
+     */
+    val extension = null
+
+    /**
+     * Set the cart for this order.
+     *
+     * @param {Cart} cart Cart for this order.
+     * @return {Order} Returns current constructed Order.
+     */
+    fun setCart(cart: Cart): Order {
+        if (cart == null) {
+            error("Invalid cart");
+            return this
+        }
+        this.cart = cart
+        return this
+    }
+
+    /**
+     * Adds a single item or list of items to the non-cart items list.
+     *
+     * @param {LineItem|Array<LineItem>} items Line Items to add.
+     * @return {Order} Returns current constructed Order.
+     */
+    fun addOtherItems(vararg items: LineItem): Order {
+        if (items.isEmpty()) {
+            error("items cannot be empty")
+            return this
+        }
+        otherItems.addAll(items)
+
+        return this
+    }
+
+
+    /**
+     * Sets the image for this order.
+     *
+     * @param {String} url Image source URL.
+     * @param {String} accessibilityText Text to replace for image for
+     *     accessibility.
+     * @param {Int?=} width Width of the image.
+     * @param {Int?=} height Height of the image.
+     * @return {Order} Returns current constructed Order.
+     */
+    fun setImage(url: String, accessibilityText: String, width: Int? = null, height: Int? = null): Order {
+        if (url.isEmpty()) {
+            error("url cannot be empty")
+            return this
+        }
+        if (accessibilityText.isEmpty()) {
+            error("accessibilityText cannot be empty")
+            return this
+        }
+        image = { url, accessibilityText };
+        if (width != null) {
+            this.image.width = width;
+        }
+        if (height != null) {
+            this.image.height = height;
+        }
+        return this
+    }
+
+    /**
+     * Set the TOS for this order.
+     *
+     * @param {String} tos String URL of the TOS.
+     * @return {Order} Returns current constructed Order.
+     */
+    fun setTermsOfService(url: String): Order {
+        if (url.isEmpty()) {
+            error("Invalid TOS url")
+            return this
+        }
+        this.termsOfServiceUrl = url
+        return this
+    }
+
+    /**
+     * Sets the total price for this order.
+     *
+     * @param {TransactionValues.PriceType} priceType One of TransactionValues.PriceType.
+     * @param {String} currencyCode Currency code of price.
+     * @param {Int} units Unit count of price.
+     * @param {Int=} nanos Partial unit count of price.
+     * @return {Order} Returns current constructed Order.
+     */
+    fun setTotalPrice(priceType: TransactionValues.PriceType, currencyCode: String, units: Int, nanos: Int): Order {
+        if (currencyCode.isEmpty()) {
+            error("currencyCode cannot be empty")
+            return this
+        }
+
+        this.totalPrice = {
+            type: priceType,
+            amount: {
+            currencyCode: currencyCode,
+            units: units,
+            nanos: nanos || 0
+        }
+        }
+        return this
+    }
+
+    /**
+     * Adds an associated location to the order. Up to 2 locations can be added.
+     *
+     * @param {TransactionValues.LocationType} type One of TransactionValues.LocationType.
+     * @param {Location} location Location to add.
+     * @return {Order} Returns current constructed Order.
+     */
+    fun addLocation(type: TransactionValues.LocationType, location: Location): Order {
+        if (location == null) {
+            error("location cannot be null")
+            return this
+        }
+        if (this.extension != null) {
+            this.extension = {
+                "@type": GENERIC_EXTENSION_TYPE
+            }
+        }
+        if (!this.extension.locations) {
+            this.extension.locations = []
+        }
+        if (this.extension.locations.length >= ORDER_LOCATION_LIMIT) {
+            error("Order can have no more than " + ORDER_LOCATION_LIMIT +
+                    " associated locations");
+            return this;
+        }
+        this.extension.locations.push({ type, location });
+        return this
+    }
+
+    /**
+     * Sets an associated time to the order.
+     *
+     * @param {TransactionValues.TimeType} type One of TransactionValues.TimeType.
+     * @param {String} time Time to add. Time should be ISO 8601 representation
+     *     of time value. Could be date, datetime, or duration.
+     * @return {Order} Returns current constructed Order.
+     */
+    fun setTime(type: TransactionValues.TimeType, time: String): Order {
+        if (time.isEmpty()) {
+            error("time cannot be empty")
+            return this
+        }
+        if (this.extension != null) {
+            this.extension = {
+                "@type": GENERIC_EXTENSION_TYPE
+            }
+        }
+        this.extension.time = { type, time_iso8601: time }
+        return this
+    }
+}
+
+/**
+ * Class for initializing and constructing Cart with chainable interface.
+ *
+ * Constructor for Cart.
+ *
+ * @param {string=} cartId Optional unique identifier for the cart.
+ * ID for the cart. Optional.
+ * @type {string}
+ */
+data class Cart(var cartId: String? = null) {
+
+    /**
+     * Merchant providing the cart.
+     * @type {Object}
+     */
+    var merchant: String? = null
+
+    /**
+     * Optional notes about the cart.
+     * @type {String}
+     */
+    var notes: String? = null
+
+    /**
+     * Items held in the order cart.
+     * @type {MutableList<LineItem>}
+     */
+    var lineItems: MutableList<LineItem> = mutableListOf()
+
+    /**
+     * Non-line items.
+     * @type {MutableList<LineItem>}
+     */
+    var otherItems: MutableList<LineItem> = mutableListOf()
+
+    /**
+     * Set the merchant for this cart.
+     *
+     * @param {string} id Merchant ID.
+     * @param {string} name Name of the merchant.
+     * @return {Cart} Returns current constructed Cart.
+     */
+    fun setMerchant(id: String, name: String): Cart {
+        if (id.isEmpty()) {
+            error("Merchant ID cannot be empty")
+            return this
+        }
+        if (name.isEmpty()) {
+            error("Merchant name cannot be empty")
+            return this
+        }
+        this.merchant = { id, name };
+        return this
+    }
+
+    /**
+     * Set the notes for this cart.
+     *
+     * @param {String} notes Notes.
+     * @return {Cart} Returns current constructed Cart.
+     */
+    fun setNotes(notes: String): Cart {
+        if (notes.isEmpty()) {
+            error("Notes cannot be empty")
+            return this
+        }
+        this.notes = notes
+        return this
+    }
+
+    /**
+     * Adds a single item or list of items to the cart.
+     *
+     * @param {LineItem|Array<LineItem>} items Line Items to add.
+     * @return {Cart} Returns current constructed Cart.
+     */
+    fun addLineItems(vararg items: LineItem): Cart {
+        if (items.isEmpty()) {
+            error("items cannot be null")
+            return this
+        }
+        lineItems.addAll(items)
+        return this
+    }
+
+    /**
+     * Adds a single item or list of items to the non-items list of this cart.
+     *
+     * @param {LineItem|Array<LineItem>} items Line Items to add.
+     * @return {Cart} Returns current constructed Cart.
+     */
+    fun addOtherItems(vararg items: LineItem): Cart {
+        if (items.isEmpty()) {
+            error("items cannot be null")
+            return this
+        }
+        otherItems.addAll(items)
+        return this
+    }
+}
+
+/**
+ * Class for initializing and constructing LineItem with chainable interface.
+ *
+ * Constructor for LineItem.
+ *
+ * @param {string} lineItemId Unique identifier for the item.
+ * @param {string} name Name of the item.
+ */
+data class LineItem(var id: String, var name: String) {
+
+    /**
+     * Item price.
+     * @type {Price}
+     */
+    var price: Price? = null
+
+    /**
+     * Sublines for current item. Only valid if item type is REGULAR.
+     * @type {Array<string|LineItem>}
+     */
+    var sublines: = undefined;
+
+    /**
+     * Image of the item.
+     * @type {Image}
+     */
+    var image = undefined;
+
+    /**
+     * Type of the item. One of TransactionValues.ItemType.
+     * @type {ItemType}
+     */
+    var type: TransactionValues.ItemType = TransactionValues.ItemType.UNSPECIFIED
+
+    /**
+     * Quantity of the item.
+     * @type {Int?}
+     */
+    var quantity: Int? = null
+
+    /**
+     * Description for the item.
+     * @type {String}
+     */
+    var description: String? = null
+
+    /**
+     * Offer ID for the item.
+     * @type {String}
+     */
+    var offerId: String? = null
+
+    /**
+     * Adds a single item or list of items or notes to the sublines. Only valid
+     * if item type is REGULAR.
+     *
+     * @param {string|LineItem|Array<string|LineItem>} items Sublines to add.
+     * @return {LineItem} Returns current constructed LineItem.
+     */
+    fun addSublines(vararg items: LineItem): LineItem {
+        if (items.isEmpty()) {
+            error("items cannot be null")
+            return this
+        }
+        if (this.sublines != null) {
+            this.sublines = mutableListOf()
+        }
+        if (Array.isArray(items)) {
+            for (let item of items) {
+                this.sublines.push(item);
+            }
+        } else {
+            this.sublines.push(items);
+        }
+        return this
+    }
+
+    /**
+     * Sets the image for this item.
+     *
+     * @param {string} url Image source URL.
+     * @param {string} accessibilityText Text to replace for image for
+     *     accessibility.
+     * @param {number=} width Width of the image.
+     * @param {number=} height Height of the image.
+     * @return {LineItem} Returns current constructed LineItem.
+     */
+    fun setImage(url: String, accessibilityText: String, width: Int? = null, height: Int? = null): LineItem {
+        if (url.isEmpty()) {
+            error("url cannot be empty")
+            return this
+        }
+        if (accessibilityText.isEmpty()) {
+            error("accessibilityText cannot be empty")
+            return this
+        }
+        this.image = { url, accessibilityText }
+        if (width != null) {
+            this.image.width = width
+        }
+        if (height != null) {
+            this.image.height = height
+        }
+        return this
+    }
+
+    /**
+     * Sets the price of this item.
+     *
+     * @param {String} priceType One of TransactionValues.PriceType.
+     * @param {String} currencyCode Currency code of price.
+     * @param {Int} units Unit count of price.
+     * @param {Int} nanos Partial unit count of price.
+     * @return {LineItem} Returns current constructed LineItem.
+     */
+    fun setPrice(priceType: TransactionValues.PriceType, currencyCode: String, units: Int, nanos: Int): LineItem {
+        if (currencyCode.isEmpty()) {
+            error("currencyCode cannot be empty")
+            return this
+        }
+
+        this.price = {
+            type: priceType,
+            amount: {
+            currencyCode: currencyCode,
+            units: units,
+            nanos: nanos || 0
+        }
+        }
+        return this
+    }
+
+    /**
+     * Set the type of the item.
+     *
+     * @param {TransactionValues.ItemType} type Type of the item. One of TransactionValues.ItemType.
+     * @return {LineItem} Returns current constructed LineItem.
+     */
+    fun setType(type: TransactionValues.ItemType): LineItem {
+        this.type = type
+        return this
+    }
+
+    /**
+     * Set the quantity of the item.
+     *
+     * @param {Int} quantity Quantity of the item.
+     * @return {LineItem} Returns current constructed LineItem.
+     */
+    fun setQuantity(quantity: Int): LineItem {
+        if (quantity == 0) {
+            error("quantity cannot be empty")
+            return this
+        }
+        this.quantity = quantity
+        return this
+    }
+
+    /**
+     * Set the description of the item.
+     *
+     * @param {String} description Description of the item.
+     * @return {LineItem} Returns current constructed LineItem.
+     */
+    fun setDescription(description: String): LineItem {
+        if (description.isEmpty()) {
+            error("description cannot be empty")
+            return this
+        }
+        this.description = description
+        return this
+    }
+
+    /**
+     * Set the Offer ID of the item.
+     *
+     * @param {String} offerId Offer ID of the item.
+     * @return {LineItem} Returns current constructed LineItem.
+     */
+    fun setOfferId(offerId: String): LineItem {
+        if (offerId.isEmpty()) {
+            error("offerId cannot be empty")
+            return this
+        }
+        this.offerId = offerId
+        return this
+    }
+}
+
+/**
+ * Class for initializing and constructing OrderUpdate with chainable interface.
+ *
+ * Constructor for OrderUpdate.
+ *
+ * @param {string} orderId Unique identifier of the order.
+ * @param {boolean} isGoogleOrderId True if the order ID is provided by
+ *     Google. False if the order ID is app provided.
+ */
+data class OrderUpdate(val orderId: String, isGoogleOrderId: Boolean) {
+    /**
+     * Google provided identifier of the order.
+     * @type {string}
+     */
+    var googleOrderId: String?
+
+    /**
+     * App provided identifier of the order.
+     * @type {string}
+     */
+    var actionOrderId: String?
+
+    init {
+
+        googleOrderId = if (isGoogleOrderId) orderId else null
+        actionOrderId = if (!isGoogleOrderId) orderId else null
+    }
+
+
+    /**
+     * State of the order.
+     * @type {Object}
+     */
+    var orderState = null
+
+    /**
+     * Updates for items in the order. Mapped by item id to state or price.
+     * @type {Object}
+     */
+    var lineItemUpdates = null
+
+    /**
+     * UTC timestamp of the order update.
+     * @type {Object}
+     */
+    var updateTime: String? = null
+
+    /**
+     * Actionable items presented to the user to manage the order.
+     * @type {Object}
+     */
+    var orderManagementActions = null
+
+    /**
+     * Notification content to the user for the order update.
+     * @type {Object}
+     */
+    var userNotification = null
+
+    /**
+     * Updated total price of the order.
+     * @type {Price}
+     */
+    var totalPrice = null
+
+    /**
+     * Set the Google provided order ID of the order.
+     *
+     * @param {String} orderId Google provided order ID.
+     * @return {OrderUpdate} Returns current constructed OrderUpdate.
+     */
+    fun setGoogleOrderId (orderId: String): OrderUpdate {
+        if (orderId.isEmpty()) {
+            error("orderId cannot be empty")
+            return this
+        }
+        this.googleOrderId = orderId
+        return this
+    }
+
+    /**
+     * Set the Action provided order ID of the order.
+     *
+     * @param {String} orderId Action provided order ID.
+     * @return {OrderUpdate} Returns current constructed OrderUpdate.
+     */
+    fun setActionOrderId (orderId: String): OrderUpdate
+    {
+        if (orderId.isEmpty()) {
+            error("orderId cannot be empty")
+            return this
+        }
+        this.actionOrderId = orderId
+        return this
+    }
+
+    /**
+     * Set the state of the order.
+     *
+     * @param {TransactionValues.OrderState} state One of TransactionValues.OrderState.
+     * @param {String} label Label for the order state.
+     * @return {OrderUpdate} Returns current constructed OrderUpdate.
+     */
+    fun setOrderState (state: OrderState, label: String): OrderUpdate {
+        if (label.isEmpty()) {
+            error("label cannot be empty")
+            return this
+        }
+        this.orderState = { state, label }
+        return this
+    }
+
+    /**
+     * Set the update time of the order.
+     *
+     * @param {Long} seconds Seconds since Unix epoch.
+     * @param {Long=} nanos Partial time units.
+     * @return {OrderUpdate} Returns current constructed OrderUpdate.
+     */
+    fun setUpdateTime (seconds: Long, nanos: Long): OrderUpdate {
+        if (seconds < 0) {
+            error("Invalid seconds")
+            return this
+        }
+        this.updateTime = { seconds, nanos: nanos || 0 };
+        return this
+    }
+
+    /**
+     * Set the user notification content of the order update.
+     *
+     * @param {String} title Title of the notification.
+     * @param {String} text Text of the notification.
+     * @return {OrderUpdate} Returns current constructed OrderUpdate.
+     */
+    fun setUserNotification (title: String, text: String)
+    {
+        if (title.isEmpty()) {
+            error("title cannot be empty")
+            return this
+        }
+        if (text.isEmpty()) {
+            error("text cannot be empty")
+            return this
+        }
+        this.userNotification = { title, text }
+        return this;
+    }
+
+    /**
+     * Sets the total price for this order.
+     *
+     * @param {TransactionValues.PriceType} priceType One of TransactionValues.PriceType.
+     * @param {string} currencyCode Currency code of price.
+     * @param {number} units Unit count of price.
+     * @param {number=} nanos Partial unit count of price.
+     * @return {OrderUpdate} Returns current constructed OrderUpdate.
+     */
+    fun setTotalPrice (priceType: TransactionValues.PriceType, currencyCode: String, units: Int, nanos: Int): OrderUpdate
+    {
+        if (currencyCode.isEmpty()) {
+            error("currencyCode cannot be empty")
+            return this
+        }
+        this.totalPrice = {
+            type: priceType,
+            amount: {
+            currencyCode: currencyCode,
+            units: units,
+            nanos: nanos || 0
+        }
+        }
+        return this
+    }
+
+    /**
+     * Adds an actionable item for the user to manage the order.
+     *
+     * @param {TransactionValues.OrderUpdate} type One of TransactionValues.OrderActions.
+     * @param {String} label Button label.
+     * @param {String} url URL to open when button is clicked.
+     * @return {OrderUpdate} Returns current constructed OrderUpdate.
+     */
+    fun addOrderManagementAction (type: TransactionValues.OrderAction, label: String, url: String): OrderUpdate
+    {
+        if (label.isEmpty()) {
+            error("label cannot be empty")
+            return this
+        }
+        if (url.isEmpty()) {
+            error("URL cannot be empty")
+            return this
+        }
+        this.orderManagementActions.push({
+            type: type,
+            button: {
+            title: label,
+            openUrlAction: {
+            url: url
+        }
+        }
+        });
+        return this
+    }
+
+    /**
+     * Adds a single price update for a particular line item in the order.
+     *
+     * @param {String} itemId Line item ID for the order item updated.
+     * @param {TransactionValue.PriceType} priceType One of TransactionValues.PriceType.
+     * @param {String} currencyCode Currency code of new price.
+     * @param {Int} units Unit count of new price.
+     * @param {Int} nanos Partial unit count of new price.
+     * @param {Strint} reason Reason for the price change. Required unless a
+     *     reason for this line item change was already declared in
+     *     addLineItemStateUpdate.
+     * @return {OrderUpdate} Returns current constructed OrderUpdate.
+     */
+    fun addLineItemPriceUpdate (itemId: String, priceType: TransactionValues.PriceType,
+                                currencyCode: String, units: Int, nanos: Int, reason: String): OrderUpdate
+    {
+        if (itemId.isEmpty()) {
+            error("itemId cannot be empty")
+            return this
+        }
+        if (currencyCode.isEmpty()) {
+            error("currencyCode cannot be empty")
+            return this
+        }
+
+        val newPrice = {
+            type: priceType,
+            amount: {
+            currencyCode: currencyCode,
+            units: units,
+            nanos: nanos || 0
+        }
+        }
+
+        if (this.lineItemUpdates[itemId] && this.lineItemUpdates[itemId].reason) {
+            this.lineItemUpdates[itemId].price = newPrice;
+            this.lineItemUpdates[itemId].reason = reason ||
+                    this.lineItemUpdates[itemId].reason;
+        } else if (this.lineItemUpdates[itemId] && reason) {
+            this.lineItemUpdates[itemId].price = newPrice;
+            this.lineItemUpdates[itemId].reason = reason;
+        } else if (!this.lineItemUpdates[itemId] && reason) {
+            this.lineItemUpdates[itemId] = {
+                price: newPrice,
+                reason
+            };
+        } else {
+            error("reason cannot be empty");
+            return this
+        }
+        return this
+    }
+
+    /**
+     * Adds a single state update for a particular line item in the order.
+     *
+     * @param {string} itemId Line item ID for the order item updated.
+     * @param {string} state One of TransactionValues.OrderState.
+     * @param {string} label Label for the new item state.
+     * @param {string=} reason Reason for the price change. This will overwrite
+     *     any reason given in addLineitemPriceUpdate.
+     * @return {OrderUpdate} Returns current constructed OrderUpdate.
+     */
+    fun addLineItemStateUpdate (itemId, state, label, reason)
+    {
+        if (!itemId) {
+            error("itemId cannot be empty");
+            return this;
+        }
+        if (!state) {
+            error("state cannot be empty");
+            return this;
+        }
+        if (!label) {
+            error("label cannot be empty");
+            return this;
+        }
+
+        this.lineItemUpdates[itemId] = this.lineItemUpdates[itemId] || {};
+        this.lineItemUpdates[itemId].orderState = { state, label };
+        this.lineItemUpdates[itemId].reason = reason || this.lineItemUpdates[itemId].reason;
+
+        return this;
+    }
+
+    /**
+     * Sets some extra information about the order. Takes an order update info
+     * type, and any accompanying data. This should only be called once per
+     * order update.
+     *
+     * @param {string} type One of TransactionValues.OrderStateInfo.
+     * @param {Object} data Proper Object matching the data necessary for the info
+     *     type. For instance, for the TransactionValues.OrderStateInfo.RECEIPT info
+     *     type, use the {@link ReceiptInfo} data type.
+     * @return {OrderUpdate} Returns current constructed OrderUpdate.
+     */
+    fun setInfo (type, data )
+    {
+        if (!type || !reverseOrderStateInfo[type]) {
+            error("Invalid info type");
+            return this;
+        }
+        if (!data) {
+            error("Invalid data");
+            return this;
+        }
+
+        // Clear out all other info properties
+        for (let infoType of Object . keys (TransactionValues.OrderStateInfo)) {
+        delete this[TransactionValues.OrderStateInfo[infoType]];
+    }
+
+        this[type] = data;
+        return this;
+    }
+};
+
+
+
