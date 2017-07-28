@@ -68,6 +68,346 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
     }
 
     /**
+     * Get the current intent. Alternatively, using a handler Map with
+     * {@link AssistantApp#handleRequest|handleRequest},
+     * the client library will automatically handle the incoming intents.
+     *
+     * @example
+     * val app = ApiAiApp(request = request, response = response)
+     *
+     * fun responseHandler (app: ApiAiApp) {
+     *   val intent = app.getIntent()
+     *   when (intent) {
+     *     WELCOME_INTENT ->
+     *       app.ask("Welcome to action snippets! Say a number.")
+     *
+     *     NUMBER_INTENT -> {
+     *       val number = app.getArgument(NUMBER_ARGUMENT)
+     *       app.tell("You said $number")
+     *       }
+     *   }
+     * }
+     *
+     * app.handleRequest(responseHandler);
+     *
+     * @return {string} Intent id or null if no value.
+     * @apiai
+     */
+    override fun getIntent(): String? {
+        debug("getIntent")
+        if (request.body.result?.action == null) {
+            handleError("Missing result from request body")
+            return null
+        }
+        return request.body.result.action
+    }
+
+    /**
+     * Get the argument value by name from the current intent. If the argument
+     * is included in originalRequest, and is not a text argument, the entire
+     * argument object is returned.
+     *
+     * Note: If incoming request is using an API version under 2 (e.g. "v1"),
+     * the argument object will be in Proto2 format (snake_case, etc).
+     *
+     * @example
+     * val app = ApiAiApp(request = request, response = response)
+     * val WELCOME_INTENT = "input.welcome"
+     * val NUMBER_INTENT = "input.number"
+     *
+     * fun welcomeIntent (app: ApiAiApp<Parameters>) {
+     *   app.ask("Welcome to action snippets! Say a number.");
+     * }
+     *
+     * fun numberIntent (app: ApiAiApp<Parameter>) {
+     *   val number = app.getArgument(NUMBER_ARGUMENT)
+     *   app.tell("You said " + number)
+     * }
+     *
+     * val actionMap = mapOf(
+     *  WELCOME_INTENT to welcomeIntent,
+     *  NUMBER_INTENT to numberIntent)
+     * app.handleRequest(actionMap)
+     *
+     * @param {String} argName Name of the argument.
+     * @return {Object} Argument value matching argName
+     *     or null if no matching argument.
+     * @apiai
+     */
+    fun getArgument(argName: String): Any? {
+        debug("getArgument: argName=$argName")
+        if (argName.isBlank()) {
+            this.handleError("Invalid argument name")
+            return null
+        }
+        val parameters = request.body.result.parameters
+        if (parameters != null) {
+            if (parameters[argName] != null) {
+                return parameters[argName]
+            }
+        }
+        return requestExtractor.getArgumentCommon(argName)
+    }
+
+    /**
+     * Get the context argument value by name from the current intent. Context
+     * arguments include parameters collected in previous intents during the
+     * lifespan of the given context. If the context argument has an original
+     * value, usually representing the underlying entity value, that will be given
+     * as part of the return object.
+     *
+     * @example
+     * const app = new ApiAiApp({request: request, response: response});
+     * const WELCOME_INTENT = "input.welcome";
+     * const NUMBER_INTENT = "input.number";
+     * const OUT_CONTEXT = "output_context";
+     * const NUMBER_ARG = "myNumberArg";
+     *
+     * function welcomeIntent (app) {
+     *   const parameters = {};
+     *   parameters[NUMBER_ARG] = "42";
+     *   app.setContext(OUT_CONTEXT, 1, parameters);
+     *   app.ask("Welcome to action snippets! Ask me for your number.");
+     * }
+     *
+     * function numberIntent (app) {
+     *   const number = app.getContextArgument(OUT_CONTEXT, NUMBER_ARG);
+     *   // number === { value: 42 }
+     *   app.tell("Your number is  " + number.value);
+     * }
+     *
+     * const actionMap = new Map();
+     * actionMap.set(WELCOME_INTENT, welcomeIntent);
+     * actionMap.set(NUMBER_INTENT, numberIntent);
+     * app.handleRequest(actionMap);
+     *
+     * @param {string} contextName Name of the context.
+     * @param {string} argName Name of the argument.
+     * @return {Object} Object containing value property and optional original
+     *     property matching context argument. Null if no matching argument.
+     * @apiai
+     */
+    fun getContextArgument(contextName: String, argName: String): ContextArgument? {
+        debug("getContextArgument: contextName=$contextName, argName=$argName")
+        if (contextName.isBlank()) {
+            this.handleError("Invalid context name")
+            return null
+        }
+        if (argName.isBlank()) {
+            this.handleError("Invalid argument name")
+            return null
+        }
+        if (request.body.result.contexts.isEmpty()) {
+            this.handleError("No contexts included in request")
+            return null
+        }
+        request.body.result.contexts.forEach {
+            if (it.name === contextName) {
+                if (it.parameters != null) {
+                    val argument = ContextArgument(value = it.parameters!![argName])
+                    if (it.parameters!![argName + ORIGINAL_SUFFIX] != null) {
+                        argument.original = it.parameters!![argName + ORIGINAL_SUFFIX]
+                    }
+                    return argument
+                }
+            }
+        }
+        debug("Failed to get context argument value: $argName")
+        return null
+    }
+
+
+    /**
+     * Returns the RichResponse constructed in API.AI response builder.
+     *
+     * @example
+     * val app = ApiAiApp(request = req, response = res)
+     *
+     * fun tellFact (app: ApiAiApp<T>) {
+     *   val fact = "Google was founded in 1998"
+     *
+     *   if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+     *     app.ask(app.getIncomingRichResponse().addSimpleResponse("Here\"s a " +
+     *       "fact for you. " + fact + " Which one do you want to hear about " +
+     *       "next, Google\"s history or headquarters?"))
+     *   } else {
+     *     app.ask("Here\"s a fact for you. " + fact + " Which one " +
+     *       "do you want to hear about next, Google\"s history or headquarters?")
+     *   }
+     * }
+     *
+     * val actionMap = mapOf("tell.fact" to tellFact)
+     *
+     * app.handleRequest(actionMap)
+     *
+     * @return {RichResponse} RichResponse created in API.AI. If no RichResponse was
+     *     created, an empty RichResponse is returned.
+     * @apiai
+     */
+    fun getIncomingRichResponse(): RichResponse {
+        debug("getIncomingRichResponse")
+        val response = buildRichResponse()
+        request.body.result.fulfillment?.messages?.forEach {
+            if (it != null && response.items == null) {
+                response.items = mutableListOf()
+            }
+            when (it.type) {
+                SIMPLE_RESPONSE -> {
+                    val item = SimpleResponse()
+                    item.textToSpeech = it.textToSpeech
+                    item.displayText = it.displayText
+                    if (response.items?.size == 0) {
+                        response.items?.add(RichResponseItem(item))
+                    } else {
+                        response.items?.add(0, RichResponseItem(item))
+                    }
+                }
+                BASIC_CARD -> {
+                    val item = BasicCard()
+                    item.formattedText = it.formattedText
+                    if (it.buttons != null) {
+                        item.buttons = it.buttons!!
+                    }
+                    item.image = it.image
+                    item.subtitle = it.subtitle
+                    item.title = it.title ?: ""
+                    if (response.items?.size == 0) {
+                        response.items?.add(RichResponseItem(basicCard = item))
+                    } else {
+                        response.items?.add(0, RichResponseItem(basicCard = item))
+                    }
+                }
+                SUGGESTIONS -> {
+                    response.suggestions = it.suggestions
+                }
+                LINK_OUT_SUGGESTION -> response.linkOutSuggestion = LinkOutSuggestion(it.destinationName, it.url)
+            }
+        }
+        return response
+    }
+
+    /**
+     * Returns the List constructed in API.AI response builder.
+     *
+     * @example
+     * val app = ApiAiApp(request = req, response = res)
+     *
+     * fun pickOption (app: ApiAiApp) {
+     * if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+     *     app.askWithList("Which of these looks good?",
+     *       app.getIncomingList().addItems(
+     *         app.buildOptionItem("another_choice", ["Another choice"]).
+     *         setTitle("Another choice")))
+     *   } else {
+     *     app.ask("What would you like?")
+     *   }
+     * }
+     *
+     * val actionMap = mapOf(
+     *      "pick.option" to ::pickOption)
+     *
+     * app.handleRequest(actionMap)
+     *
+     * @return {List} List created in API.AI. If no List was created, an empty
+     *     List is returned.
+     * @apiai
+     */
+    fun getIncomingList (): List {
+        debug("getIncomingList")
+        val list = buildList()
+        request.body.result.fulfillment?.messages?.forEach {
+                if (it.type == LIST) {
+                    list.title = it.title
+                    list.items = it.items
+                }
+            }
+        return list
+    }
+
+
+    /**
+     * Returns the Carousel constructed in API.AI response builder.
+     *
+     * @example
+     * val app = ApiAiApp(request = req, response = res)
+     *
+     * fun pickOption (app: ApiAiApp) {
+     * if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+     *     app.askWithCarousel("Which of these looks good?",
+     *       app.getIncomingCarousel().addItems(
+     *         app.buildOptionItem("another_choice", ["Another choice"]).
+     *         setTitle("Another choice").setDescription("Choose me!")))
+     *   } else {
+     *     app.ask("What would you like?")
+     *   }
+     * }
+     *
+     * val actionMap = mapOf(
+     *  "pick.option" to ::pickOption)
+     *
+     * app.handleRequest(actionMap)
+     *
+     * @return {Carousel} Carousel created in API.AI. If no Carousel was created,
+     *     an empty Carousel is returned.
+     * @apiai
+     */
+    fun getIncomingCarousel (): Carousel {
+        debug("getIncomingCarousel")
+        val carousel = buildCarousel()
+        request.body.result.fulfillment?.messages?.forEach {
+                if (it.type == CAROUSEL) {
+                    carousel.items = it.items ?: mutableListOf()
+                }
+        }
+        return carousel
+    }
+
+    /**
+     * Returns the option key user chose from options response.
+     * @example
+     * * val app = ApiAiApp(request = req, response = res);
+     * *
+     * * fun pickOption (app: ApiAiApp<Parameter>) {
+     * *   if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT) != null) {
+     * *     app.askWithCarousel("Which of these looks good?",
+     * *       app.getIncomingCarousel().addItems(
+     * *         app.buildOptionItem("another_choice", ["Another choice"]).
+     * *         setTitle("Another choice").setDescription("Choose me!")))
+     * *   } else {
+     * *     app.ask("What would you like?")
+     * *   }
+     * * }
+     * *
+     * * fun optionPicked (app: ApiAiApp<Parameter>) {
+     * *   assistant.ask("You picked " + app.getSelectedOption())
+     * * }
+     * *
+     * * val actionMap = mapOf(
+     * *    "pick.option" to pickOption,
+     * *    "option.picked" to optionPicked)
+     * *
+     * * app.handleRequest(actionMap)
+     * *
+     * *
+     * @return {string} Option key of selected item. Null if no option selected or
+     * *     if current intent is not OPTION intent.
+     * *
+     * @apiai
+     */
+    fun getSelectedOption(): Any? {
+        debug("getSelectedOption")
+        if (getContextArgument(SELECT_EVENT, BUILT_IN_ARG_NAMES.OPTION)?.value != null) {
+            return getContextArgument(SELECT_EVENT, BUILT_IN_ARG_NAMES.OPTION)?.value
+        } else if (getArgument(BUILT_IN_ARG_NAMES.OPTION) != null) {
+            return getArgument(BUILT_IN_ARG_NAMES.OPTION)
+        }
+        debug("Failed to get selected option")
+        return null
+    }
+
+    data class ContextArgument(var value: Any?, var original: Any? = null)
+
+    /**
      * Asks to collect the user"s input.
      *
      * NOTE: Due to a bug, if you specify the no-input prompts,
@@ -291,6 +631,47 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         return doResponse(response, RESPONSE_CODE_OK);
     }
 
+
+    /**
+     * Same as #askWithCarousel(input:String, carousel: Carousel), except takes a RichResponse.
+     */
+    fun askWithCarousel(inputPrompt: RichResponse, carousel: Carousel): ResponseWrapper<ApiAiResponse>? {
+        debug("askWithCarousel: inputPrompt=$inputPrompt, carousel=$carousel")
+        if (inputPrompt.isEmpty()) {
+            handleError("Invalid input prompt");
+            return null
+        }
+        if (carousel == null) {
+            handleError("Invalid carousel")
+            return null
+        }
+        if (carousel.items.size < 2) {
+            handleError("Carousel requires at least 2 items")
+            return null
+        }
+        val response = buildResponse(inputPrompt, true)
+        if (response == null) {
+            error("Error in building response")
+            return null
+        }
+        response.body?.data?.google?.systemIntent = GoogleData.SystemIntent(
+                intent = STANDARD_INTENTS.OPTION
+        )
+        if (isNotApiVersionOne()) {
+            response.body?.data?.google?.systemIntent?.data = GoogleData.Data(
+                    `@type` = INPUT_VALUE_DATA_TYPES.OPTION,
+                    carouselSelect = carousel
+            )
+        } else {
+            response.body?.data?.google?.systemIntent?.spec = GoogleData.Spec(
+                    optionValueSpec = GoogleData.OptionValueSpec(
+                            carouselSelect = carousel
+                    )
+            )
+        }
+        return doResponse(response, RESPONSE_CODE_OK);
+    }
+
     /**
      * Asks user for delivery address.
      *
@@ -344,43 +725,6 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
             }
         }
         return doResponse(response, RESPONSE_CODE_OK)
-    }
-
-    fun askWithCarousel(inputPrompt: RichResponse, carousel: Carousel): ResponseWrapper<ApiAiResponse>? {
-        debug("askWithCarousel: inputPrompt=$inputPrompt, carousel=$carousel")
-        if (inputPrompt.isEmpty()) {
-            handleError("Invalid input prompt");
-            return null
-        }
-        if (carousel == null) {
-            handleError("Invalid carousel")
-            return null
-        }
-        if (carousel.items.size < 2) {
-            handleError("Carousel requires at least 2 items")
-            return null
-        }
-        val response = buildResponse(inputPrompt, true)
-        if (response == null) {
-            error("Error in building response")
-            return null
-        }
-        response.body?.data?.google?.systemIntent = GoogleData.SystemIntent(
-                intent = STANDARD_INTENTS.OPTION
-        )
-        if (isNotApiVersionOne()) {
-            response.body?.data?.google?.systemIntent?.data = GoogleData.Data(
-                    `@type` = INPUT_VALUE_DATA_TYPES.OPTION,
-                    carouselSelect = carousel
-            )
-        } else {
-            response.body?.data?.google?.systemIntent?.spec = GoogleData.Spec(
-                    optionValueSpec = GoogleData.OptionValueSpec(
-                            carouselSelect = carousel
-                    )
-            )
-        }
-        return doResponse(response, RESPONSE_CODE_OK);
     }
 
     /**
@@ -585,11 +929,6 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
     }
 
 
-    override fun getIntent(): String {
-        debug("getIntent_");
-        return request.body.result.action
-    }
-
     /**
      * Gets the user"s raw input query.
 
@@ -611,58 +950,10 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         return request.body.result.resolvedQuery
     }
 
-    /**
-     * Get the argument value by name from the current intent. If the argument
-     * is included in originalRequest, and is not a text argument, the entire
-     * argument object is returned.
-     *
-     * Note: If incoming request is using an API version under 2 (e.g. "v1"),
-     * the argument object will be in Proto2 format (snake_case, etc).
-     *
-     * @example
-     * val app = ApiAiApp(request = request, response = response)
-     * val WELCOME_INTENT = "input.welcome"
-     * val NUMBER_INTENT = "input.number"
-     *
-     * fun welcomeIntent (app: ApiAiApp<Parameters>) {
-     *   app.ask("Welcome to action snippets! Say a number.");
-     * }
-     *
-     * fun numberIntent (app: ApiAiApp<Parameter>) {
-     *   val number = app.getArgument(NUMBER_ARGUMENT)
-     *   app.tell("You said " + number)
-     * }
-     *
-     * val actionMap = mapOf(
-     *  WELCOME_INTENT to welcomeIntent,
-     *  NUMBER_INTENT to numberIntent)
-     * app.handleRequest(actionMap)
-     *
-     * @param {String} argName Name of the argument.
-     * @return {Object} Argument value matching argName
-     *     or null if no matching argument.
-     * @apiai
-     */
-    fun getArgument(argName: String): Any? {
-        debug("getArgument: argName=$argName")
-        if (argName.isBlank()) {
-            this.handleError("Invalid argument name")
-            return null
-        }
-        val parameters = request.body.result.parameters
-        if (parameters != null) {
-            if (parameters[argName] != null) {
-                return parameters[argName]
-            }
-        }
-        return requestExtractor.getArgumentCommon(argName)
-    }
+    // ---------------------------------------------------------------------------
+    //                   Private Helpers
+    // ---------------------------------------------------------------------------
 
-    fun getDeviceLocation(): DeviceLocation? {
-        return request.body.originalRequest?.data?.device?.location
-    }
-
-// INTERNAL FUNCTIONS
     /**
      * Uses a PermissionsValueSpec object to construct and send a
      * permissions request to the user.
@@ -875,279 +1166,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         return doResponse(response, RESPONSE_CODE_OK)
     }
 
-    /**
-     * Get the context argument value by name from the current intent. Context
-     * arguments include parameters collected in previous intents during the
-     * lifespan of the given context. If the context argument has an original
-     * value, usually representing the underlying entity value, that will be given
-     * as part of the return object.
-     *
-     * @example
-     * const app = new ApiAiApp({request: request, response: response});
-     * const WELCOME_INTENT = "input.welcome";
-     * const NUMBER_INTENT = "input.number";
-     * const OUT_CONTEXT = "output_context";
-     * const NUMBER_ARG = "myNumberArg";
-     *
-     * function welcomeIntent (app) {
-     *   const parameters = {};
-     *   parameters[NUMBER_ARG] = "42";
-     *   app.setContext(OUT_CONTEXT, 1, parameters);
-     *   app.ask("Welcome to action snippets! Ask me for your number.");
-     * }
-     *
-     * function numberIntent (app) {
-     *   const number = app.getContextArgument(OUT_CONTEXT, NUMBER_ARG);
-     *   // number === { value: 42 }
-     *   app.tell("Your number is  " + number.value);
-     * }
-     *
-     * const actionMap = new Map();
-     * actionMap.set(WELCOME_INTENT, welcomeIntent);
-     * actionMap.set(NUMBER_INTENT, numberIntent);
-     * app.handleRequest(actionMap);
-     *
-     * @param {string} contextName Name of the context.
-     * @param {string} argName Name of the argument.
-     * @return {Object} Object containing value property and optional original
-     *     property matching context argument. Null if no matching argument.
-     * @apiai
-     */
-    fun getContextArgument(contextName: String, argName: String): ContextArgument? {
-        debug("getContextArgument: contextName=$contextName, argName=$argName")
-        if (contextName.isBlank()) {
-            this.handleError("Invalid context name")
-            return null
-        }
-        if (argName.isBlank()) {
-            this.handleError("Invalid argument name")
-            return null
-        }
-        if (request.body.result.contexts.isEmpty()) {
-            this.handleError("No contexts included in request")
-            return null
-        }
-        request.body.result.contexts.forEach {
-            if (it.name === contextName) {
-                if (it.parameters != null) {
-                    val argument = ContextArgument(value = it.parameters!![argName])
-                    if (it.parameters!![argName + ORIGINAL_SUFFIX] != null) {
-                        argument.original = it.parameters!![argName + ORIGINAL_SUFFIX]
-                    }
-                    return argument
-                }
-            }
-        }
-        debug("Failed to get context argument value: $argName")
-        return null
-    }
 
-    /**
-     * Returns the RichResponse constructed in API.AI response builder.
-     *
-     * @example
-     * val app = ApiAiApp(request = req, response = res)
-     *
-     * fun tellFact (app: ApiAiApp<T>) {
-     *   val fact = "Google was founded in 1998"
-     *
-     *   if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
-     *     app.ask(app.getIncomingRichResponse().addSimpleResponse("Here\"s a " +
-     *       "fact for you. " + fact + " Which one do you want to hear about " +
-     *       "next, Google\"s history or headquarters?"))
-     *   } else {
-     *     app.ask("Here\"s a fact for you. " + fact + " Which one " +
-     *       "do you want to hear about next, Google\"s history or headquarters?")
-     *   }
-     * }
-     *
-     * val actionMap = mapOf("tell.fact" to tellFact)
-     *
-     * app.handleRequest(actionMap)
-     *
-     * @return {RichResponse} RichResponse created in API.AI. If no RichResponse was
-     *     created, an empty RichResponse is returned.
-     * @apiai
-     */
-    fun getIncomingRichResponse(): RichResponse {
-        debug("getIncomingRichResponse")
-        val response = buildRichResponse()
-        request.body.result.fulfillment?.messages?.forEach {
-            if (it != null && response.items == null) {
-                response.items = mutableListOf()
-            }
-            when (it.type) {
-                SIMPLE_RESPONSE -> {
-                    val item = SimpleResponse()
-                    item.textToSpeech = it.textToSpeech
-                    item.displayText = it.displayText
-                    if (response.items?.size == 0) {
-                        response.items?.add(RichResponseItem(item))
-                    } else {
-                        response.items?.add(0, RichResponseItem(item))
-                    }
-                }
-                BASIC_CARD -> {
-                    val item = BasicCard()
-                    item.formattedText = it.formattedText
-                    if (it.buttons != null) {
-                        item.buttons = it.buttons!!
-                    }
-                    item.image = it.image
-                    item.subtitle = it.subtitle
-                    item.title = it.title ?: ""
-                    if (response.items?.size == 0) {
-                        response.items?.add(RichResponseItem(basicCard = item))
-                    } else {
-                        response.items?.add(0, RichResponseItem(basicCard = item))
-                    }
-                }
-                SUGGESTIONS -> {
-                    response.suggestions = it.suggestions
-                }
-                LINK_OUT_SUGGESTION -> response.linkOutSuggestion = LinkOutSuggestion(it.destinationName, it.url)
-            }
-        }
-        return response
-    }
-
-    /**
-     * Returns the List constructed in API.AI response builder.
-     *
-     * @example
-     * val app = ApiAiApp(request = req, response = res)
-     *
-     * fun pickOption (app: ApiAiApp) {
-     * if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
-     *     app.askWithList("Which of these looks good?",
-     *       app.getIncomingList().addItems(
-     *         app.buildOptionItem("another_choice", ["Another choice"]).
-     *         setTitle("Another choice")))
-     *   } else {
-     *     app.ask("What would you like?")
-     *   }
-     * }
-     *
-     * val actionMap = mapOf(
-     *      "pick.option" to ::pickOption)
-     *
-     * app.handleRequest(actionMap)
-     *
-     * @return {List} List created in API.AI. If no List was created, an empty
-     *     List is returned.
-     * @apiai
-     */
-    fun getIncomingList (): List {
-        debug("getIncomingList")
-        val list = buildList()
-        request.body.result.fulfillment?.messages?.forEach {
-                if (it.type == LIST) {
-                    list.title = it.title
-                    list.items = it.items
-                }
-            }
-        return list
-    }
-    
-    
-    /**
-     * Returns the Carousel constructed in API.AI response builder.
-     *
-     * @example
-     * val app = ApiAiApp(request = req, response = res)
-     *
-     * fun pickOption (app: ApiAiApp) {
-     * if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
-     *     app.askWithCarousel("Which of these looks good?",
-     *       app.getIncomingCarousel().addItems(
-     *         app.buildOptionItem("another_choice", ["Another choice"]).
-     *         setTitle("Another choice").setDescription("Choose me!")))
-     *   } else {
-     *     app.ask("What would you like?")
-     *   }
-     * }
-     *
-     * val actionMap = mapOf(
-     *  "pick.option" to ::pickOption)
-     *
-     * app.handleRequest(actionMap)
-     *
-     * @return {Carousel} Carousel created in API.AI. If no Carousel was created,
-     *     an empty Carousel is returned.
-     * @apiai
-     */
-    fun getIncomingCarousel (): Carousel {
-        debug("getIncomingCarousel")
-        val carousel = buildCarousel()
-        request.body.result.fulfillment?.messages?.forEach {
-                if (it.type == CAROUSEL) {
-                    carousel.items = it.items ?: mutableListOf()
-                }
-        }
-        return carousel
-    }
-
-    /**
-     * Returns the option key user chose from options response.
-     * @example
-     * * val app = ApiAiApp(request = req, response = res);
-     * *
-     * * fun pickOption (app: ApiAiApp<Parameter>) {
-     * *   if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT) != null) {
-     * *     app.askWithCarousel("Which of these looks good?",
-     * *       app.getIncomingCarousel().addItems(
-     * *         app.buildOptionItem("another_choice", ["Another choice"]).
-     * *         setTitle("Another choice").setDescription("Choose me!")))
-     * *   } else {
-     * *     app.ask("What would you like?")
-     * *   }
-     * * }
-     * *
-     * * fun optionPicked (app: ApiAiApp<Parameter>) {
-     * *   assistant.ask("You picked " + app.getSelectedOption())
-     * * }
-     * *
-     * * val actionMap = mapOf(
-     * *    "pick.option" to pickOption,
-     * *    "option.picked" to optionPicked)
-     * *
-     * * app.handleRequest(actionMap)
-     * *
-     * *
-     * @return {string} Option key of selected item. Null if no option selected or
-     * *     if current intent is not OPTION intent.
-     * *
-     * @apiai
-     */
-    fun getSelectedOption(): Any? {
-        debug("getSelectedOption")
-        if (getContextArgument(SELECT_EVENT, BUILT_IN_ARG_NAMES.OPTION)?.value != null) {
-            return getContextArgument(SELECT_EVENT, BUILT_IN_ARG_NAMES.OPTION)?.value
-        } else if (getArgument(BUILT_IN_ARG_NAMES.OPTION) != null) {
-            return getArgument(BUILT_IN_ARG_NAMES.OPTION)
-        }
-        debug("Failed to get selected option")
-        return null
-    }
-
-    data class ContextArgument(var value: Any?, var original: Any? = null)
-
-
-//TODO builderResponse(richResponse,...)
-/*
-
-if (!isStringResponse) {
-        if (textToSpeech.speech) {
-            // Convert SimpleResponse to RichResponse
-            textToSpeech = this.buildRichResponse().addSimpleResponse(textToSpeech);
-        } else if (!(textToSpeech.items &&
-                textToSpeech.items[0] &&
-                textToSpeech.items[0].simpleResponse)) {
-            handleError("Invalid RichResponse. First item must be SimpleResponse");
-            return null
-        }
-    }
-         */
 
     /**
      * Builds a response for API.AI to send back to the Assistant.

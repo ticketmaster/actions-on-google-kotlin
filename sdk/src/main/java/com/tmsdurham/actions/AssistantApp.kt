@@ -556,12 +556,6 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     fun askForTransactionRequirements (transactionConfig: TransactionConfig?= null, dialogState: DialogState? = null): ResponseWrapper<S>? {
         debug("checkForTransactionRequirements: transactionConfig=$transactionConfig," +
                 " dialogState=$dialogState")
-//        if (transactionConfig?.type != TransactionValues.PaymentType.UNSPECIFIED &&
-//                transactionConfig?.cardNetworks?.isEmpty() ?: true) {
-//            handleError("Invalid transaction configuration. Must be of type" +
-//                    "ActionPaymentTransactionConfig or GooglePaymentTransactionConfig")
-//            return null
-//        }
         val transactionRequirementsCheckSpec = TransactionRequirementsCheckSpec()
         if (transactionConfig?.deliveryAddressRequired ?: false) {
             transactionRequirementsCheckSpec.orderOptions = GoogleData.OrderOptions(
@@ -784,19 +778,16 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
 
     internal abstract fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest): ResponseWrapper<S>?
 
-    abstract fun getIntent(): String
+    abstract fun getIntent(): String?
     abstract fun tell(speech: String, displayText: String = ""): ResponseWrapper<S>?
     abstract fun tell(richResponse: RichResponse?): ResponseWrapper<S>?
     abstract fun tell(simpleResponse: SimpleResponse): ResponseWrapper<S>?
-//    abstract fun askWithList(speech: String? = null, richResponse: RichResponse): ResponseWrapper<S>?
-//    abstract fun askWithList(speech: String? = null, list: List): ResponseWrapper<S>?
 
     // ---------------------------------------------------------------------------
     //                   Private Helpers
     // ---------------------------------------------------------------------------
 
     private var lastErrorMessage: String? = null
-//    val dummyHandler = ApiAiApp<T>(request = RequestWrapper(body = ApiAiRequest()), response = ResponseWrapper())
     /**
      * Utility function to invoke an intent handler.
      *
@@ -805,7 +796,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @return {boolean} true if the handler was invoked.
      * @private
      */
-    private fun invokeIntentHandler(handler: Map<*, Handler<T, S>>, intent: String): Boolean {
+    private fun invokeIntentHandler(handler: Map<*, Handler<T, S>>, intent: String?): Boolean {
         debug("invokeIntentHandler_: handler=${handler::class.java.name}, intent=$intent")
         lastErrorMessage = null
 
@@ -1020,7 +1011,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         }
         // Don"t call other methods; just do directly
         this.response.status(RESPONSE_CODE_BAD_REQUEST).send(API_ERROR_MESSAGE_PREFIX + text)
-        this.responded = true;
+        this.responded = true
     }
 
     /**
@@ -1073,8 +1064,4 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
 fun debug(msg: String) {
     logger.info(msg)
 }
-
-// ---------------------------------------------------------------------------
-//                   Kotlin Specific
-// ---------------------------------------------------------------------------
 
