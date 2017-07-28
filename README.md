@@ -10,12 +10,9 @@ __Goals of this project__:
  * match implementation of nodejs closely so code can be maintained easily as features are added
  * pass all tests from nodejs SDK (using Spek framework)
  * support Api.Ai and Actions SDK (Api.Ai is top priority)
- * port samples
- * release artifact to maven central & jCenter
+ * port several, if not all samples
 
-# *** Work in progress ***
-
-Currently the Multimodal API and conversation-components sample are 100% ported. The Transaction API is partially ported. 
+Currently the Multimodal API, Transaction API, conversation-components sample, and transaction are 100% ported for ApiAi platform.  Actions SDK (direct request from Actions on Google w/o API.ai will be coming)
 
 You are welcome to use, make contributions, and report issues on this project.
 
@@ -67,7 +64,7 @@ This library is available on jCenter and mavenCentral.  If your using gradle sim
     }
     
     dependencies {
-        compile 'com.tmsdurham.actions:actions-on-google:0.4'
+        compile 'com.tmsdurham.actions:actions-on-google:0.5'
     }
 
 
