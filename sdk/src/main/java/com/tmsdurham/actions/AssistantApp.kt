@@ -266,9 +266,6 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         requestExtractor = RequestExtractor(this)
     }
 
-    fun getUser(): User? {
-        return requestExtractor.getUser()
-    }
 
     fun handleRequest(handler: Handler<T, S>) {
         debug("handleRequest: handler=${handler::javaClass.get().name}")
@@ -1009,16 +1006,6 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         return capabilities?.contains(requestedCapability) ?: false
     }
 
-    /**
-     * Gets surface capabilities of user device.
-     *
-     * Implemented in RequestExtractor
-     * @return {List<String>?} HTTP response.
-     * @apiai
-     * @actionssdk
-     */
-    fun getSurfaceCapabilities () = requestExtractor.getSurfaceCapabilities()
-
     fun handleError(text: String?) {
         debug("handleError_: text=%$text")
         if (text.isNullOrEmpty()) {
@@ -1068,12 +1055,19 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         return paymentOptions
     }
 
-    fun isPermissionGranted() = requestExtractor.isPermissionGranted()
-    fun isInSandbox() = requestExtractor.isInSandbox()
-    fun getInputType() = requestExtractor.getInputType()
-    fun getDeliveryAddress() = requestExtractor.getDeliveryAddress()
+
+    fun getUser() = requestExtractor.getUser()
+    fun getDeviceLocation() = requestExtractor.getDeviceLocation()
     fun getTransactionRequirementsResult() = requestExtractor.getTransactionRequirementsResult()
+    fun getDeliveryAddress() = requestExtractor.getDeliveryAddress()
     fun getTransactionDecision() = requestExtractor.getTransactionDecision()
+    fun getUserConfirmation() = requestExtractor.getUserConfirmation()
+    fun getDateTime() = requestExtractor.getDateTime()
+    fun getSignInStatus() = requestExtractor.getSignInStatus()
+    fun isInSandbox() = requestExtractor.isInSandbox()
+    fun getSurfaceCapabilities () = requestExtractor.getSurfaceCapabilities()
+    fun getInputType() = requestExtractor.getInputType()
+    fun isPermissionGranted() = requestExtractor.isPermissionGranted()
 }
 
 fun debug(msg: String) {
