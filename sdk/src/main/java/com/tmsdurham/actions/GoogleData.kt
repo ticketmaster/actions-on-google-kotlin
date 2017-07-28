@@ -1,9 +1,6 @@
 package com.ticketmaster.apiai.google
 
-import com.tmsdurham.actions.AssistantApp
-import com.tmsdurham.actions.Carousel
-import com.tmsdurham.actions.RichResponse
-import com.tmsdurham.actions.TransactionValues
+import com.tmsdurham.actions.*
 
 data class GoogleData(
         var isSsml: Boolean = false,
@@ -79,10 +76,10 @@ data class GoogleData(
 
     data class OrderOptions(var requestDeliveryAddress: Boolean = false, var customerInfoOptions: List<String>? = null)
 
-    data class ActionProvidedOptions(var paymentType: String, var displayName: String)
+    data class ActionProvidedOptions(var paymentType: String? = null, var displayName: String? = null)
 
     data class GoogleProvidedOptions(
-            var supportedCardNetworks: MutableList<String>,
+            var supportedCardNetworks: MutableList<TransactionValues.CardNetwork>,
             var prepaidCardDisallowed: Boolean,
             var tokenizationParameters: TokenizationParameters? = null)
 
@@ -103,22 +100,6 @@ data class GoogleData(
         }
     }
 
-    data class LineItems(
-            var id: String? = null,
-            var name: String? = null,
-            var type: String? = null,
-            var price: Price? = null,
-            var quantity: Int = 0)
-
-    data class Merchant(
-            var id: String? = null,
-            var name: String? = null)
-
-    data class Cart(
-            var lineItems: List<LineItems>? = null,
-            var merchant: Merchant? = null,
-            var notes: String? = null)
-
     data class Amount(
             var currencyCode: String? = null,
             var units: Int = 0,
@@ -134,13 +115,6 @@ data class GoogleData(
             amount?.init()
         }
     }
-
-
-    data class Order(
-            var id: String? = null,
-            var cart: Cart? = null,
-            var otherItems: List<LineItems>? = null,
-            var totalPrice: TotalPrice? = null)
 
 }
 fun totalPrice(init: GoogleData.TotalPrice.() -> Unit): GoogleData.TotalPrice {

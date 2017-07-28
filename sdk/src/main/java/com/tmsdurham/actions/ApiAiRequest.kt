@@ -1,10 +1,7 @@
 package com.ticketmaster.apiai
 
 import com.ticketmaster.apiai.google.GoogleData
-import com.tmsdurham.actions.Button
-import com.tmsdurham.actions.Image
-import com.tmsdurham.actions.OptionItem
-import com.tmsdurham.actions.Suggestions
+import com.tmsdurham.actions.*
 
 fun apiAiRequest(init: ApiAiRequest.() -> Unit): ApiAiRequest {
     val request = ApiAiRequest()
@@ -158,14 +155,26 @@ data class Arguments(
         val otherValue: Any? = null,
         val extension: TransactionRequirementsCheckResult? = null)
 
+data class PostalAddress(var regionCode: String? = null,
+                         var recipients: MutableList<String>? = null,
+                         var postalCode: String? = null,
+                         var locality: String? = null,
+                         var addressLines: MutableList<String>? = null,
+                         val administrativeArea: String? = null)
+data class Location(var zipCode: String? = null,
+                    var postalAddress: PostalAddress? = null,
+                    var phoneNumber: String? = null,
+                    var city: String? = null,
+                    var coordinates: Coordinates?)
 
-data class FinalOrderHolder(val finalOrder: GoogleData.Order? = null, val  orderDate: String = "", val googleOrderId: String = "")
+data class FinalOrderHolder(val finalOrder: Order? = null, val  orderDate: String = "", val googleOrderId: String = "")
 
 data class TransactionRequirementsCheckResult(
         val `@type`: String = "",
-        val resultType: String = "",
+        val resultType: TransactionValues.ResultType = TransactionValues.ResultType.UNSPECIFIED,
         val userDecision: String = "",
         val status: String = "",
+        var location: Location? = null,
         val order: FinalOrderHolder? = null)
 
 

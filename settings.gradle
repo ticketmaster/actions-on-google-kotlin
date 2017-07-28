@@ -1,1 +1,1 @@
-include ':sdk', ':conversation-components'
+include ':sdk', ':apiai-samples'

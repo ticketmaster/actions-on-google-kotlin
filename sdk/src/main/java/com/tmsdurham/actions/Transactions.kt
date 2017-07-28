@@ -9,11 +9,61 @@ val ORDER_LOCATION_LIMIT = 2
 val GENERIC_EXTENSION_TYPE = "type.googleapis.com/google.actions.v2.orders.GenericExtension"
 
 
+/**
+ * Order rejection info.
+ * @typedef {Object} RejectionInfo
+ * @property {string} type - One of Transaction.RejectionType.
+ * @property {string} reason - Reason for the order rejection.
+ */
+data class RejectionInfo(var type: String? = null, var reason: String?= null)
+
+/**
+ * Order receipt info.
+ * @typedef {Object} ReceiptInfo
+ * @property {string} confirmedActionOrderId - Action provided order ID. Used
+ *     when the order has been received by the integrator.
+ */
+data class ReceiptInfo(var confirmedActionOrderId: String? = null)
+
+/**
+ * Order cancellation info.
+ * @typedef {Object} CancellationInfo
+ * @property {string} reason - Reason for the cancellation.
+ */
+data class CancellationInfo(var reason: String? = null)
+
+/**
+ * Order transit info.
+ * @typedef {Object} TransitInfo
+ * @property {Object} updatedTime - UTC timestamp of the transit update.
+ * @property {number} updatedTime.seconds - Seconds since Unix epoch.
+ * @property {number=} updatedTime.nanos - Partial seconds since Unix epoch.
+ */
+data class TransitInfo(var updatedTime: TimeStamp? = null)
+data class TimeStamp(var seconds: Long? = null, var nanos: Long? = null)
+
+/**
+ * Order fulfillment info.
+ * @typedef {Object} FulfillmentInfo
+ * @property {Object} deliveryTime - UTC timestamp of the fulfillment update.
+ * @property {number} deliveryTime.seconds - Seconds since Unix epoch.
+ * @property {number=} deliveryTime.nanos - Partial seconds since Unix epoch.
+ */
+data class FulfillmentInfo(var deliveryTime: TimeStamp? = null)
+
+/**
+ * Order return info.
+ * @typedef {Object} ReturnInfo
+ * @property {string} reason - Reason for the return.
+ */
+data class ReturnInfo(var reason: String? = null)
+
+
 sealed class TransactionConfig(val deliveryAddressRequired: Boolean? = null,
                                var type: String? = null,
                                val displayName: String? = null,
                                val tokenizationParameters: Any? = null,
-                               val cardNetworks: MutableList<String>? = null,
+                               val cardNetworks: MutableList<TransactionValues.CardNetwork>? = null,
                                val prepaidCardDisallowed: Boolean? = null,
                                val customerInfoOptions: MutableList<String>? = null)
 
@@ -54,7 +104,7 @@ class ActionPaymentTransactionConfig(deliveryAddressRequired: Boolean,
  */
 class GooglePaymentTransactionConfig(deliveryAddressRequired: Boolean,
                                      tokenizationParameters: Any,
-                                     cardNetworks: MutableList<String>,
+                                     cardNetworks: MutableList<TransactionValues.CardNetwork>,
                                      prepaidCardDisallowed: Boolean,
                                      customerInfoOptions: MutableList<String>? = null) :
         TransactionConfig(deliveryAddressRequired = deliveryAddressRequired,
@@ -77,7 +127,7 @@ data class CustomerInfoOptions(val customerInfoProperties: MutableList<String>)
  * @readonly
  * @type {Object}
  */
-class TransactionValues {
+open class TransactionValues {
     /**
      * List of transaction card networks available when paying with Google.
      * @readonly
@@ -362,6 +412,10 @@ class TransactionValues {
         RETURN("returnInfo");
 
         override fun toString() = value
+
+        companion object {
+            fun fromValue(value: String): OrderStateInfo? = values().find { it.value == value }
+        }
     }
 
     /**
@@ -800,7 +854,7 @@ data class LineItem(var id: String, var name: String) {
      * Sublines for current item. Only valid if item type is REGULAR.
      * @type {Array<string|LineItem>}
      */
-    var sublines = mutableListOf<Any>()
+    var sublines: MutableList<Any>? = null
 
     /**
      * Image of the item.
@@ -812,7 +866,7 @@ data class LineItem(var id: String, var name: String) {
      * Type of the item. One of TransactionValues.ItemType.
      * @type {ItemType}
      */
-    var type: TransactionValues.ItemType = TransactionValues.ItemType.UNSPECIFIED
+    var type: TransactionValues.ItemType? = null
 
     /**
      * Quantity of the item.
@@ -847,7 +901,7 @@ data class LineItem(var id: String, var name: String) {
         if (this.sublines != null) {
             this.sublines = mutableListOf()
         }
-        sublines.addAll(items)
+        sublines?.addAll(items)
         return this
     }
 
@@ -972,7 +1026,7 @@ data class LineItem(var id: String, var name: String) {
  * @param {boolean} isGoogleOrderId True if the order ID is provided by
  *     Google. False if the order ID is app provided.
  */
-data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean) {
+data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): HashMap<String, Any>() {
     /**
      * Google provided identifier of the order.
      * @type {string}
@@ -1262,25 +1316,21 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean) {
      * @return {OrderUpdate} Returns current constructed OrderUpdate.
      */
     fun setInfo(type: String, data: Any): OrderUpdate {
-        /*
-        if (!type || !reverseOrderStateInfo[type]) {
+        if (type.isEmpty() || TransactionValues.OrderStateInfo.fromValue(type) == null) {
             error("Invalid info type")
             return this
         }
-        if (!data) {
+        if (data == null) {
             error("Invalid data")
             return this
         }
 
-        // Clear out all other info properties
-        for (let infoType of Object . keys (TransactionValues.OrderStateInfo)) {
-            delete this[TransactionValues.OrderStateInfo[infoType]];
+        TransactionValues.OrderStateInfo.values().forEach {
+            remove(it.name)
         }
 
         this[type] = data
         return this
-        */
-        TODO("Not implemented")
     }
 }
 
