@@ -3,6 +3,7 @@ package com.ticketmaster.apiai.google
 import com.tmsdurham.actions.AssistantApp
 import com.tmsdurham.actions.Carousel
 import com.tmsdurham.actions.RichResponse
+import com.tmsdurham.actions.TransactionValues
 
 data class GoogleData(
         var isSsml: Boolean = false,
@@ -92,8 +93,15 @@ data class GoogleData(
     data class AddressOptions(var reason: String? = null)
 
     data class Price(
-            var type: String? = null,
-            var amount: Amount? = null)
+            var type: TransactionValues.PriceType? = null,
+            var amount: Amount? = null) {
+        fun amount(init: Amount.() -> Unit) {
+            if (amount == null) {
+                amount = Amount()
+            }
+            amount?.init()
+        }
+    }
 
     data class LineItems(
             var id: String? = null,
@@ -117,8 +125,16 @@ data class GoogleData(
             var nanos: Int = 0)
 
     data class TotalPrice(
-            var type: String? = null,
-            var amount: Amount? = null)
+            var type: TransactionValues.PriceType? = null,
+            var amount: Amount? = null) {
+        fun amount(init: Amount.() -> Unit) {
+            if (amount == null) {
+                amount = Amount()
+            }
+            amount?.init()
+        }
+    }
+
 
     data class Order(
             var id: String? = null,
@@ -126,4 +142,14 @@ data class GoogleData(
             var otherItems: List<LineItems>? = null,
             var totalPrice: TotalPrice? = null)
 
+}
+fun totalPrice(init: GoogleData.TotalPrice.() -> Unit): GoogleData.TotalPrice {
+        val totalPrice = GoogleData.TotalPrice()
+        totalPrice.init()
+        return totalPrice
+    }
+fun price(init: GoogleData.Price.() -> Unit): GoogleData.Price {
+    val price = GoogleData.Price()
+    price.init()
+    return price
 }

@@ -146,9 +146,7 @@ data class RichResponseItem(
 
 data class StructuredResponse(var orderUpdate: OrderUpdate)
 
-data class OrderUpdate(var googleOrderId: String, var orderState: OrderState)
-
-data class OrderState(var state: String, var label: String)
+data class OrderState(var state: TransactionValues.OrderState, var label: String)
 
 data class AltLinkSuggestion(var url: String? = null)
 

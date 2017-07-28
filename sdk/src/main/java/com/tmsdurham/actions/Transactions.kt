@@ -1,5 +1,9 @@
 package com.tmsdurham.actions
 
+import com.ticketmaster.apiai.google.GoogleData
+import com.ticketmaster.apiai.google.price
+import com.ticketmaster.apiai.google.totalPrice
+
 
 val ORDER_LOCATION_LIMIT = 2
 val GENERIC_EXTENSION_TYPE = "type.googleapis.com/google.actions.v2.orders.GenericExtension"
@@ -495,7 +499,7 @@ data class Order(val orderId: String) {
      * Image for the order.
      * @type {Image}
      */
-    val image = null
+    var image: Image? = null
 
     /**
      * TOS for the order.
@@ -507,14 +511,14 @@ data class Order(val orderId: String) {
      * Total price for the order.
      * @type {Price}
      */
-    val totalPrice = null
+    var totalPrice: GoogleData.TotalPrice? = null
 
     /**
      * Extensions for this order. Used for vertical-specific order attributes,
      * like times and locations.
      * @type {Object}
      */
-    val extension = null
+    var extension: Extension? = null
 
     /**
      * Set the cart for this order.
@@ -567,12 +571,12 @@ data class Order(val orderId: String) {
             error("accessibilityText cannot be empty")
             return this
         }
-        image = { url, accessibilityText };
+        image = Image(url, accessibilityText)
         if (width != null) {
-            this.image.width = width;
+            image?.width = width
         }
         if (height != null) {
-            this.image.height = height;
+            image?.height = height
         }
         return this
     }
@@ -601,22 +605,26 @@ data class Order(val orderId: String) {
      * @param {Int=} nanos Partial unit count of price.
      * @return {Order} Returns current constructed Order.
      */
-    fun setTotalPrice(priceType: TransactionValues.PriceType, currencyCode: String, units: Int, nanos: Int): Order {
+    fun setTotalPrice(priceType: TransactionValues.PriceType, currencyCode: String, units: Int, nanos: Int = 0): Order {
         if (currencyCode.isEmpty()) {
             error("currencyCode cannot be empty")
             return this
         }
 
-        this.totalPrice = {
-            type: priceType,
-            amount: {
-            currencyCode: currencyCode,
-            units: units,
-            nanos: nanos || 0
-        }
+        totalPrice = totalPrice {
+            type = priceType
+            amount {
+                this.currencyCode = currencyCode
+                this.units = units
+                this.nanos = nanos
+            }
+
         }
         return this
     }
+
+    data class Extension(val `@type`: String, var locations: MutableMap<TransactionValues.LocationType, Location>? = null, var time: Time? = null)
+    data class Location(val length: Int? = null)
 
     /**
      * Adds an associated location to the order. Up to 2 locations can be added.
@@ -630,20 +638,19 @@ data class Order(val orderId: String) {
             error("location cannot be null")
             return this
         }
-        if (this.extension != null) {
-            this.extension = {
-                "@type": GENERIC_EXTENSION_TYPE
-            }
+        if (extension != null) {
+            extension = Extension(
+                    `@type` = GENERIC_EXTENSION_TYPE)
         }
-        if (!this.extension.locations) {
-            this.extension.locations = []
+        if (extension?.locations == null) {
+            extension?.locations = mutableMapOf()
         }
-        if (this.extension.locations.length >= ORDER_LOCATION_LIMIT) {
+        if (extension?.locations?.size ?: 0 >= ORDER_LOCATION_LIMIT) {
             error("Order can have no more than " + ORDER_LOCATION_LIMIT +
-                    " associated locations");
-            return this;
+                    " associated locations")
+            return this
         }
-        this.extension.locations.push({ type, location });
+        extension?.locations?.put(type, location)
         return this
     }
 
@@ -661,15 +668,15 @@ data class Order(val orderId: String) {
             return this
         }
         if (this.extension != null) {
-            this.extension = {
-                "@type": GENERIC_EXTENSION_TYPE
-            }
+            this.extension = Extension(
+                    `@type` = GENERIC_EXTENSION_TYPE)
         }
-        this.extension.time = { type, time_iso8601: time }
+        this.extension?.time = Time(type = type, time_iso8601 = time)
         return this
     }
 }
 
+data class Time(var type: TransactionValues.TimeType = TransactionValues.TimeType.UNKNOWN, var time_iso8601: String? = null)
 /**
  * Class for initializing and constructing Cart with chainable interface.
  *
@@ -685,7 +692,7 @@ data class Cart(var cartId: String? = null) {
      * Merchant providing the cart.
      * @type {Object}
      */
-    var merchant: String? = null
+    var merchant: Merchant? = null
 
     /**
      * Optional notes about the cart.
@@ -721,9 +728,11 @@ data class Cart(var cartId: String? = null) {
             error("Merchant name cannot be empty")
             return this
         }
-        this.merchant = { id, name };
+        merchant = Merchant(id, name)
         return this
     }
+
+    data class Merchant(var id: String, var name: String)
 
     /**
      * Set the notes for this cart.
@@ -785,19 +794,19 @@ data class LineItem(var id: String, var name: String) {
      * Item price.
      * @type {Price}
      */
-    var price: Price? = null
+    var price: GoogleData.Price? = null
 
     /**
      * Sublines for current item. Only valid if item type is REGULAR.
      * @type {Array<string|LineItem>}
      */
-    var sublines: = undefined;
+    var sublines = mutableListOf<Any>()
 
     /**
      * Image of the item.
      * @type {Image}
      */
-    var image = undefined;
+    var image: Image? = null
 
     /**
      * Type of the item. One of TransactionValues.ItemType.
@@ -838,13 +847,7 @@ data class LineItem(var id: String, var name: String) {
         if (this.sublines != null) {
             this.sublines = mutableListOf()
         }
-        if (Array.isArray(items)) {
-            for (let item of items) {
-                this.sublines.push(item);
-            }
-        } else {
-            this.sublines.push(items);
-        }
+        sublines.addAll(items)
         return this
     }
 
@@ -867,12 +870,12 @@ data class LineItem(var id: String, var name: String) {
             error("accessibilityText cannot be empty")
             return this
         }
-        this.image = { url, accessibilityText }
+        this.image = Image(url, accessibilityText)
         if (width != null) {
-            this.image.width = width
+            image?.width = width
         }
         if (height != null) {
-            this.image.height = height
+            image?.height = height
         }
         return this
     }
@@ -892,13 +895,13 @@ data class LineItem(var id: String, var name: String) {
             return this
         }
 
-        this.price = {
-            type: priceType,
-            amount: {
-            currencyCode: currencyCode,
-            units: units,
-            nanos: nanos || 0
-        }
+        price = price {
+            type = priceType
+            amount {
+                this.currencyCode = currencyCode
+                this.units = units
+                this.nanos = nanos
+            }
         }
         return this
     }
@@ -969,7 +972,7 @@ data class LineItem(var id: String, var name: String) {
  * @param {boolean} isGoogleOrderId True if the order ID is provided by
  *     Google. False if the order ID is app provided.
  */
-data class OrderUpdate(val orderId: String, isGoogleOrderId: Boolean) {
+data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean) {
     /**
      * Google provided identifier of the order.
      * @type {string}
@@ -993,37 +996,38 @@ data class OrderUpdate(val orderId: String, isGoogleOrderId: Boolean) {
      * State of the order.
      * @type {Object}
      */
-    var orderState = null
+    var orderState: OrderState? = null
 
     /**
      * Updates for items in the order. Mapped by item id to state or price.
      * @type {Object}
      */
-    var lineItemUpdates = null
+    var lineItemUpdates = mutableMapOf<String, LineItemUpdate>()
 
     /**
      * UTC timestamp of the order update.
      * @type {Object}
      */
-    var updateTime: String? = null
+    var updateTime: UpdateTime? = null
+    data class UpdateTime(var seconds: Long, var nanos: Long)
 
     /**
      * Actionable items presented to the user to manage the order.
      * @type {Object}
      */
-    var orderManagementActions = null
+    var orderManagementActions: MutableList<OrderManagementAction>? = null
 
     /**
      * Notification content to the user for the order update.
      * @type {Object}
      */
-    var userNotification = null
+    var userNotification: UserNotification? = null
 
     /**
      * Updated total price of the order.
-     * @type {Price}
+     * @type {TotalPrice}
      */
-    var totalPrice = null
+    var totalPrice: GoogleData.TotalPrice? = null
 
     /**
      * Set the Google provided order ID of the order.
@@ -1031,7 +1035,7 @@ data class OrderUpdate(val orderId: String, isGoogleOrderId: Boolean) {
      * @param {String} orderId Google provided order ID.
      * @return {OrderUpdate} Returns current constructed OrderUpdate.
      */
-    fun setGoogleOrderId (orderId: String): OrderUpdate {
+    fun setGoogleOrderId(orderId: String): OrderUpdate {
         if (orderId.isEmpty()) {
             error("orderId cannot be empty")
             return this
@@ -1046,8 +1050,7 @@ data class OrderUpdate(val orderId: String, isGoogleOrderId: Boolean) {
      * @param {String} orderId Action provided order ID.
      * @return {OrderUpdate} Returns current constructed OrderUpdate.
      */
-    fun setActionOrderId (orderId: String): OrderUpdate
-    {
+    fun setActionOrderId(orderId: String): OrderUpdate {
         if (orderId.isEmpty()) {
             error("orderId cannot be empty")
             return this
@@ -1063,12 +1066,12 @@ data class OrderUpdate(val orderId: String, isGoogleOrderId: Boolean) {
      * @param {String} label Label for the order state.
      * @return {OrderUpdate} Returns current constructed OrderUpdate.
      */
-    fun setOrderState (state: OrderState, label: String): OrderUpdate {
+    fun setOrderState(state: TransactionValues.OrderState, label: String): OrderUpdate {
         if (label.isEmpty()) {
             error("label cannot be empty")
             return this
         }
-        this.orderState = { state, label }
+        orderState = OrderState(state, label)
         return this
     }
 
@@ -1079,12 +1082,12 @@ data class OrderUpdate(val orderId: String, isGoogleOrderId: Boolean) {
      * @param {Long=} nanos Partial time units.
      * @return {OrderUpdate} Returns current constructed OrderUpdate.
      */
-    fun setUpdateTime (seconds: Long, nanos: Long): OrderUpdate {
+    fun setUpdateTime(seconds: Long, nanos: Long): OrderUpdate {
         if (seconds < 0) {
             error("Invalid seconds")
             return this
         }
-        this.updateTime = { seconds, nanos: nanos || 0 };
+        updateTime = UpdateTime(seconds, nanos)
         return this
     }
 
@@ -1095,8 +1098,7 @@ data class OrderUpdate(val orderId: String, isGoogleOrderId: Boolean) {
      * @param {String} text Text of the notification.
      * @return {OrderUpdate} Returns current constructed OrderUpdate.
      */
-    fun setUserNotification (title: String, text: String)
-    {
+    fun setUserNotification(title: String, text: String): OrderUpdate {
         if (title.isEmpty()) {
             error("title cannot be empty")
             return this
@@ -1105,9 +1107,11 @@ data class OrderUpdate(val orderId: String, isGoogleOrderId: Boolean) {
             error("text cannot be empty")
             return this
         }
-        this.userNotification = { title, text }
+        this.userNotification = UserNotification(title, text)
         return this;
     }
+
+    data class UserNotification(var title: String, var text: String)
 
     /**
      * Sets the total price for this order.
@@ -1118,19 +1122,18 @@ data class OrderUpdate(val orderId: String, isGoogleOrderId: Boolean) {
      * @param {number=} nanos Partial unit count of price.
      * @return {OrderUpdate} Returns current constructed OrderUpdate.
      */
-    fun setTotalPrice (priceType: TransactionValues.PriceType, currencyCode: String, units: Int, nanos: Int): OrderUpdate
-    {
+    fun setTotalPrice(priceType: TransactionValues.PriceType, currencyCode: String, units: Int, nanos: Int = 0): OrderUpdate {
         if (currencyCode.isEmpty()) {
             error("currencyCode cannot be empty")
             return this
         }
-        this.totalPrice = {
-            type: priceType,
-            amount: {
-            currencyCode: currencyCode,
-            units: units,
-            nanos: nanos || 0
-        }
+        totalPrice = totalPrice {
+            type = priceType
+            amount {
+                this.currencyCode = currencyCode
+                this.units = units
+                this.nanos = nanos
+            }
         }
         return this
     }
@@ -1143,8 +1146,7 @@ data class OrderUpdate(val orderId: String, isGoogleOrderId: Boolean) {
      * @param {String} url URL to open when button is clicked.
      * @return {OrderUpdate} Returns current constructed OrderUpdate.
      */
-    fun addOrderManagementAction (type: TransactionValues.OrderAction, label: String, url: String): OrderUpdate
-    {
+    fun addOrderManagementAction(type: TransactionValues.OrderAction, label: String, url: String): OrderUpdate {
         if (label.isEmpty()) {
             error("label cannot be empty")
             return this
@@ -1153,17 +1155,20 @@ data class OrderUpdate(val orderId: String, isGoogleOrderId: Boolean) {
             error("URL cannot be empty")
             return this
         }
-        this.orderManagementActions.push({
-            type: type,
-            button: {
-            title: label,
-            openUrlAction: {
-            url: url
-        }
-        }
-        });
+        orderManagementActions?.add(OrderManagementAction(
+                type = type,
+                button = Buttons(
+                        title = label,
+                        openUrlAction = OpenUrlAction(
+                                url = url))
+        )
+        )
         return this
     }
+
+    data class OrderManagementAction(var type: TransactionValues.OrderAction, var button: Buttons? = null,
+                                     var title: String? = null, var openUrlAction: OpenUrlAction? = null)
+
 
     /**
      * Adds a single price update for a particular line item in the order.
@@ -1173,14 +1178,13 @@ data class OrderUpdate(val orderId: String, isGoogleOrderId: Boolean) {
      * @param {String} currencyCode Currency code of new price.
      * @param {Int} units Unit count of new price.
      * @param {Int} nanos Partial unit count of new price.
-     * @param {Strint} reason Reason for the price change. Required unless a
+     * @param {String} reason Reason for the price change. Required unless a
      *     reason for this line item change was already declared in
      *     addLineItemStateUpdate.
      * @return {OrderUpdate} Returns current constructed OrderUpdate.
      */
-    fun addLineItemPriceUpdate (itemId: String, priceType: TransactionValues.PriceType,
-                                currencyCode: String, units: Int, nanos: Int, reason: String): OrderUpdate
-    {
+    fun addLineItemPriceUpdate(itemId: String, priceType: TransactionValues.PriceType,
+                               currencyCode: String, units: Int, nanos: Int = 0, reason: String? = null): OrderUpdate {
         if (itemId.isEmpty()) {
             error("itemId cannot be empty")
             return this
@@ -1190,64 +1194,60 @@ data class OrderUpdate(val orderId: String, isGoogleOrderId: Boolean) {
             return this
         }
 
-        val newPrice = {
-            type: priceType,
-            amount: {
-            currencyCode: currencyCode,
-            units: units,
-            nanos: nanos || 0
-        }
+        val newPrice = price {
+            type = priceType
+            amount {
+                this.currencyCode = currencyCode
+                this.units = units
+                this.nanos = nanos
+            }
         }
 
-        if (this.lineItemUpdates[itemId] && this.lineItemUpdates[itemId].reason) {
-            this.lineItemUpdates[itemId].price = newPrice;
-            this.lineItemUpdates[itemId].reason = reason ||
-                    this.lineItemUpdates[itemId].reason;
-        } else if (this.lineItemUpdates[itemId] && reason) {
-            this.lineItemUpdates[itemId].price = newPrice;
-            this.lineItemUpdates[itemId].reason = reason;
-        } else if (!this.lineItemUpdates[itemId] && reason) {
-            this.lineItemUpdates[itemId] = {
-                price: newPrice,
-                reason
-            };
+        if (lineItemUpdates?.get(itemId)?.reason != null) {
+            lineItemUpdates!![itemId]?.price = newPrice
+            lineItemUpdates!![itemId]?.reason = if (reason != null) reason else
+                    lineItemUpdates!![itemId]?.reason
+        } else if (lineItemUpdates?.get(itemId) != null && reason != null) {
+            lineItemUpdates!![itemId]?.price = newPrice
+            lineItemUpdates!![itemId]?.reason = reason
+        } else if (lineItemUpdates?.get(itemId) != null && reason != null) {
+            lineItemUpdates!![itemId] = LineItemUpdate(
+                price = newPrice,
+                reason = reason)
         } else {
-            error("reason cannot be empty");
+            error("reason cannot be empty")
             return this
         }
         return this
     }
 
+    data class LineItemUpdate(var price: GoogleData.Price? = null, var reason: String? = null,
+                              var orderState: OrderState? = null)
     /**
      * Adds a single state update for a particular line item in the order.
      *
-     * @param {string} itemId Line item ID for the order item updated.
-     * @param {string} state One of TransactionValues.OrderState.
-     * @param {string} label Label for the new item state.
-     * @param {string=} reason Reason for the price change. This will overwrite
+     * @param {String} itemId Line item ID for the order item updated.
+     * @param {TransactionValues.OrderState} state One of TransactionValues.OrderState.
+     * @param {String} label Label for the new item state.
+     * @param {String=} reason Reason for the price change. This will overwrite
      *     any reason given in addLineitemPriceUpdate.
      * @return {OrderUpdate} Returns current constructed OrderUpdate.
      */
-    fun addLineItemStateUpdate (itemId, state, label, reason)
-    {
-        if (!itemId) {
-            error("itemId cannot be empty");
-            return this;
+    fun addLineItemStateUpdate(itemId: String, state: TransactionValues.OrderState, label: String, reason: String): OrderUpdate {
+        if (itemId.isEmpty()) {
+            error("itemId cannot be empty")
+            return this
         }
-        if (!state) {
-            error("state cannot be empty");
-            return this;
-        }
-        if (!label) {
-            error("label cannot be empty");
-            return this;
+        if (label.isEmpty()) {
+            error("label cannot be empty")
+            return this
         }
 
-        this.lineItemUpdates[itemId] = this.lineItemUpdates[itemId] || {};
-        this.lineItemUpdates[itemId].orderState = { state, label };
-        this.lineItemUpdates[itemId].reason = reason || this.lineItemUpdates[itemId].reason;
+        lineItemUpdates[itemId] = lineItemUpdates[itemId] ?: LineItemUpdate()
+        lineItemUpdates[itemId]?.orderState = OrderState(state, label)
+        lineItemUpdates[itemId]?.reason = if (reason != null) reason else lineItemUpdates[itemId]?.reason
 
-        return this;
+        return this
     }
 
     /**
@@ -1255,32 +1255,34 @@ data class OrderUpdate(val orderId: String, isGoogleOrderId: Boolean) {
      * type, and any accompanying data. This should only be called once per
      * order update.
      *
-     * @param {string} type One of TransactionValues.OrderStateInfo.
+     * @param {String} type One of TransactionValues.OrderStateInfo.
      * @param {Object} data Proper Object matching the data necessary for the info
      *     type. For instance, for the TransactionValues.OrderStateInfo.RECEIPT info
      *     type, use the {@link ReceiptInfo} data type.
      * @return {OrderUpdate} Returns current constructed OrderUpdate.
      */
-    fun setInfo (type, data )
-    {
+    fun setInfo(type: String, data: Any): OrderUpdate {
+        /*
         if (!type || !reverseOrderStateInfo[type]) {
-            error("Invalid info type");
-            return this;
+            error("Invalid info type")
+            return this
         }
         if (!data) {
-            error("Invalid data");
-            return this;
+            error("Invalid data")
+            return this
         }
 
         // Clear out all other info properties
         for (let infoType of Object . keys (TransactionValues.OrderStateInfo)) {
-        delete this[TransactionValues.OrderStateInfo[infoType]];
-    }
+            delete this[TransactionValues.OrderStateInfo[infoType]];
+        }
 
-        this[type] = data;
-        return this;
+        this[type] = data
+        return this
+        */
+        TODO("Not implemented")
     }
-};
+}
 
 
 
