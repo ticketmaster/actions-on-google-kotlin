@@ -210,7 +210,7 @@ val actionMap = mapOf(
         BYE_RESPONSE to ::byeResponse,
         CARD_BUILDER to ::cardBuilder)
 
-@WebServlet(name = "ActionsWebhook", value = "/test")
+@WebServlet(name = "ActionsWebhook", value = "/conversation")
 class WebHook : HttpServlet() {
 
     override fun doPost(req: HttpServletRequest, resp: HttpServletResponse) {

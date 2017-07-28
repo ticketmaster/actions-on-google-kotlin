@@ -4,6 +4,78 @@ package com.tmsdurham.actions
 var LIST_ITEM_LIMIT = 30
 var CAROUSEL_ITEM_LIMIT = 10
 
+/**
+ * Simple Response type.
+ * @property {String} speech - Speech to be spoken to user. SSML allowed.
+ * @property {String} displayText - Optional text to be shown to user
+ */
+data class SimpleResponse(
+        var textToSpeech: String? = null,
+        var ssml: String? = null,
+        var displayText: String? = null) {
+    fun isEmpty() = textToSpeech.isNullOrBlank() && ssml.isNullOrBlank() && displayText.isNullOrBlank()
+}
+
+/**
+ * Suggestions to show with response.
+ * @property {String} title - Text of the suggestion.
+ */
+data class Suggestions(var title: String? = null)
+
+/**
+ * Link Out Suggestion. Used in rich response as a suggestion chip which, when
+ * selected, links out to external URL.
+ * @property {String} title - Text shown on the suggestion chip.
+ * @property {String} url - String URL to open.
+ */
+data class LinkOutSuggestion(
+        var destinationName: String? = null,
+        var url: String? = null)
+
+/**
+ * Image type shown on visual elements.
+ * @property {String} url - Image source URL.
+ * @property {String} accessibilityText - Text to replace for image for
+ *     accessibility.
+ * @property {Int?} width - Width of the image.
+ * @property {Int?} height - Height of the image.
+ */
+data class Image(var url: String? = null, var accessibilityText: String? = null, var width: Int? = null, var height: Int? = null)
+
+/**
+ * Basic Card Button. Shown below basic cards. Open a URL when selected.
+ * @property {string} title - Text shown on the button.
+ * @property {Object} openUrlAction - Action to take when selected.
+ * @property {string} openUrlAction.url - String URL to open.
+ */
+data class Button(
+        var title: String? = null,
+        var openUrlAction: OpenUrlAction? = null)
+
+//weird structure here.  This is Wrapper for ONE of the objects below.
+data class RichResponseItem(
+        var simpleResponse: SimpleResponse? = null,
+        var basicCard: BasicCard? = null,
+        var structuredResponse: StructuredResponse? = null)
+
+data class StructuredResponse(var orderUpdate: OrderUpdate)
+
+data class OrderState(var state: TransactionValues.OrderState, var label: String)
+
+data class AltLinkSuggestion(var url: String? = null)
+
+
+data class OpenUrlAction(var url: String? = null)
+
+data class Items(
+        var optionInfo: OptionInfo? = null,
+        var title: String? = null,
+        var description: String? = null,
+        var image: Image? = null)
+
+data class ListSelect(
+        var title: String? = null,
+        var items: MutableList<Items>? = null)
 
 data class RichResponse(
         var items: MutableList<RichResponseItem>? = null,
@@ -48,11 +120,6 @@ data class RichResponse(
         }
         return this
     }
-//
-//    fun addSimpleResponse(speech: String, displayText: String? = null) = addSimpleResponse {
-//        textToSpeech = speech
-//        this.displayText = displayText
-//    }
 
     fun addSimpleResponse(simpleResponse: SimpleResponse): RichResponse {
         return addSimpleResponse(
@@ -93,7 +160,7 @@ data class RichResponse(
     /**
      * Adds a single suggestion or list of suggestions to list of items.
      *
-     * @param {string|Array<string>} suggestions Either a single string suggestion
+     * @param {varard String} suggestions Either a single string suggestion
      *     or list of suggestions to add.
      * @return {RichResponse} Returns current constructed RichResponse.
      */
@@ -131,54 +198,36 @@ data class RichResponse(
         return this
     }
 
+    /**
+     * Adds an order update to this response. Use after a successful transaction
+     * decision to confirm the order.
+     *
+     * @param {OrderUpdate} orderUpdate
+     * @return {RichResponse} Returns current constructed RichResponse.
+     */
+    fun addOrderUpdate(orderUpdate: OrderUpdate): RichResponse {
+        if (orderUpdate == null) {
+            error("Invalid orderUpdate");
+            return this
+        }
+        // Validate if RichResponse already contains StructuredResponse object
+        items?.forEach {
+            if (it?.structuredResponse != null) {
+                debug("Cannot include >1 StructuredResponses in RichResponse");
+                return this
+            }
+        }
+
+        items?.add(RichResponseItem(
+                structuredResponse = StructuredResponse(
+                        orderUpdate = orderUpdate
+                ))
+        )
+        return this
+    }
 
 }
 
-data class LinkOutSuggestion(
-        var destinationName: String? = null,
-        var url: String? = null)
-
-//weird structure here.  This is Wrapper for ONE of the objects below.
-data class RichResponseItem(
-        var simpleResponse: SimpleResponse? = null,
-        var basicCard: BasicCard? = null,
-        var structuredResponse: StructuredResponse? = null)
-
-data class StructuredResponse(var orderUpdate: OrderUpdate)
-
-data class OrderUpdate(var googleOrderId: String, var orderState: OrderState)
-
-data class OrderState(var state: String, var label: String)
-
-data class AltLinkSuggestion(var url: String? = null)
-
-data class Suggestions(var title: String? = null)
-
-
-data class Buttons(
-        var title: String? = null,
-        var openUrlAction: OpenUrlAction? = null)
-
-data class OpenUrlAction(var url: String? = null)
-
-data class Image(var url: String? = null, var accessibilityText: String? = null, var width: Int? = null, var height: Int? = null)
-
-data class Items(
-        var optionInfo: OptionInfo? = null,
-        var title: String? = null,
-        var description: String? = null,
-        var image: Image? = null)
-
-data class ListSelect(
-        var title: String? = null,
-        var items: MutableList<Items>? = null)
-
-data class SimpleResponse(
-        var textToSpeech: String? = null,
-        var ssml: String? = null,
-        var displayText: String? = null) {
-    fun isEmpty() = textToSpeech.isNullOrBlank() && ssml.isNullOrBlank() && displayText.isNullOrBlank()
-}
 
 /**
  * Class for initializing and constructing Basic Cards with chainable interface.
@@ -200,10 +249,10 @@ data class SimpleResponse(
  * @type {Array<Button>}
  */
 data class BasicCard(var title: String = "",
-                var formattedText: String? = null,
-                var subtitle: String? = null,
-                var image: Image? = null,
-                var buttons: MutableList<Buttons> = mutableListOf()) {
+                     var formattedText: String? = null,
+                     var subtitle: String? = null,
+                     var image: Image? = null,
+                     var buttons: MutableList<Button> = mutableListOf()) {
 
     /**
      * Sets the title for this Basic Card.
@@ -292,7 +341,7 @@ data class BasicCard(var title: String = "",
         if (buttons == null) {
             buttons = mutableListOf()
         }
-        this.buttons!!.add(Buttons(
+        this.buttons!!.add(Button(
                 title = text,
                 openUrlAction = OpenUrlAction(
                         url = url))
@@ -500,8 +549,8 @@ data class OptionItem(var optionInfo: OptionInfo = OptionInfo()) {
     }
 }
 
-object ResponseBuilder {
 
+object ResponseBuilder {
     val ssmlRegex = "^(?i)<speak\\b[^>]*>(.*?)</speak>$".toRegex()
 
     fun isSsml(text: String): Boolean {

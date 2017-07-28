@@ -171,7 +171,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T,S>) {
      * @return {String?} One of Transactions.ResultType.
      * @requestextractor
      */
-    fun getTransactionRequirementsResult (): String? {
+    fun getTransactionRequirementsResult (): TransactionValues.ResultType? {
         debug("getTransactionRequirementsResult")
         val argument = this.findArgument(app.BUILT_IN_ARG_NAMES.TRANSACTION_REQ_CHECK_RESULT)
         if (argument?.extension?.resultType != null) {
@@ -188,19 +188,14 @@ class RequestExtractor<T, S>(val app: AssistantApp<T,S>) {
      *     denies permission, or no address given.
      * @requestextractor
      */
-    fun getDeliveryAddress (): Unit? {
+    fun getDeliveryAddress (): Location? {
         debug("getDeliveryAddress")
-        /* TODO
-        const {
-            DELIVERY_ADDRESS_VALUE,
-            TRANSACTION_DECISION_VALUE
-        } = this.app.BuiltInArgNames;
-        val argument = this.findArgument(DELIVERY_ADDRESS_VALUE, TRANSACTION_DECISION_VALUE);
+        val argument = findArgument(app.BUILT_IN_ARG_NAMES.DELIVERY_ADDRESS_VALUE, app.BUILT_IN_ARG_NAMES.TRANSACTION_DECISION_VALUE)
         if (argument?.extension != null) {
-            if (argument.extension.userDecision === this.app.Transactions.DeliveryAddressDecision.ACCEPTED) {
-                val location = argument.extension
-                if (!location.postalAddress) {
-                    debug("User accepted, but may not have configured address in app");
+            if (argument.extension.userDecision == TransactionValues.DeliveryAddressDecision.ACCEPTED.value) {
+                val location = argument.extension.location
+                if (location?.postalAddress == null) {
+                    debug("User accepted, but may not have configured address in app")
                     return null
                 }
                 return location
@@ -210,7 +205,6 @@ class RequestExtractor<T, S>(val app: AssistantApp<T,S>) {
             }
         }
         debug("Failed to get order delivery address")
-        */
         return null
     }
 

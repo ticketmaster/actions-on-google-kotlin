@@ -221,6 +221,12 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     var contexts = mutableMapOf<String, Context>()
     val requestExtractor: RequestExtractor<T, S>
 
+    /**
+     * Values related to supporting {@link Transactions}.
+     * @readonly
+     * @type {object}
+     */
+
     init {
         debug("AssistantApp constructor")
 
@@ -260,9 +266,6 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         requestExtractor = RequestExtractor(this)
     }
 
-    fun getUser(): User? {
-        return requestExtractor.getUser()
-    }
 
     fun handleRequest(handler: Handler<T, S>) {
         debug("handleRequest: handler=${handler::javaClass.get().name}")
@@ -550,22 +553,22 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @actionssdk
      * @apiai
      */
-    fun askForTransactionRequirements (transactionConfig: TransactionConfig, dialogState: DialogState? = null): ResponseWrapper<S>? {
+    fun askForTransactionRequirements (transactionConfig: TransactionConfig?= null, dialogState: DialogState? = null): ResponseWrapper<S>? {
         debug("checkForTransactionRequirements: transactionConfig=$transactionConfig," +
                 " dialogState=$dialogState")
-        if (transactionConfig.type?.isNullOrBlank() ?: true &&
-                transactionConfig.cardNetworks?.isEmpty() ?: true) {
-            handleError("Invalid transaction configuration. Must be of type" +
-                    "ActionPaymentTransactionConfig or GooglePaymentTransactionConfig")
-            return null
-        }
+//        if (transactionConfig?.type != TransactionValues.PaymentType.UNSPECIFIED &&
+//                transactionConfig?.cardNetworks?.isEmpty() ?: true) {
+//            handleError("Invalid transaction configuration. Must be of type" +
+//                    "ActionPaymentTransactionConfig or GooglePaymentTransactionConfig")
+//            return null
+//        }
         val transactionRequirementsCheckSpec = TransactionRequirementsCheckSpec()
-        if (transactionConfig.deliveryAddressRequired ?: false) {
+        if (transactionConfig?.deliveryAddressRequired ?: false) {
             transactionRequirementsCheckSpec.orderOptions = GoogleData.OrderOptions(
-                requestDeliveryAddress = transactionConfig.deliveryAddressRequired ?: false)
+                requestDeliveryAddress = transactionConfig?.deliveryAddressRequired ?: false)
         }
-        if (transactionConfig.type != null ||
-                transactionConfig.cardNetworks != null) {
+        if (transactionConfig?.type != null ||
+                transactionConfig?.cardNetworks != null) {
             transactionRequirementsCheckSpec.paymentOptions =
                     buildPaymentOptions(transactionConfig)
         }
@@ -612,7 +615,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
      * @apiai
      */
-    fun askForTransactionDecision (order: GoogleData.Order, transactionConfig: TransactionConfig, dialogState: DialogState? = null): ResponseWrapper<S>? {
+    fun askForTransactionDecision (order: Order, transactionConfig: TransactionConfig? = null, dialogState: DialogState? = null): ResponseWrapper<S>? {
         debug("askForTransactionDecision: order=$order, transactionConfig=$transactionConfig, dialogState=$dialogState")
         if (order == null) {
             this.handleError("Invalid order")
@@ -627,17 +630,17 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         val transactionDecisionValueSpec = TransactionDecisionValueSpec(
             proposedOrder = order)
 
-        if (transactionConfig.deliveryAddressRequired ?: false) {
+        if (transactionConfig?.deliveryAddressRequired ?: false) {
             transactionDecisionValueSpec.orderOptions = GoogleData.OrderOptions(
-                requestDeliveryAddress = transactionConfig.deliveryAddressRequired ?: false
+                requestDeliveryAddress = transactionConfig?.deliveryAddressRequired ?: false
             )
         }
-        if (transactionConfig.type?.isNotBlank() ?: false ||
-                transactionConfig.cardNetworks?.isNotEmpty() ?: false) {
+        if (transactionConfig?.type != null ||
+                transactionConfig?.cardNetworks?.isNotEmpty() ?: false) {
             transactionDecisionValueSpec.paymentOptions =
                     buildPaymentOptions(transactionConfig)
         }
-        if (transactionConfig.customerInfoOptions != null) {
+        if (transactionConfig?.customerInfoOptions != null) {
             if (transactionDecisionValueSpec.orderOptions == null) {
                 transactionDecisionValueSpec.orderOptions = GoogleData.OrderOptions()
             }
@@ -648,7 +651,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
                 dialogState)
     }
 
-    data class TransactionDecisionValueSpec(var proposedOrder: GoogleData.Order, var orderOptions: GoogleData.OrderOptions? = null, var paymentOptions: GoogleData.PaymentOptions? = null)
+    data class TransactionDecisionValueSpec(var proposedOrder: Order, var orderOptions: GoogleData.OrderOptions? = null, var paymentOptions: GoogleData.PaymentOptions? = null)
 
     data class TransactionRequirementsCheckSpec(var orderOptions: GoogleData.OrderOptions? = null,
                                                 var paymentOptions: GoogleData.PaymentOptions? = null)
@@ -670,8 +673,8 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
             if (responseCode != 0) {
                 code = responseCode
             }
-            if (this.apiVersion !== null) {
-                this.response.append(CONVERSATION_API_VERSION_HEADER, apiVersion)
+            if (apiVersion !== null) {
+                response.append(CONVERSATION_API_VERSION_HEADER, apiVersion)
             }
             response.append(HTTP_CONTENT_TYPE_HEADER, HTTP_CONTENT_TYPE_JSON)
             // If request was in Proto2 format, convert response to Proto2
@@ -741,9 +744,43 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @param {String} orderId Unique identifier for the order.
      * @return {Order} Constructed Order.
      */
-    fun buildOrder (orderId: String): GoogleData.Order {
-        return GoogleData.Order(id = orderId)
+    fun buildOrder (orderId: String): Order {
+        return Order(orderId)
     }
+
+    /**
+     * Constructs Cart with chainable property setters.
+     *
+     * @param {String=} cartId Unique identifier for the cart.
+     * @return {Cart} Constructed Cart.
+     */
+    fun buildCart (cartId: String? = null): Cart {
+        return Cart(cartId)
+    }
+
+    /**
+     * Constructs LineItem with chainable property setters.
+     *
+     * @param {String} name Name of the line item.
+     * @param {String} id Unique identifier for the item.
+     * @return {LineItem} Constructed LineItem.
+     */
+    fun buildLineItem (name: String, id: String): LineItem {
+        return LineItem(name, id)
+    }
+
+    /**
+     * Constructs OrderUpdate with chainable property setters.
+     *
+     * @param {String} orderId Unique identifier of the order.
+     * @param {Boolean} isGoogleOrderId True if the order ID is provided by
+     *     Google. False if the order ID is app provided.
+     * @return {OrderUpdate} Constructed OrderUpdate.
+     */
+    fun buildOrderUpdate (orderId: String, isGoogleOrderId: Boolean): OrderUpdate {
+        return OrderUpdate(orderId, isGoogleOrderId)
+    }
+
 
     internal abstract fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest): ResponseWrapper<S>?
 
@@ -969,16 +1006,6 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         return capabilities?.contains(requestedCapability) ?: false
     }
 
-    /**
-     * Gets surface capabilities of user device.
-     *
-     * Implemented in RequestExtractor
-     * @return {List<String>?} HTTP response.
-     * @apiai
-     * @actionssdk
-     */
-    fun getSurfaceCapabilities () = requestExtractor.getSurfaceCapabilities()
-
     fun handleError(text: String?) {
         debug("handleError_: text=%$text")
         if (text.isNullOrEmpty()) {
@@ -1005,32 +1032,42 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @return {PaymentOptions} paymentOptions
      * @private
      */
-    fun buildPaymentOptions (transactionConfig: TransactionConfig): GoogleData.PaymentOptions {
+    fun buildPaymentOptions (transactionConfig: TransactionConfig? = null): GoogleData.PaymentOptions {
         debug("buildPromptsFromPlainTextHelper_: transactionConfig=${transactionConfig}")
         var paymentOptions = GoogleData.PaymentOptions()
-        if (transactionConfig.type != null) { // Action payment
+        if (transactionConfig?.type != null) { // Action payment
             paymentOptions.actionProvidedOptions = GoogleData.ActionProvidedOptions(
-                paymentType = transactionConfig.type ?: "",
-                displayName = transactionConfig.displayName ?: ""
+                paymentType = transactionConfig?.type,
+                displayName = transactionConfig?.displayName
             )
         } else { // Google payment
             paymentOptions.googleProvidedOptions = GoogleData.GoogleProvidedOptions(
-                supportedCardNetworks = transactionConfig.cardNetworks ?: mutableListOf(),
-                prepaidCardDisallowed = transactionConfig.prepaidCardDisallowed ?: false
+                supportedCardNetworks = transactionConfig?.cardNetworks ?: mutableListOf(),
+                prepaidCardDisallowed = transactionConfig?.prepaidCardDisallowed ?: false
             )
-            if (transactionConfig.tokenizationParameters != null) {
+            if (transactionConfig?.tokenizationParameters != null) {
                 paymentOptions?.googleProvidedOptions?.tokenizationParameters = GoogleData.TokenizationParameters(
                     tokenizationType = "PAYMENT_GATEWAY",
                     parameters = transactionConfig.tokenizationParameters
                 )
             }
         }
-        return paymentOptions;
+        return paymentOptions
     }
 
-    fun isPermissionGranted() = requestExtractor.isPermissionGranted()
+
+    fun getUser() = requestExtractor.getUser()
+    fun getDeviceLocation() = requestExtractor.getDeviceLocation()
+    fun getTransactionRequirementsResult() = requestExtractor.getTransactionRequirementsResult()
+    fun getDeliveryAddress() = requestExtractor.getDeliveryAddress()
+    fun getTransactionDecision() = requestExtractor.getTransactionDecision()
+    fun getUserConfirmation() = requestExtractor.getUserConfirmation()
+    fun getDateTime() = requestExtractor.getDateTime()
+    fun getSignInStatus() = requestExtractor.getSignInStatus()
     fun isInSandbox() = requestExtractor.isInSandbox()
+    fun getSurfaceCapabilities () = requestExtractor.getSurfaceCapabilities()
     fun getInputType() = requestExtractor.getInputType()
+    fun isPermissionGranted() = requestExtractor.isPermissionGranted()
 }
 
 fun debug(msg: String) {

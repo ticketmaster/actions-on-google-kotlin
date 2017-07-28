@@ -1,9 +1,6 @@
 package com.ticketmaster.apiai.google
 
-import com.tmsdurham.actions.AssistantApp
-import com.tmsdurham.actions.Carousel
-import com.tmsdurham.actions.CustomerInfoOptions
-import com.tmsdurham.actions.RichResponse
+import com.tmsdurham.actions.*
 
 data class GoogleData(
         var isSsml: Boolean = false,
@@ -79,10 +76,10 @@ data class GoogleData(
 
     data class OrderOptions(var requestDeliveryAddress: Boolean = false, var customerInfoOptions: List<String>? = null)
 
-    data class ActionProvidedOptions(var paymentType: String, var displayName: String)
+    data class ActionProvidedOptions(var paymentType: String? = null, var displayName: String? = null)
 
     data class GoogleProvidedOptions(
-            var supportedCardNetworks: MutableList<String>,
+            var supportedCardNetworks: MutableList<TransactionValues.CardNetwork>,
             var prepaidCardDisallowed: Boolean,
             var tokenizationParameters: TokenizationParameters? = null)
 
@@ -92,29 +89,16 @@ data class GoogleData(
 
     data class AddressOptions(var reason: String? = null)
 
-    data class TransactionRequirementsCheckSpec(
-            var orderOptions: OrderOptions? = null,
-            var paymentOptions: PaymentOptions? = null)
-
     data class Price(
-            var type: String? = null,
-            var amount: Amount? = null)
-
-    data class LineItems(
-            var id: String? = null,
-            var name: String? = null,
-            var type: String? = null,
-            var price: Price? = null,
-            var quantity: Int = 0)
-
-    data class Merchant(
-            var id: String? = null,
-            var name: String? = null)
-
-    data class Cart(
-            var lineItems: List<LineItems>? = null,
-            var merchant: Merchant? = null,
-            var notes: String? = null)
+            var type: TransactionValues.PriceType? = null,
+            var amount: Amount? = null) {
+        fun amount(init: Amount.() -> Unit) {
+            if (amount == null) {
+                amount = Amount()
+            }
+            amount?.init()
+        }
+    }
 
     data class Amount(
             var currencyCode: String? = null,
@@ -122,13 +106,24 @@ data class GoogleData(
             var nanos: Int = 0)
 
     data class TotalPrice(
-            var type: String? = null,
-            var amount: Amount? = null)
+            var type: TransactionValues.PriceType? = null,
+            var amount: Amount? = null) {
+        fun amount(init: Amount.() -> Unit) {
+            if (amount == null) {
+                amount = Amount()
+            }
+            amount?.init()
+        }
+    }
 
-    data class Order(
-            var id: String? = null,
-            var cart: Cart? = null,
-            var otherItems: List<LineItems>? = null,
-            var totalPrice: TotalPrice? = null)
-
+}
+fun totalPrice(init: GoogleData.TotalPrice.() -> Unit): GoogleData.TotalPrice {
+        val totalPrice = GoogleData.TotalPrice()
+        totalPrice.init()
+        return totalPrice
+    }
+fun price(init: GoogleData.Price.() -> Unit): GoogleData.Price {
+    val price = GoogleData.Price()
+    price.init()
+    return price
 }
