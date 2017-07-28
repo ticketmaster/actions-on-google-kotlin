@@ -1,7 +1,7 @@
 package com.ticketmaster.apiai
 
 import com.ticketmaster.apiai.google.GoogleData
-import com.tmsdurham.actions.Buttons
+import com.tmsdurham.actions.Button
 import com.tmsdurham.actions.Image
 import com.tmsdurham.actions.OptionItem
 import com.tmsdurham.actions.Suggestions
@@ -54,7 +54,7 @@ data class Messages(
         var subtitle: String? = null,
         var formattedText: String? = null,
         var image: Image? = null,
-        var buttons: MutableList<Buttons>? = null)
+        var buttons: MutableList<Button>? = null)
 
 data class Fulfillment(
         val speech: String? = null,

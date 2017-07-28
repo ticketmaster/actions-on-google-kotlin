@@ -1157,7 +1157,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean) {
         }
         orderManagementActions?.add(OrderManagementAction(
                 type = type,
-                button = Buttons(
+                button = Button(
                         title = label,
                         openUrlAction = OpenUrlAction(
                                 url = url))
@@ -1166,7 +1166,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean) {
         return this
     }
 
-    data class OrderManagementAction(var type: TransactionValues.OrderAction, var button: Buttons? = null,
+    data class OrderManagementAction(var type: TransactionValues.OrderAction, var button: Button? = null,
                                      var title: String? = null, var openUrlAction: OpenUrlAction? = null)
 
 
