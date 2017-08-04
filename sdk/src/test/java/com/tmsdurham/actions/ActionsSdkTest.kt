@@ -9,6 +9,12 @@ import org.jetbrains.spek.api.dsl.it
 
 typealias MockActionHandler = Handler<ActionRequest, ActionResponse>
 
+//Serializer to handle serialization of conversation token
+val serializer: Serializer = object : Serializer {
+    override fun <T> serialize(obj: T) = gson.toJson(obj)
+
+    override fun <T> deserialize(str: String, clazz: Class<T>) = gson.fromJson(str, clazz)
+}
 
 object ActionsSdkTest : Spek({
     fun requestFromJson(body: String) = gson.fromJson<ActionRequest>(body, ActionRequest::class.java)
@@ -43,7 +49,7 @@ object ActionsSdkTest : Spek({
     }
 
     fun createLiveSessionActionsSdkAppBody(): ActionRequest {
-        val tmp = actionsSdkAppRequestBodyNewSession ()
+        val tmp = actionsSdkAppRequestBodyNewSession()
         tmp.conversation?.type = "2"
         return tmp
     }
@@ -75,8 +81,9 @@ object ActionsSdkTest : Spek({
         it("Does not detect v2 and transform body when version not present") {
             val mockRequest = RequestWrapper(headerV1, createLiveSessionActionsSdkAppBody())
             val app = ActionsSdkApp(
-                request = mockRequest,
-                response = mockResponse
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer
             )
             app.handleRequest({})
             expect(app.request.body).to.equal(requestFromJson("""{
@@ -109,7 +116,7 @@ object ActionsSdkTest : Spek({
 
         // Test a change made for backwards compatibility with legacy sample code
         it("Does initialize StandardIntents without an options object") {
-            val app = ActionsSdkApp(RequestWrapper(headerV1, createLiveSessionActionsSdkAppBody()), mockResponse)
+            val app = ActionsSdkApp(RequestWrapper(headerV1, createLiveSessionActionsSdkAppBody()), mockResponse, serializer = serializer)
 
             expect(app.STANDARD_INTENTS.MAIN).to.equal("assistant.intent.action.MAIN")
             expect(app.STANDARD_INTENTS.TEXT).to.equal("assistant.intent.action.TEXT")
@@ -123,7 +130,7 @@ object ActionsSdkTest : Spek({
     describe("ActionsSdkApp#ask") {
         var mockRequest = RequestWrapper(headerV1, createLiveSessionActionsSdkAppBody())
         var mockResponse = ResponseWrapper<ActionResponse>()
-        var app = ActionsSdkApp(mockRequest, mockResponse)
+        var app = ActionsSdkApp(mockRequest, mockResponse, serializer = serializer)
 
         beforeEachTest {
             mockRequest = RequestWrapper(headerV1, createLiveSessionActionsSdkAppBody())
@@ -131,7 +138,7 @@ object ActionsSdkTest : Spek({
             debug("before test: ${mockResponse}")
             app = ActionsSdkApp(
                     request = mockRequest,
-                    response = mockResponse)
+                    response = mockResponse, serializer = serializer)
         }
 
         // Success case test, when the API returns a valid 200 response with the response object
@@ -145,7 +152,7 @@ object ActionsSdkTest : Spek({
 
             // Validating the response object
             val expectedResponse = responseFromJson("""{
-                "conversationToken": "{'state':null,'data':{}}",
+                "conversationToken": "{\"data\":{}}",
                 "expectUserResponse": true,
                 "expectedInputs": [
                 {

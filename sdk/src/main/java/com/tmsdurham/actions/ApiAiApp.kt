@@ -1304,7 +1304,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      */
     override fun extractData() {
         debug("extractData")
-        data = request.body.result.contexts.find { it.name == ACTIONS_API_AI_CONTEXT }?.parameters
+        data = request.body.result.contexts.find { it.name == ACTIONS_API_AI_CONTEXT }?.parameters ?: mutableMapOf()
     }
 
 }

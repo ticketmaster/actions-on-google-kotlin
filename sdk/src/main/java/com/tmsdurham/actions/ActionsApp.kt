@@ -13,6 +13,10 @@ val INPUTS_MAX = 3
 //                   Actions SDK support
 // ---------------------------------------------------------------------------
 
+interface Serializer {
+    fun <T> serialize(obj: T): String
+    fun <T> deserialize(str: String, clazz: Class<T>): T
+}
 /**
  * This is the class that handles the conversation API directly from Assistant,
  * providing implementation for all the methods available in the API.
@@ -30,6 +34,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
+    val serializer: Serializer
     /**
      * Constructor for ActionsSdkApp object.
      * To be used in the Actions SDK HTTP endpoint logic.
@@ -45,9 +50,10 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @param {fun=} options.sessionStarted fun callback when session starts.
      * @actionssdk
      */
-    constructor(request: RequestWrapper<ActionRequest>, response: ResponseWrapper<ActionResponse>, sessionStarted: (() -> Unit)? = null) :
+    constructor(request: RequestWrapper<ActionRequest>, response: ResponseWrapper<ActionResponse>, sessionStarted: (() -> Unit)? = null, serializer: Serializer) :
             super(request, response, sessionStarted) {
         debug("ActionsSdkApp constructor")
+        this.serializer = serializer
         response.body = ActionResponse()
 
         // If request is AoG and in Proto2 format, convert to Proto3.
@@ -656,8 +662,8 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         debug("buildInputPrompt: isSsml=$isSsml, initialPrompt=$initialPrompt, noInputs=$noInputs")
         val initials = mutableListOf<String>()
 
-        if (noInputs?.isNotEmpty()) {
-            if (noInputs?.size ?: 0 > INPUTS_MAX) {
+        if (noInputs.isNotEmpty()) {
+            if (noInputs.size > INPUTS_MAX) {
                 handleError("Invalid number of no inputs")
                 return null
             }
@@ -710,14 +716,13 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
     fun buildResponseHelper(conversationToken: String?, expectUserResponse: Boolean, expectedInput: ExpectedInput?, finalResponse: FinalResponse?): ResponseWrapper<ActionResponse> {
         debug("buildResponseHelper: conversationToken=$conversationToken, expectUserResponse=$expectUserResponse, " +
                 "expectedInput=$expectedInput, finalResponse=$finalResponse")
-        val response = ResponseWrapper<ActionResponse>()
         response.body = ActionResponse()
         if (!conversationToken.isNullOrBlank()) {
             response.body?.conversationToken = conversationToken
         }
         response.body?.expectUserResponse = expectUserResponse
         if (expectedInput != null) {
-//            response.body?.expectedInputs = expectedInput
+            response.body?.expectedInputs = mutableListOf(expectedInput)
         }
         if (!expectUserResponse && finalResponse != null) {
             response.body?.finalResponse = finalResponse
@@ -755,7 +760,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         if (request.body?.conversation?.conversationToken != null) {
             val json = request.body.conversation.conversationToken
 //            data = json.data
-            state = json?.state
+            state = json.state
         } else {
             data = mutableMapOf()
         }
@@ -794,7 +799,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         var outDialogState = dialogState?.copy()
         if (dialogState == null) {
             outDialogState = DialogState(
-                    state = state ?: "",
+                    state = state,
                     data = this.data
             )
         }
@@ -829,8 +834,8 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         var outDialog = dialogState?.copy()
         if (dialogState != null) {
             outDialog = DialogState(
-                    state = this.state ?: "",
-                    data = this.data
+                    state = this.state,
+                    data = this.data ?: mutableMapOf()
             )
         }
 //        return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
@@ -868,7 +873,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         var outDialogState = dialogState?.copy()
         if (dialogState == null) {
             outDialogState = DialogState(
-                    state = this.state ?: "",
+                    state = this.state,
                     data = this.data
             )
         }
@@ -901,7 +906,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         var outDialogState = dialogState?.copy()
         if (dialogState != null) {
             outDialogState = DialogState(
-                    state = this.state ?: "",
+                    state = this.state,
                     data = this.data)
         }
 //        return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
@@ -937,7 +942,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         var outDialogState = dialogState?.copy()
         if (dialogState == null) {
             outDialogState = DialogState(
-                    state = this.state ?: "",
+                    state = this.state,
                     data = this.data)
         }
 //        return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), outDialogState)
@@ -962,7 +967,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         var outDialogState = dialogState?.copy()
         if (dialogState != null) {
             outDialogState = DialogState(
-                    state = this.state ?: "",
+                    state = this.state,
                     data = data)
         }
 //        return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), outDialogState)
@@ -1028,7 +1033,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         var outDialogState = dialogState?.copy()
         if (dialogState == null) {
             outDialogState = DialogState(
-                    state = this.state ?: "",
+                    state = this.state,
                     data = this.data)
         }
 
@@ -1036,13 +1041,12 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
                 inputPrompt = inputPrompt,
                 possibleIntents = possibleIntents
         )
-        val response = buildResponseHelper(
-                outDialogState?.state,
+        buildResponseHelper(
+                serializer.serialize(outDialogState),
                 true, // expectedUserResponse
                 expectedInputs,
                 null // finalResponse is null b/c dialog is active
         )
-        debug("here! ${response.body}")
         return doResponse(response, RESPONSE_CODE_OK)
     }
 

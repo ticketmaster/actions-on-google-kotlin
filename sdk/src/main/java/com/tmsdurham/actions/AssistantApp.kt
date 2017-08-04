@@ -217,9 +217,9 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
 
     var responded = false
     var apiVersion_: String = ""
-    var state: String? = ""
+    var state: String? = null
     //TODO is it DialogState?
-    var data: MutableMap<String, Any>? = null
+    var data: MutableMap<String, Any> = mutableMapOf()
     var contexts = mutableMapOf<String, Context>()
     val requestExtractor: RequestExtractor<T, S>
 
@@ -239,7 +239,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         } else {
             if (request.headers[ACTIONS_CONVERSATION_API_VERSION_HEADER] != null) {
                 actionsApiVersion = request.headers[ACTIONS_CONVERSATION_API_VERSION_HEADER]!!
-                debug("Actions API version from header: " + this.actionsApiVersion);
+                debug("Actions API version from header: " + this.actionsApiVersion)
             }
             if (request.body is ApiAiRequest) {
                 if (request.body.originalRequest != null) {
@@ -618,7 +618,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
             return null
         }
         if (transactionConfig?.type != null &&
-                transactionConfig?.cardNetworks?.isNotEmpty() ?: false) {
+                transactionConfig.cardNetworks?.isNotEmpty() ?: false) {
             handleError("Invalid transaction configuration. Must be of type" +
                     "ActionPaymentTransactionConfig or GooglePaymentTransactionConfig")
             return null
@@ -658,7 +658,6 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
 
     fun doResponse(response: ResponseWrapper<S>?, responseCode: Int = 0): ResponseWrapper<S>? {
         debug("doResponse_: responseWrapper=$response., responseCode=$responseCode")
-        debug("here 2 ${response?.body}")
         if (responded) {
             return null
         }
@@ -683,11 +682,8 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
 //                    response = transformToSnakeCase(response);
 //                }
             }
-            debug("Response $response")
-            debug("here 3 ${response?.body}")
             val httpResponse = response.status(code).send(response.body!!)
             this.responded = true
-            debug("here 4 ${response?.body}")
             return httpResponse
         }
     }
@@ -1042,7 +1038,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
                 prepaidCardDisallowed = transactionConfig?.prepaidCardDisallowed ?: false
             )
             if (transactionConfig?.tokenizationParameters != null) {
-                paymentOptions?.googleProvidedOptions?.tokenizationParameters = GoogleData.TokenizationParameters(
+                paymentOptions.googleProvidedOptions?.tokenizationParameters = GoogleData.TokenizationParameters(
                     tokenizationType = "PAYMENT_GATEWAY",
                     parameters = transactionConfig.tokenizationParameters
                 )
