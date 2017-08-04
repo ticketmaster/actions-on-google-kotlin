@@ -178,12 +178,13 @@ data class TransactionRequirementsCheckResult(
         val order: FinalOrderHolder? = null)
 
 
-data class RawInputs(val query: String? = null, val inputType: String? = null)
+data class RawInput(val query: String? = null, val inputType: String? = null)
 
 data class Inputs(
         var arguments: List<Arguments>? = null,
         val intent: String? = null,
-        val rawInputs: List<RawInputs>? = null)
+        var speech: String? = null,
+        val rawInputs: List<RawInput>? = null)
 
 data class DialogState(val state: String = "", val data: MutableMap<String, Any>? = null)
 

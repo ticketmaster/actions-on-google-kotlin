@@ -25,7 +25,6 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
     val TYPE = "type"
     val PLATFORM = "platform"
 
-    var data: MutableMap<String, Any>? = null
 
     constructor(request: RequestWrapper<ApiAiRequest>, response: ResponseWrapper<ApiAiResponse>, sessionStarted: (() -> Unit)? = null) :
             super(request, response, sessionStarted) {
@@ -872,7 +871,6 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
             handleError("No contexts included in request")
             return mutableListOf()
         }
-        debug("HERE!!! + $request")
         return request.body.result?.contexts?.filter { it.name != ACTIONS_API_AI_CONTEXT }?.filterNotNull().toMutableList()
     }
 
@@ -958,14 +956,14 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * Uses a PermissionsValueSpec object to construct and send a
      * permissions request to the user.
      *
-     * @param {Object} permissionsSpec PermissionsValueSpec object containing
+     * @param {Object} permissionsValueSpec PermissionsValueSpec object containing
      *     the permissions prefix and permissions requested.
      * @return {Object} The HTTP response.
      * @private
      * @apiai
      */
     override fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest): ResponseWrapper<ApiAiResponse>? {
-        debug("fulfillPermissionsRequest_: permissionsSpec=$permissionsSpec")
+        debug("fulfillPermissionsRequest_: permissionsValueSpec=$permissionsSpec")
         val inputPrompt = "PLACEHOLDER_FOR_PERMISSION"
         val response = buildResponse(inputPrompt, true)
 
@@ -1213,7 +1211,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         val speech = richResponse.items?.first()?.simpleResponse?.textToSpeech!!
         var noInputsFinal = mutableListOf<GoogleData.NoInputPrompts>()
         val dialogState = DialogState(
-                state = state, //TODO (this.state instanceof State ? this.state.getName() : this.state),
+                state = state ?: "", //TODO (this.state instanceof State ? this.state.getName() : this.state),
                 data = data)
         if (noInputs != null) {
             if (noInputs.size > INPUTS_MAX) {
@@ -1267,7 +1265,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
 
         var noInputsFinal = mutableListOf<GoogleData.NoInputPrompts>()
         val dialogState = DialogState(
-                state = state, //TODO (this.state instanceof State ? this.state.getName() : this.state),
+                state = state ?: "", //TODO (this.state instanceof State ? this.state.getName() : this.state),
                 data = data)
         if (noInputs != null) {
             if (noInputs.size > INPUTS_MAX) {

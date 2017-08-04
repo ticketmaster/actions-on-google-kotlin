@@ -216,8 +216,10 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     val SIGN_IN_STATUS = SignInStatus()
 
     var responded = false
-    var apiVersion: String = ""
-    var state: String = ""
+    var apiVersion_: String = ""
+    var state: String? = ""
+    //TODO is it DialogState?
+    var data: MutableMap<String, Any>? = null
     var contexts = mutableMapOf<String, Context>()
     val requestExtractor: RequestExtractor<T, S>
 
@@ -259,8 +261,8 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
          */
         // Populates API version.
         if (request.get(CONVERSATION_API_VERSION_HEADER) != null) {
-            apiVersion = request.get(CONVERSATION_API_VERSION_HEADER) ?: ""
-            debug("Assistant API version: " + apiVersion)
+            apiVersion_ = request.get(CONVERSATION_API_VERSION_HEADER) ?: ""
+            debug("Assistant API version: " + apiVersion_)
         }
 
         requestExtractor = RequestExtractor(this)
@@ -656,6 +658,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
 
     fun doResponse(response: ResponseWrapper<S>?, responseCode: Int = 0): ResponseWrapper<S>? {
         debug("doResponse_: responseWrapper=$response., responseCode=$responseCode")
+        debug("here 2 ${response?.body}")
         if (responded) {
             return null
         }
@@ -667,8 +670,8 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
             if (responseCode != 0) {
                 code = responseCode
             }
-            if (apiVersion !== null) {
-                response.append(CONVERSATION_API_VERSION_HEADER, apiVersion)
+            if (apiVersion_ != null) {
+                response.append(CONVERSATION_API_VERSION_HEADER, apiVersion_)
             }
             response.append(HTTP_CONTENT_TYPE_HEADER, HTTP_CONTENT_TYPE_JSON)
             // If request was in Proto2 format, convert response to Proto2
@@ -681,8 +684,10 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
 //                }
             }
             debug("Response $response")
+            debug("here 3 ${response?.body}")
             val httpResponse = response.status(code).send(response.body!!)
             this.responded = true
+            debug("here 4 ${response?.body}")
             return httpResponse
         }
     }
@@ -1049,6 +1054,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
 
     fun getUser() = requestExtractor.getUser()
     fun getDeviceLocation() = requestExtractor.getDeviceLocation()
+    fun getArgumentCommon(argName: String) = requestExtractor.getArgumentCommon(argName)
     fun getTransactionRequirementsResult() = requestExtractor.getTransactionRequirementsResult()
     fun getDeliveryAddress() = requestExtractor.getDeliveryAddress()
     fun getTransactionDecision() = requestExtractor.getTransactionDecision()
