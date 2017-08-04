@@ -11,7 +11,7 @@ import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 
-val gson = GsonBuilder().create()
+val gson = GsonBuilder().serializeNulls().create()
 
 typealias MockHandler = Handler<ApiAiRequest, ApiAiResponse>
 

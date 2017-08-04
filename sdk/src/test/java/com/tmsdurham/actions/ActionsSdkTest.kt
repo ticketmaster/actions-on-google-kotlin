@@ -152,7 +152,7 @@ object ActionsSdkTest : Spek({
 
             // Validating the response object
             val expectedResponse = responseFromJson("""{
-                "conversationToken": "{\"data\":{}}",
+                "conversationToken": "{\"state\":null,\"data\":{}}",
                 "expectUserResponse": true,
                 "expectedInputs": [
                 {
@@ -184,7 +184,134 @@ object ActionsSdkTest : Spek({
             }""")
             expect(mockResponse.body).to.equal(expectedResponse)
         }
+
+        it("Should return the valid JSON in the response object for the success case when String text was asked w/o input prompts.") {
+            app.ask("What can I help you with?")
+            val expectedResponse = responseFromJson("""{
+                "conversationToken": "{\"state\":null,\"data\":{}}",
+                "expectUserResponse": true,
+                "expectedInputs": [
+                {
+                    "inputPrompt": {
+                    "initialPrompts": [
+                    {
+                        "textToSpeech": "What can I help you with?"
+                    }
+                    ],
+                    "noInputPrompts": [
+
+                    ]
+                },
+                    "possibleIntents": [
+                    {
+                        "intent": "assistant.intent.action.TEXT"
+                    }
+                    ]
+                }
+                ]
+            }""")
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+
+        it("Should return the valid JSON in the response object for the success case when SSML text was asked w/o input prompts.") {
+            app.ask("<speak>What <break time=\"1\"/> can I help you with?</speak>")
+            // Validating the response object
+            val expectedResponse = responseFromJson("""{
+                "conversationToken": "{\"state\":null,\"data\":{}}",
+                "expectUserResponse": true,
+                "expectedInputs": [
+                {
+                    "inputPrompt": {
+                    "initialPrompts": [
+                    {
+                        "ssml": "<speak>What <break time=\"1\"/> can I help you with?</speak>"
+                    }
+                    ],
+                    "noInputPrompts": [
+
+                    ]
+                },
+                    "possibleIntents": [
+                    {
+                        "intent": "assistant.intent.action.TEXT"
+                    }
+                    ]
+                }
+                ]
+            }""")
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+
+        it("Should return the valid JSON in the response object for the advanced success case.") {
+            val inputPrompt = app.buildInputPrompt(false, "Welcome to action snippets! Say a number.",
+                    mutableListOf("Say any number", "Pick a number", "What is the number?"))
+            app.ask(inputPrompt)
+            // Validating the response object
+            val expectedResponse = responseFromJson("""{
+            "conversationToken": "{\"state\":null,\"data\":{}}",
+            "expectUserResponse": true,
+            "expectedInputs": [
+            {
+                "inputPrompt": {
+                "initialPrompts": [
+                {
+                    "textToSpeech": "Welcome to action snippets! Say a number."
+                }
+                ],
+                "noInputPrompts": [
+                {
+                    "textToSpeech": "Say any number"
+                },
+                {
+                    "textToSpeech": "Pick a number"
+                },
+                {
+                    "textToSpeech": "What is the number?"
+                }
+                ]
+            },
+                "possibleIntents": [
+                {
+                    "intent": "assistant.intent.action.TEXT"
+                }
+                ]
+            }
+            ]
+        }""")
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+
+        it("Should return the valid simple response JSON in the response object for the success case.") {
+            app.ask { textToSpeech = "hello"
+                displayText = "hi" }
+            // Validating the response object
+            val expectedResponse = responseFromJson("""{
+                "conversationToken": "{\"state\":null,\"data\":{}}",
+                "expectUserResponse": true,
+                "expectedInputs": [
+                {
+                    "inputPrompt": {
+                    "richInitialPrompt": {
+                    "items": [
+                    {
+                        "simpleResponse": {
+                        "textToSpeech": "hello",
+                        "displayText": "hi"
+                    }
+                    }
+                    ],
+                    "suggestions": []
+                }
+                },
+                    "possibleIntents": [
+                    {
+                        "intent": "assistant.intent.action.TEXT"
+                    }
+                    ]
+                }
+                ]
+            }""")
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
     }
-
-
 })

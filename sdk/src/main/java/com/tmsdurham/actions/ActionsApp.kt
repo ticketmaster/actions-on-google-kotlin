@@ -315,6 +315,12 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
     }
 
+    fun ask(init: SimpleResponse.() -> Unit): ResponseWrapper<ActionResponse>? {
+        var simpleResponse = SimpleResponse()
+        simpleResponse.init()
+        return ask(simpleResponse)
+    }
+
     fun ask(inputPrompt: InputPrompt?, dialogState: DialogState? = null): ResponseWrapper<ActionResponse>? {
         debug("ask: inputPrompt=$inputPrompt, dialogState=$dialogState")
         if (inputPrompt == null) {
@@ -330,15 +336,14 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
     }
 
 
-    fun ask(inputPrompt: String?, dialogState: DialogState? = null): ResponseWrapper<ActionResponse>? {
-        debug("ask: inputPrompt=$inputPrompt, dialogState=$dialogState")
+    fun ask(speech: String?, dialogState: DialogState? = null): ResponseWrapper<ActionResponse>? {
+        debug("ask: speech=$speech, dialogState=$dialogState")
         val expectedIntent = buildExpectedIntent(STANDARD_INTENTS.TEXT)
         if (expectedIntent == null) {
             error("Error in building expected intent")
             return null
         }
-//        return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
-        return null
+        return buildAskHelper(speech, mutableListOf(expectedIntent), dialogState)
     }
 
 
@@ -1023,7 +1028,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
     }
 
 
-    private fun buildAskHelper(inputPrompt: InputPrompt, possibleIntents: MutableList<ActionsSdkApp.ExpectedIntent>, dialogState: DialogState?): ResponseWrapper<ActionResponse>? {
+    private fun buildAskHelper(inputPrompt: InputPrompt?, possibleIntents: MutableList<ActionsSdkApp.ExpectedIntent>, dialogState: DialogState?): ResponseWrapper<ActionResponse>? {
         debug("buildAskHelper_: inputPrompt=$inputPrompt, possibleIntents,  dialogState=$dialogState")
         if (inputPrompt == null) {
             handleError("Invalid input prompt")
@@ -1050,19 +1055,25 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         return doResponse(response, RESPONSE_CODE_OK)
     }
 
-    fun buildAskHelper(inputPrompt: String?, possibleIntents: MutableList<Input>, dialogState: DialogState?): ResponseWrapper<ActionResponse>? {
+    fun buildAskHelper(inputPrompt: String?, possibleIntents: MutableList<ExpectedIntent>, dialogState: DialogState?): ResponseWrapper<ActionResponse>? {
         debug("buildAskHelper: inputPrompt=$inputPrompt, possibleIntents=$possibleIntents,  dialogState=$dialogState")
         if (inputPrompt == null) {
             handleError("Invalid input prompt")
             return null
         }
-//        inputPrompt = buildInputPrompt(isSsml(inputPrompt), inputPrompt)
-        return null
+        val inputPrompt = buildInputPrompt(isSsml(inputPrompt), inputPrompt)
+        return buildAskHelper(inputPrompt, possibleIntents, dialogState)
     }
 
-    private fun buildAskHelper(inputPrompt: SimpleResponse, mutableListOf: MutableList<ActionsSdkApp.ExpectedIntent>, dialogState: DialogState?): ResponseWrapper<ActionResponse>? {
-
-        return null
+    private fun buildAskHelper(simpleResponse: SimpleResponse, possibleIntents: MutableList<ExpectedIntent>, dialogState: DialogState?): ResponseWrapper<ActionResponse>? {
+        debug("buildAskHelper: inputPrompt=$simpleResponse, possibleIntents=$possibleIntents,  dialogState=$dialogState")
+        if (simpleResponse == null) {
+            handleError("Invalid input prompt")
+            return null
+        }
+//        val inputPrompt = buildInputPrompt(isSsml(inputPrompt?.textToSpeech ?: ""), inputPrompt?.textToSpeech ?: "")
+        val inputPrompt = InputPrompt(richInitialPrompt = buildRichResponse().addSimpleResponse(simpleResponse))
+        return buildAskHelper(inputPrompt, possibleIntents, dialogState)
     }
 
     /**
