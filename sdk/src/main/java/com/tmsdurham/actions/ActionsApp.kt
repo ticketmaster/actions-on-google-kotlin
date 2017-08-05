@@ -481,8 +481,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
 
         val inputPrompt = buildInputPrompt(false,
                 "PLACEHOLDER_FOR_DELIVERY_ADDRESS")
-//        return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
-        return null
+        return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
     }
 
     /**

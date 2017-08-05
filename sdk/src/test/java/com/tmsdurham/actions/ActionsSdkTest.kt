@@ -786,7 +786,7 @@ object ActionsSdkTest : Spek({
                 ],
                 prepaidCardDisallowed: false
             }""", GooglePaymentTransactionConfig::class.java)
-            app.askForTransactionRequirements(transactionConfig, mutableMapOf("cartSize" to 2 ))
+            app.askForTransactionRequirements(transactionConfig, mutableMapOf("cartSize" to 2))
             val expectedResponse = responseFromJson("""{
                 "conversationToken": "{\"cartSize\":2}",
                 "expectUserResponse": true,
@@ -840,7 +840,7 @@ object ActionsSdkTest : Spek({
                 type: "BANK",
                 displayName: "Checking-4773"
             }""", ActionPaymentTransactionConfig::class.java)
-            app.askForTransactionRequirements(transactionConfig, mutableMapOf("cartSize" to 2 ))
+            app.askForTransactionRequirements(transactionConfig, mutableMapOf("cartSize" to 2))
             val expectedResponse = responseFromJson("""{
                 "conversationToken": "{\"cartSize\":2}",
                 "expectUserResponse": true,
@@ -879,4 +879,172 @@ object ActionsSdkTest : Spek({
         }
     }
 
+    /**
+     * Describes the behavior for ActionsSdkApp askForDeliveryAddress method.
+     */
+    describe("ActionsSdkApp#askForDeliveryAddress") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON delivery address") {
+            val mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+            app.askForDeliveryAddress("Just because", mutableMapOf("cartSize" to 2))
+            val expectedResponse = responseFromJson("""{
+                "conversationToken": "{\"cartSize\":2}",
+                "expectUserResponse": true,
+                "expectedInputs": [
+                {
+                    "inputPrompt": {
+                    "initialPrompts": [
+                    {
+                        "textToSpeech": "PLACEHOLDER_FOR_DELIVERY_ADDRESS"
+                    }
+                    ],
+                    "noInputPrompts": [
+                    ]
+                },
+                    "possibleIntents": [
+                    {
+                        "intent": "actions.intent.DELIVERY_ADDRESS",
+                        "inputValueData": {
+                        "@type": "type.googleapis.com/google.actions.v2.DeliveryAddressValueSpec",
+                        "addressOptions": {
+                        "reason": "Just because"
+                    }
+                    }
+                    }
+                    ]
+                }
+                ]
+            }""")
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp askForTransactionDecision method.
+     */
+    describe("ActionsSdkApp#askForTransactionDecision") {
+        var mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
+        var mockResponse = ResponseWrapper<ActionResponse>()
+        var app = ActionsSdkApp(mockRequest, mockResponse, serializer = serializer)
+
+        beforeEachTest {
+            mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
+            mockResponse = ResponseWrapper<ActionResponse>()
+            debug("before test: ${mockResponse}")
+            app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse, serializer = serializer)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON transaction decision with Google payment options") {
+            val transactionConfig = gson.fromJson("""{
+                deliveryAddressRequired: true,
+                tokenizationParameters: {
+                myParam: "myParam"
+            },
+                cardNetworks: [
+                "VISA",
+                "MASTERCARD"
+                ],
+                prepaidCardDisallowed: false
+            }""", GooglePaymentTransactionConfig::class.java)
+            app.askForTransactionDecision(Order(id = "order_id"), transactionConfig,
+                    mutableMapOf("cartSize" to 2))
+            val expectedResponse = responseFromJson("""{
+                "conversationToken": "{\"cartSize\":2}",
+                "expectUserResponse": true,
+                "expectedInputs": [
+                {
+                    "inputPrompt": {
+                    "initialPrompts": [
+                    {
+                        "textToSpeech": "PLACEHOLDER_FOR_TXN_DECISION"
+                    }
+                    ],
+                    "noInputPrompts": []
+                },
+                    "possibleIntents": [
+                    {
+                        "intent": "actions.intent.TRANSACTION_DECISION",
+                        "inputValueData": {
+                        "@type": "type.googleapis.com/google.actions.v2.TransactionDecisionValueSpec",
+                        "proposedOrder": {"id": "order_id"},
+                        "orderOptions": {
+                        "requestDeliveryAddress": true
+                    },
+                        "paymentOptions": {
+                        "googleProvidedOptions": {
+                        "tokenizationParameters": {
+                        "tokenizationType": "PAYMENT_GATEWAY",
+                        "parameters": {
+                        "myParam": "myParam"
+                    }
+                    },
+                        "supportedCardNetworks": [
+                        "VISA",
+                        "MASTERCARD"
+                        ],
+                        "prepaidCardDisallowed": false
+                    }
+                    }
+                    }
+                    }
+                    ]
+                }
+                ]
+            }""")
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON transaction decision with Action payment options") {
+            val transactionConfig = ActionPaymentTransactionConfig(
+                    deliveryAddressRequired = true,
+                    type = "BANK",
+                    displayName = "Checking-4773")
+            app.askForTransactionDecision(Order(id = "order_id"), transactionConfig,
+                    mutableMapOf("cartSize" to 2))
+            val expectedResponse = responseFromJson("""{
+            "conversationToken": "{\"cartSize\":2}",
+            "expectUserResponse": true,
+            "expectedInputs": [
+            {
+                "inputPrompt": {
+                "initialPrompts": [
+                {
+                    "textToSpeech": "PLACEHOLDER_FOR_TXN_DECISION"
+                }
+                ],
+                "noInputPrompts": []
+            },
+                "possibleIntents": [
+                {
+                    "intent": "actions.intent.TRANSACTION_DECISION",
+                    "inputValueData": {
+                    "@type": "type.googleapis.com/google.actions.v2.TransactionDecisionValueSpec",
+                    "proposedOrder": {"id": "order_id"},
+                    "orderOptions": {
+                    "requestDeliveryAddress": true
+                },
+                    "paymentOptions": {
+                    "actionProvidedOptions": {
+                    "paymentType": "BANK",
+                    "displayName": "Checking-4773"
+                }
+                }
+                }
+                }
+                ]
+            }
+            ]
+        }""")
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+    }
 })
