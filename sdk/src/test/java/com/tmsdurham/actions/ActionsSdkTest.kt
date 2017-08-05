@@ -282,8 +282,10 @@ object ActionsSdkTest : Spek({
         }
 
         it("Should return the valid simple response JSON in the response object for the success case.") {
-            app.ask { textToSpeech = "hello"
-                displayText = "hi" }
+            app.ask {
+                textToSpeech = "hello"
+                displayText = "hi"
+            }
             // Validating the response object
             val expectedResponse = responseFromJson("""{
                 "conversationToken": "{\"state\":null,\"data\":{}}",
@@ -313,5 +315,49 @@ object ActionsSdkTest : Spek({
             }""")
             expect(mockResponse.body).to.equal(expectedResponse)
         }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return the valid rich response JSON in the response object for the success case.") {
+            app.ask(app.buildRichResponse()
+                    .addSimpleResponse(speech = "hello", displayText = "hi")
+                    .addSuggestions("Say this", "or this"))
+
+            // Validating the response object
+            val expectedResponse = responseFromJson("""{
+                "conversationToken": "{\"state\":null,\"data\":{}}",
+                "expectUserResponse": true,
+                "expectedInputs": [
+                {
+                    "inputPrompt": {
+                    "richInitialPrompt": {
+                    "items": [
+                    {
+                        "simpleResponse": {
+                        "textToSpeech": "hello",
+                        "displayText": "hi"
+                    }
+                    }
+                    ],
+                    "suggestions": [
+                    {
+                        "title": "Say this"
+                    },
+                    {
+                        "title": "or this"
+                    }
+                    ]
+                }
+                },
+                    "possibleIntents": [
+                    {
+                        "intent": "assistant.intent.action.TEXT"
+                    }
+                    ]
+                }
+                ]
+            }""")
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+
     }
 })

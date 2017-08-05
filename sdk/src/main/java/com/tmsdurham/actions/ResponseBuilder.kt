@@ -127,6 +127,7 @@ data class RichResponse(
                 displayText = simpleResponse.displayText ?: "")
     }
 
+
     /**
      * Adds a BasicCard to list of items.
      *

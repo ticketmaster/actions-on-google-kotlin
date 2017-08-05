@@ -357,10 +357,11 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
     }
 
-    private fun buildAskHelper(inputPrompt: RichResponse?, mutableListOf: MutableList<ActionsSdkApp.ExpectedIntent>, dialogState: DialogState?): ResponseWrapper<ActionResponse>? {
+    private fun buildAskHelper(inputPrompt: RichResponse?, possibleIntents: MutableList<ActionsSdkApp.ExpectedIntent>, dialogState: DialogState?): ResponseWrapper<ActionResponse>? {
+        debug("ask: inputPrompt=$inputPrompt, dialogState=$dialogState")
 
-        TODO("")
-        return null
+        val inputPrompt = InputPrompt(richInitialPrompt = inputPrompt)
+        return buildAskHelper(inputPrompt, possibleIntents, dialogState)
     }
 
     /**
