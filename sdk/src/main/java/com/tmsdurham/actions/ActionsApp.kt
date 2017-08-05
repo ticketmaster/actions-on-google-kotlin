@@ -1,6 +1,5 @@
 package com.tmsdurham.actions
 
-import com.ticketmaster.apiai.DialogState
 import com.ticketmaster.apiai.google.GoogleData
 import com.tmsdurham.actions.actions.*
 
@@ -22,7 +21,7 @@ interface Serializer {
  * providing implementation for all the methods available in the API.
  */
 class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
-    override fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState?): ResponseWrapper<ActionResponse>? {
+    override fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ActionResponse>? {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
@@ -126,7 +125,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
             //TODO revisit if converstationToken is String or object
             return request.body?.conversation?.conversationToken
         }
-        return DialogState()
+        return mutableMapOf<String, Any?>()
     }
 
     /**
@@ -301,7 +300,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @return The response that is sent to Assistant to ask user to provide input.
      * @actionssdk
      */
-    fun ask(inputPrompt: SimpleResponse, dialogState: DialogState? = null): ResponseWrapper<ActionResponse>? {
+    fun ask(inputPrompt: SimpleResponse, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<ActionResponse>? {
         debug("ask: inputPrompt=$inputPrompt, dialogState=$dialogState")
         val expectedIntent = buildExpectedIntent(STANDARD_INTENTS.TEXT)
         if (expectedIntent == null) {
@@ -317,7 +316,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         return ask(simpleResponse)
     }
 
-    fun ask(inputPrompt: InputPrompt?, dialogState: DialogState? = null): ResponseWrapper<ActionResponse>? {
+    fun ask(inputPrompt: InputPrompt?, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<ActionResponse>? {
         debug("ask: inputPrompt=$inputPrompt, dialogState=$dialogState")
         if (inputPrompt == null) {
             error("InputPrompt can not be null")
@@ -332,7 +331,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
     }
 
 
-    fun ask(speech: String?, dialogState: DialogState? = null): ResponseWrapper<ActionResponse>? {
+    fun ask(speech: String?, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<ActionResponse>? {
         debug("ask: speech=$speech, dialogState=$dialogState")
         val expectedIntent = buildExpectedIntent(STANDARD_INTENTS.TEXT)
         if (expectedIntent == null) {
@@ -343,7 +342,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
     }
 
 
-    fun ask(inputPrompt: RichResponse?, dialogState: DialogState? = null): ResponseWrapper<ActionResponse>? {
+    fun ask(inputPrompt: RichResponse?, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<ActionResponse>? {
         debug("ask: inputPrompt=$inputPrompt, dialogState=$dialogState")
         val expectedIntent = buildExpectedIntent(STANDARD_INTENTS.TEXT)
         if (expectedIntent == null) {
@@ -353,7 +352,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
     }
 
-    private fun buildAskHelper(inputPrompt: RichResponse?, possibleIntents: MutableList<ActionsSdkApp.ExpectedIntent>, dialogState: DialogState?): ResponseWrapper<ActionResponse>? {
+    private fun buildAskHelper(inputPrompt: RichResponse?, possibleIntents: MutableList<ActionsSdkApp.ExpectedIntent>, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ActionResponse>? {
         debug("ask: inputPrompt=$inputPrompt, dialogState=$dialogState")
 
         val inputPrompt = InputPrompt(richInitialPrompt = inputPrompt)
@@ -400,7 +399,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @return The response that is sent to Assistant to ask user to provide input.
      * @actionssdk
      */
-    fun askWithList(inputPrompt: Any, list: List, dialogState: DialogState? = null): ResponseWrapper<ActionResponse>? {
+    fun askWithList(inputPrompt: Any, list: List, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<ActionResponse>? {
         debug("askWithList: inputPrompt=$inputPrompt, list=$list, dialogState=$dialogState")
         if (list == null) {
             handleError("Invalid list")
@@ -466,7 +465,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @return {Object} HTTP response.
      * @apiai
      */
-    fun askForDeliveryAddress(reason: String, dialogState: DialogState? = null): ResponseWrapper<ActionResponse>? {
+    fun askForDeliveryAddress(reason: String, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<ActionResponse>? {
         debug("askForDeliveryAddress: reason=$reason")
         if (reason.isEmpty()) {
             handleError("reason cannot be empty")
@@ -529,7 +528,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @return The response that is sent to Assistant to ask user to provide input.
      * @actionssdk
      */
-    fun askWithCarousel(inputPrompt: SimpleResponse, carousel: Carousel, dialogState: DialogState? = null): ResponseWrapper<ActionResponse>? {
+    fun askWithCarousel(inputPrompt: SimpleResponse, carousel: Carousel, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<ActionResponse>? {
         debug("askWithCarousel: inputPrompt=$inputPrompt, carousel=$carousel, dialogState=$dialogState")
 
         if (carousel.items.size < 2) {
@@ -563,7 +562,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
     }
 
-    fun askWithCarousel(inputPrompt: RichResponse, carousel: Carousel, dialogState: DialogState? = null) {
+    fun askWithCarousel(inputPrompt: RichResponse, carousel: Carousel, dialogState: MutableMap<String, Any?>? = null) {
 
     }
 
@@ -788,7 +787,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @private
      * @actionssdk
      */
-    fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest, dialogState: DialogState? = null): ResponseWrapper<ActionResponse>? {
+    fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<ActionResponse>? {
         debug("fulfillPermissionsRequest_: permissionsValueSpec=$permissionsSpec, dialogState=$dialogState")
         // Build an Expected Intent object.
         val expectedIntent = ExpectedIntent(
@@ -806,15 +805,13 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
             )
         }
         val inputPrompt = this.buildInputPrompt(false, "PLACEHOLDER_FOR_PERMISSION")
-        var outDialogState = dialogState?.copy()
+        var outDialogState = dialogState
         if (dialogState == null) {
-            outDialogState = DialogState(
-                    state = state,
-                    data = this.data
-            )
+            outDialogState = mutableMapOf(
+                    "state" to state,
+                    "data" to this.data)
         }
-//        return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), outDialogState)
-        return null
+        return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), outDialogState)
     }
 
     /**
@@ -829,7 +826,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @private
      * @actionssdk
      */
-    override fun fulfillTransactionRequirementsCheck(transactionRequirementsSpec: TransactionRequirementsCheckSpec, dialogState: DialogState?): ResponseWrapper<ActionResponse>? {
+    override fun fulfillTransactionRequirementsCheck(transactionRequirementsSpec: TransactionRequirementsCheckSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ActionResponse>? {
         debug("fulfillTransactionRequirementsCheck: transactionRequirementsSpec=$transactionRequirementsSpec," +
                 " dialogState=$dialogState")
         // Build an Expected Intent object.
@@ -841,15 +838,13 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         }
 
         val inputPrompt = this.buildInputPrompt(false, "PLACEHOLDER_FOR_TXN_REQUIREMENTS")
-        var outDialog = dialogState?.copy()
-        if (dialogState != null) {
-            outDialog = DialogState(
-                    state = this.state,
-                    data = this.data ?: mutableMapOf()
-            )
+        var outState = dialogState
+        if (dialogState == null) {
+            outState = mutableMapOf(
+                    "state" to this.state,
+                    "data" to this.data)
         }
-//        return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
-        return null
+        return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), outState)
     }
 
     /**
@@ -864,7 +859,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @private
      * @actionssdk
      */
-    override fun fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: DialogState?): ResponseWrapper<ActionResponse>? {
+    override fun fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ActionResponse>? {
         debug("fulfillTransactionDecision: transactionDecisionValueSpec=$transactionDecisionValueSpec" +
                 " dialogState=$dialogState")
         // Build an Expected Intent object.
@@ -880,15 +875,13 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
 
         // Send an Ask request to Assistant.
         val inputPrompt = this.buildInputPrompt(false, "PLACEHOLDER_FOR_TXN_DECISION")
-        var outDialogState = dialogState?.copy()
+        var outDialogState = dialogState
         if (dialogState == null) {
-            outDialogState = DialogState(
-                    state = this.state,
-                    data = this.data
-            )
+            outDialogState = mutableMapOf(
+                    "state" to this.state,
+                    "data" to this.data)
         }
-//        return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), outDialogState)
-        return null
+        return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), outDialogState)
     }
 
     /**
@@ -900,7 +893,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @private
      * @actionssdk
      */
-    override fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState?): ResponseWrapper<ActionResponse>? {
+    override fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ActionResponse>? {
         debug("fulfillConfirmationRequest_: confirmationValueSpec=$confirmationValueSpec," +
                 " dialogState=$dialogState")
         // Build an Expected Intent object.
@@ -913,14 +906,13 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
 
         // Send an Ask request to Assistant.
         val inputPrompt = this.buildInputPrompt(false, "PLACEHOLDER_FOR_CONFIRMATION")
-        var outDialogState = dialogState?.copy()
-        if (dialogState != null) {
-            outDialogState = DialogState(
-                    state = this.state,
-                    data = this.data)
+        var outDialogState = dialogState
+        if (dialogState == null) {
+            outDialogState = mutableMapOf(
+                    "state" to this.state,
+                    "data" to this.data)
         }
-//        return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
-        return null
+        return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), outDialogState)
     }
 
     data class DateTimeValueSpec(var tmp: String? = null)
@@ -933,7 +925,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @private
      * @actionssdk
      */
-    fun fulfillDateTimeRequest(dateTimeValueSpec: DateTimeValueSpec, dialogState: DialogState? = null): ResponseWrapper<ActionResponse>? {
+    fun fulfillDateTimeRequest(dateTimeValueSpec: DateTimeValueSpec, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<ActionResponse>? {
         debug("fulfillDateTimeRequest_: dateTimeValueSpec=$dateTimeValueSpec," +
                 " dialogState=$dialogState")
         // Build an Expected Intent object.
@@ -949,14 +941,13 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
 
         // Send an Ask request to Assistant.
         val inputPrompt = this.buildInputPrompt(false, "PLACEHOLDER_FOR_DATETIME")
-        var outDialogState = dialogState?.copy()
+        var outDialogState = dialogState
         if (dialogState == null) {
-            outDialogState = DialogState(
-                    state = this.state,
-                    data = this.data)
+            outDialogState = mutableMapOf(
+                    "state" to this.state,
+                    "data" to this.data)
         }
-//        return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), outDialogState)
-        return null
+        return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), outDialogState)
     }
 
     /**
@@ -966,7 +957,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @private
      * @actionssdk
      */
-    override fun fulfillSignInRequest(dialogState: DialogState?): ResponseWrapper<ActionResponse>? {
+    override fun fulfillSignInRequest(dialogState: MutableMap<String, Any?>?): ResponseWrapper<ActionResponse>? {
         debug("fulfillSignInRequest_: dialogState=$dialogState")
         // Build an Expected Intent object.
         val expectedIntent = ExpectedIntent(
@@ -974,14 +965,13 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         expectedIntent.inputValueData = InputValueData()
         // Send an Ask request to Assistant.
         val inputPrompt = buildInputPrompt(false, "PLACEHOLDER_FOR_SIGN_IN")
-        var outDialogState = dialogState?.copy()
-        if (dialogState != null) {
-            outDialogState = DialogState(
-                    state = this.state,
-                    data = data)
+        var outDialogState = dialogState
+        if (dialogState == null) {
+            outDialogState = mutableMapOf(
+                    "state" to this.state,
+                    "data" to data)
         }
-//        return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), outDialogState)
-        return null
+        return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), outDialogState)
     }
 
     /**
@@ -995,7 +985,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @private
      * @actionssdk
      */
-    fun buildAskHelper(inputPrompt: Input, possibleIntents: MutableList<ExpectedIntent>, dialogState: DialogState? = null): ResponseWrapper<ActionResponse>? {
+    fun buildAskHelper(inputPrompt: Input, possibleIntents: MutableList<ExpectedIntent>, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<ActionResponse>? {
         debug("buildAskHelper_: inputPrompt=$inputPrompt, possibleIntents=$possibleIntents,  dialogState=$dialogState")
         /*
         if (inputPrompt == null) {
@@ -1033,18 +1023,18 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
     }
 
 
-    private fun buildAskHelper(inputPrompt: InputPrompt?, possibleIntents: MutableList<ActionsSdkApp.ExpectedIntent>, dialogState: DialogState?): ResponseWrapper<ActionResponse>? {
+    private fun buildAskHelper(inputPrompt: InputPrompt?, possibleIntents: MutableList<ActionsSdkApp.ExpectedIntent>, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ActionResponse>? {
         debug("buildAskHelper_: inputPrompt=$inputPrompt, possibleIntents,  dialogState=$dialogState")
         if (inputPrompt == null) {
             handleError("Invalid input prompt")
             return null
         }
 
-        var outDialogState = dialogState?.copy()
+        var outDialogState = dialogState
         if (dialogState == null) {
-            outDialogState = DialogState(
-                    state = this.state,
-                    data = this.data)
+            outDialogState = mutableMapOf(
+                    "state" to this.state,
+                    "data" to this.data)
         }
 
         val expectedInputs = ExpectedInput(
@@ -1060,7 +1050,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         return doResponse(response, RESPONSE_CODE_OK)
     }
 
-    fun buildAskHelper(inputPrompt: String?, possibleIntents: MutableList<ExpectedIntent>, dialogState: DialogState?): ResponseWrapper<ActionResponse>? {
+    fun buildAskHelper(inputPrompt: String?, possibleIntents: MutableList<ExpectedIntent>, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ActionResponse>? {
         debug("buildAskHelper: inputPrompt=$inputPrompt, possibleIntents=$possibleIntents,  dialogState=$dialogState")
         if (inputPrompt == null) {
             handleError("Invalid input prompt")
@@ -1070,7 +1060,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         return buildAskHelper(inputPrompt, possibleIntents, dialogState)
     }
 
-    private fun buildAskHelper(simpleResponse: SimpleResponse, possibleIntents: MutableList<ExpectedIntent>, dialogState: DialogState?): ResponseWrapper<ActionResponse>? {
+    private fun buildAskHelper(simpleResponse: SimpleResponse, possibleIntents: MutableList<ExpectedIntent>, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ActionResponse>? {
         debug("buildAskHelper: inputPrompt=$simpleResponse, possibleIntents=$possibleIntents,  dialogState=$dialogState")
         if (simpleResponse == null) {
             handleError("Invalid input prompt")

@@ -187,7 +187,3 @@ data class Inputs(
         var speech: String? = null,
         val rawInputs: List<RawInput>? = null)
 
-data class DialogState(val state: String? = null,
-                       val data: MutableMap<String, Any> = mutableMapOf(),
-                       val optionType: String? = null)
-

@@ -1,6 +1,5 @@
 package com.tmsdurham.actions
 
-import com.ticketmaster.apiai.DialogState
 import com.ticketmaster.apiai.RawInput
 import com.tmsdurham.actions.actions.ActionRequest
 import com.tmsdurham.actions.actions.ActionResponse
@@ -493,12 +492,12 @@ object ActionsSdkTest : Spek({
      * Describes the behavior for ActionsSdkApp askWithList method.
      */
     describe("ActionsSdkApp#askWithList") {
-        var mockRequest = RequestWrapper(headerV1, createLiveSessionActionsSdkAppBody())
+        var mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
         var mockResponse = ResponseWrapper<ActionResponse>()
         var app = ActionsSdkApp(mockRequest, mockResponse, serializer = serializer)
 
         beforeEachTest {
-            mockRequest = RequestWrapper(headerV1, createLiveSessionActionsSdkAppBody())
+            mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
             mockResponse = ResponseWrapper<ActionResponse>()
             debug("before test: ${mockResponse}")
             app = ActionsSdkApp(
@@ -512,12 +511,12 @@ object ActionsSdkTest : Spek({
                     .addItems(
                     app.buildOptionItem("key_1", "key one"),
                     app.buildOptionItem("key_2", "key two")
-                    ), DialogState(
-                optionType = "list"))
+                    ), mutableMapOf(
+                "optionType" to "list"))
 
             // Validating the response object
             val expectedResponse = responseFromJson("""{
-                "conversationToken": "{"optionType":"list"}",
+                "conversationToken": "{\"optionType\":\"list\"}",
                 "expectUserResponse": true,
                 "expectedInputs": [
                 {
@@ -568,8 +567,8 @@ object ActionsSdkTest : Spek({
         }
 
         it("Should return the an error JSON in the response when list has <2 items.") {
-            app.askWithList("Here is a list", app.buildList(), DialogState(
-                optionType = "list"))
+            app.askWithList("Here is a list", app.buildList(), mutableMapOf(
+                "optionType" to "list"))
             expect(mockResponse.statusCode).to.equal(400)
         }
     }
