@@ -528,7 +528,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @return The response that is sent to Assistant to ask user to provide input.
      * @actionssdk
      */
-    fun askWithCarousel(inputPrompt: SimpleResponse, carousel: Carousel, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<ActionResponse>? {
+    fun askWithCarousel(inputPrompt: Any, carousel: Carousel, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<ActionResponse>? {
         debug("askWithCarousel: inputPrompt=$inputPrompt, carousel=$carousel, dialogState=$dialogState")
 
         if (carousel.items.size < 2) {
@@ -542,16 +542,9 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         }
         if (isNotApiVersionOne()) {
             expectedIntent.inputValueData {
-
+                `@type`= INPUT_VALUE_DATA_TYPES.OPTION
+                carouselSelect = carousel
             }
-            /*
-            = Object.assign({
-                [this.ANY_TYPE_PROPERTY_]: this.InputValueDataTypes_.OPTION
-            }, {
-                carouselSelect: carousel
-            })
-            }
-            */
         } else {
             expectedIntent.inputValueSpec {
                 optionValueSpec {
@@ -559,11 +552,12 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
                 }
             }
         }
-        return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
-    }
-
-    fun askWithCarousel(inputPrompt: RichResponse, carousel: Carousel, dialogState: MutableMap<String, Any?>? = null) {
-
+        return when(inputPrompt) {
+            is String -> buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
+            is SimpleResponse -> buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
+            is RichResponse -> buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
+            else -> TODO()
+        }
     }
 
     /**
@@ -1136,6 +1130,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
             var orderOptions: GoogleData.OrderOptions? = null,
             var paymentOptions: GoogleData.PaymentOptions? = null,
             var dialogSpec: AssistantApp.DialogSpec? = null,
+            var carouselSelect: Carousel? = null,
             var transactionRequirementsSpec: AssistantApp.TransactionRequirementsCheckSpec? = null)
 
 }

@@ -509,10 +509,10 @@ object ActionsSdkTest : Spek({
         it("Should return the valid list JSON in the response object for the success case.") {
             app.askWithList("Here is a list", app.buildList()
                     .addItems(
-                    app.buildOptionItem("key_1", "key one"),
-                    app.buildOptionItem("key_2", "key two")
+                            app.buildOptionItem("key_1", "key one"),
+                            app.buildOptionItem("key_2", "key two")
                     ), mutableMapOf(
-                "optionType" to "list"))
+                    "optionType" to "list"))
 
             // Validating the response object
             val expectedResponse = responseFromJson("""{
@@ -568,7 +568,92 @@ object ActionsSdkTest : Spek({
 
         it("Should return the an error JSON in the response when list has <2 items.") {
             app.askWithList("Here is a list", app.buildList(), mutableMapOf(
-                "optionType" to "list"))
+                    "optionType" to "list"))
+            expect(mockResponse.statusCode).to.equal(400)
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp askWithCarousel method.
+     */
+    describe("ActionsSdkApp#askWithCarousel") {
+        var mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
+        var mockResponse = ResponseWrapper<ActionResponse>()
+        var app = ActionsSdkApp(mockRequest, mockResponse, serializer = serializer)
+
+        beforeEachTest {
+            mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
+            mockResponse = ResponseWrapper<ActionResponse>()
+            debug("before test: ${mockResponse}")
+            app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse, serializer = serializer)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return the valid carousel JSON in the response object for the success case.") {
+            app.askWithCarousel("Here is a carousel", app.buildCarousel()
+                    .addItems(
+                            app.buildOptionItem("key_1", "key one"),
+                            app.buildOptionItem("key_2", "key two")
+                    ), mutableMapOf("optionType" to "carousel"))
+
+            // Validating the response object
+            val expectedResponse = responseFromJson("""{
+                "conversationToken": "{\"optionType\":\"carousel\"}",
+                "expectUserResponse": true,
+                "expectedInputs": [
+                {
+                    "inputPrompt": {
+                    "initialPrompts": [
+                    {
+                        "textToSpeech": "Here is a carousel"
+                    }
+                    ],
+                    "noInputPrompts": [
+                    ]
+                },
+                    "possibleIntents": [
+                    {
+                        "intent": "actions.intent.OPTION",
+                        "inputValueData": {
+                        "@type": "type.googleapis.com/google.actions.v2.OptionValueSpec",
+                        "carouselSelect": {
+                        "items": [
+                        {
+                            "optionInfo": {
+                            "key": "key_1",
+                            "synonyms": [
+                            "key one"
+                            ]
+                        },
+                            "title": ""
+                        },
+                        {
+                            "optionInfo": {
+                            "key": "key_2",
+                            "synonyms": [
+                            "key two"
+                            ]
+                        },
+                            "title": ""
+                        }
+                        ]
+                    }
+                    }
+                    }
+                    ]
+                }
+                ]
+            }""")
+
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+
+        it("Should return the an error JSON in the response when carousel has <2 items.") {
+            app.askWithList("Here is a list", app.buildList(), mutableMapOf(
+                    "optionType" to "list"))
+
             expect(mockResponse.statusCode).to.equal(400)
         }
     }
