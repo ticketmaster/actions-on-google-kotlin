@@ -30,10 +30,6 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun tell(speech: String, displayText: String): ResponseWrapper<ActionResponse>? {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
     val serializer: Serializer
     /**
      * Constructor for ActionsSdkApp object.
@@ -404,7 +400,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @return The response that is sent to Assistant to ask user to provide input.
      * @actionssdk
      */
-    fun askWithList(inputPrompt: SimpleResponse, list: List, dialogState: DialogState? = null): ResponseWrapper<ActionResponse>? {
+    fun askWithList(inputPrompt: Any, list: List, dialogState: DialogState? = null): ResponseWrapper<ActionResponse>? {
         debug("askWithList: inputPrompt=$inputPrompt, list=$list, dialogState=$dialogState")
         if (list == null) {
             handleError("Invalid list")
@@ -430,8 +426,12 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
                         listSelect = list)
             }
         }
-//        return buildAskHelper(inputPrompt, [expectedIntent], dialogState)
-        return null
+        return when(inputPrompt) {
+            is String -> buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
+            is SimpleResponse -> buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
+            is RichResponse -> buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
+            else -> TODO()
+        }
     }
 
     /**
@@ -620,6 +620,10 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         val response = buildResponseHelper(null, false, null, finalResponse)
         return this.doResponse(response, RESPONSE_CODE_OK)
     }
+
+
+    override fun tell(speech: String, displayText: String) = tell(SimpleResponse(textToSpeech = speech, displayText = displayText))
+
 
     override fun tell(simpleResponse: SimpleResponse): ResponseWrapper<ActionResponse>? {
         debug("tell: simpleResponse=$simpleResponse")

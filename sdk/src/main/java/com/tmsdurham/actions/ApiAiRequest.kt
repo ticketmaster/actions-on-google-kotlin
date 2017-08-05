@@ -99,11 +99,11 @@ data class Context(
         var lifespan: Int = 0) {
 
     override fun equals(other: Any?) =
-        if (other is Context) {
-            this.name.toLowerCase().equals(other.name.toLowerCase())
-        } else {
-            false
-        }
+            if (other is Context) {
+                this.name.toLowerCase().equals(other.name.toLowerCase())
+            } else {
+                false
+            }
 }
 
 data class OriginalRequest(
@@ -161,13 +161,14 @@ data class PostalAddress(var regionCode: String? = null,
                          var locality: String? = null,
                          var addressLines: MutableList<String>? = null,
                          val administrativeArea: String? = null)
+
 data class Location(var zipCode: String? = null,
                     var postalAddress: PostalAddress? = null,
                     var phoneNumber: String? = null,
                     var city: String? = null,
                     var coordinates: Coordinates?)
 
-data class FinalOrderHolder(val finalOrder: Order? = null, val  orderDate: String = "", val googleOrderId: String = "")
+data class FinalOrderHolder(val finalOrder: Order? = null, val orderDate: String = "", val googleOrderId: String = "")
 
 data class TransactionRequirementsCheckResult(
         val `@type`: String = "",
@@ -186,5 +187,7 @@ data class Inputs(
         var speech: String? = null,
         val rawInputs: List<RawInput>? = null)
 
-data class DialogState(val state: String? = null, val data: MutableMap<String, Any> = mutableMapOf())
+data class DialogState(val state: String? = null,
+                       val data: MutableMap<String, Any> = mutableMapOf(),
+                       val optionType: String? = null)
 

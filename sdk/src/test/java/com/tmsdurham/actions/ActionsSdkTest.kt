@@ -1,5 +1,7 @@
 package com.tmsdurham.actions
 
+import com.ticketmaster.apiai.DialogState
+import com.ticketmaster.apiai.RawInput
 import com.tmsdurham.actions.actions.ActionRequest
 import com.tmsdurham.actions.actions.ActionResponse
 import com.winterbe.expekt.expect
@@ -77,6 +79,7 @@ object ActionsSdkTest : Spek({
         }
         */
 
+        /*
         // Does transform to Proto3
         it("Does not detect v2 and transform body when version not present") {
             val mockRequest = RequestWrapper(headerV1, createLiveSessionActionsSdkAppBody())
@@ -113,7 +116,7 @@ object ActionsSdkTest : Spek({
             }"""))
 //            expect(app.request.body).to.not.equal(createLiveSessionActionsSdkAppBody())
         }
-
+*/
         // Test a change made for backwards compatibility with legacy sample code
         it("Does initialize StandardIntents without an options object") {
             val app = ActionsSdkApp(RequestWrapper(headerV1, createLiveSessionActionsSdkAppBody()), mockResponse, serializer = serializer)
@@ -360,4 +363,215 @@ object ActionsSdkTest : Spek({
         }
 
     }
+
+    /**
+     * Describes the behavior for ActionsSdkApp tell method.
+     */
+    describe("ActionsSdkApp#tell") {
+        var mockRequest = RequestWrapper(headerV1, createLiveSessionActionsSdkAppBody())
+        var mockResponse = ResponseWrapper<ActionResponse>()
+        var app = ActionsSdkApp(mockRequest, mockResponse, serializer = serializer)
+
+        beforeEachTest {
+            mockRequest = RequestWrapper(headerV1, createLiveSessionActionsSdkAppBody())
+            mockResponse = ResponseWrapper<ActionResponse>()
+            debug("before test: ${mockResponse}")
+            app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse, serializer = serializer)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return the valid JSON in the response object for the success case.") {
+            app.tell("Goodbye!")
+            val expectedResponse = responseFromJson("""{
+                "expectUserResponse": false,
+                "finalResponse": {
+                "speechResponse": {
+                "textToSpeech": "Goodbye!"
+            }
+            }
+            }""")
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return the valid simple rich response JSON in the response object for the success case.") {
+            app.tell(speech = "hello", displayText = "hi")
+
+            // Validating the response object
+            val expectedResponse = responseFromJson("""{
+                "expectUserResponse": false,
+                "finalResponse": {
+                "richResponse": {
+                "items": [
+                {
+                    "simpleResponse": {
+                    "textToSpeech": "hello",
+                    "displayText": "hi"
+                }
+                }
+                ],
+                "suggestions": []
+            }
+            }
+            }""")
+            expect(mockResponse.body)
+                    .to.equal(expectedResponse)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return the valid rich response JSON in the response object for the success case.") {
+            app.tell(app.buildRichResponse()
+                    .addSimpleResponse(speech = "hello", displayText = "hi")
+                    .addSuggestions("Say this", "or this"))
+
+            // Validating the response object
+            val expectedResponse = responseFromJson("""{
+                "expectUserResponse": false,
+                "finalResponse": {
+                "richResponse": {
+                "items": [
+                {
+                    "simpleResponse": {
+                    "textToSpeech": "hello",
+                    "displayText": "hi"
+                }
+                }
+                ],
+                "suggestions": [
+                {
+                    "title": "Say this"
+                },
+                {
+                    "title": "or this"
+                }
+                ]
+            }
+            }
+            }""")
+            expect(mockResponse.body)
+                    .to.equal(expectedResponse)
+        }
+
+        // Failure test, when the API returns a 400 response with the response object
+        it("Should send failure response for rich response without simple response") {
+            fun handler(app: ActionsSdkApp) = app.tell(app.buildRichResponse())
+
+            val actionMap = mapOf("intent_name_not_present_in_the_body" to ::handler)
+
+            app.handleRequest(actionMap)
+
+            expect(mockResponse.statusCode).to.equal(400)
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp getRawInput method.
+     */
+    describe("ActionsSdkApp#getRawInput") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should get the raw user input for the success case.") {
+            val body = createLiveSessionActionsSdkAppBody()
+            body.inputs!![0].rawInputs = mutableListOf(gson.fromJson("""
+            {
+                "inputType": 2,
+                "query": "bye"
+            }
+            """, RawInput::class.java))
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+            expect(app.getRawInput()).to.equal("bye")
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp askWithList method.
+     */
+    describe("ActionsSdkApp#askWithList") {
+        var mockRequest = RequestWrapper(headerV1, createLiveSessionActionsSdkAppBody())
+        var mockResponse = ResponseWrapper<ActionResponse>()
+        var app = ActionsSdkApp(mockRequest, mockResponse, serializer = serializer)
+
+        beforeEachTest {
+            mockRequest = RequestWrapper(headerV1, createLiveSessionActionsSdkAppBody())
+            mockResponse = ResponseWrapper<ActionResponse>()
+            debug("before test: ${mockResponse}")
+            app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse, serializer = serializer)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return the valid list JSON in the response object for the success case.") {
+            app.askWithList("Here is a list", app.buildList()
+                    .addItems(
+                    app.buildOptionItem("key_1", "key one"),
+                    app.buildOptionItem("key_2", "key two")
+                    ), DialogState(
+                optionType = "list"))
+
+            // Validating the response object
+            val expectedResponse = responseFromJson("""{
+                "conversationToken": "{"optionType":"list"}",
+                "expectUserResponse": true,
+                "expectedInputs": [
+                {
+                    "inputPrompt": {
+                    "initialPrompts": [
+                    {
+                        "textToSpeech": "Here is a list"
+                    }
+                    ],
+                    "noInputPrompts": [
+                    ]
+                },
+                    "possibleIntents": [
+                    {
+                        "intent": "actions.intent.OPTION",
+                        "inputValueData": {
+                        "@type": "type.googleapis.com/google.actions.v2.OptionValueSpec",
+                        "listSelect": {
+                        "items": [
+                        {
+                            "optionInfo": {
+                            "key": "key_1",
+                            "synonyms": [
+                            "key one"
+                            ]
+                        },
+                            "title": ""
+                        },
+                        {
+                            "optionInfo": {
+                            "key": "key_2",
+                            "synonyms": [
+                            "key two"
+                            ]
+                        },
+                            "title": ""
+                        }
+                        ]
+                    }
+                    }
+                    }
+                    ]
+                }
+                ]
+            }""")
+
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+
+        it("Should return the an error JSON in the response when list has <2 items.") {
+            app.askWithList("Here is a list", app.buildList(), DialogState(
+                optionType = "list"))
+            expect(mockResponse.statusCode).to.equal(400)
+        }
+    }
+
 })
