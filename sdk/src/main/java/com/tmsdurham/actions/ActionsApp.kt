@@ -825,7 +825,8 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
                 intent = STANDARD_INTENTS.TRANSACTION_REQUIREMENTS_CHECK)
         expectedIntent.inputValueData {
             `@type` = INPUT_VALUE_DATA_TYPES.TRANSACTION_REQ_CHECK
-            this.transactionRequirementsSpec = transactionRequirementsSpec
+            paymentOptions = transactionRequirementsSpec.paymentOptions
+            orderOptions = transactionRequirementsSpec.orderOptions
         }
 
         val inputPrompt = this.buildInputPrompt(false, "PLACEHOLDER_FOR_TXN_REQUIREMENTS")
@@ -1130,8 +1131,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
             var carouselSelect: Carousel? = null,
             var optContext: String? = null,
             var permissions: MutableList<String>? = null,
-            var expectUserResponse: Boolean = false,
-            var transactionRequirementsSpec: AssistantApp.TransactionRequirementsCheckSpec? = null)
+            var expectUserResponse: Boolean = false)
 
 }
 

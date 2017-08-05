@@ -756,4 +756,127 @@ object ActionsSdkTest : Spek({
 
     }
 
+    /**
+     * Describes the behavior for ActionsSdkApp askForTransactionRequirements method.
+     */
+    describe("ActionsSdkApp#askForTransactionRequirements") {
+        var mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
+        var mockResponse = ResponseWrapper<ActionResponse>()
+        var app = ActionsSdkApp(mockRequest, mockResponse, serializer = serializer)
+
+        beforeEachTest {
+            mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
+            mockResponse = ResponseWrapper<ActionResponse>()
+            debug("before test: ${mockResponse}")
+            app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse, serializer = serializer)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON transaction requirements with Google payment options") {
+            val transactionConfig = gson.fromJson("""{
+                deliveryAddressRequired: true,
+                tokenizationParameters: {
+                myParam: "myParam"
+            },
+                cardNetworks: [
+                "VISA",
+                "MASTERCARD"
+                ],
+                prepaidCardDisallowed: false
+            }""", GooglePaymentTransactionConfig::class.java)
+            app.askForTransactionRequirements(transactionConfig, mutableMapOf("cartSize" to 2 ))
+            val expectedResponse = responseFromJson("""{
+                "conversationToken": "{\"cartSize\":2}",
+                "expectUserResponse": true,
+                "expectedInputs": [
+                {
+                    "inputPrompt": {
+                    "initialPrompts": [
+                    {
+                        "textToSpeech": "PLACEHOLDER_FOR_TXN_REQUIREMENTS"
+                    }
+                    ],
+                    "noInputPrompts": [
+                    ]
+                },
+                    "possibleIntents": [
+                    {
+                        "intent": "actions.intent.TRANSACTION_REQUIREMENTS_CHECK",
+                        "inputValueData": {
+                        "@type": "type.googleapis.com/google.actions.v2.TransactionRequirementsCheckSpec",
+                        "orderOptions": {
+                        "requestDeliveryAddress": true
+                    },
+                        "paymentOptions": {
+                        "googleProvidedOptions": {
+                        "tokenizationParameters": {
+                        "tokenizationType": "PAYMENT_GATEWAY",
+                        "parameters": {
+                        "myParam": "myParam"
+                    }
+                    },
+                        "supportedCardNetworks": [
+                        "VISA",
+                        "MASTERCARD"
+                        ],
+                        "prepaidCardDisallowed": false
+                    }
+                    }
+                    }
+                    }
+                    ]
+                }
+                ]
+            }""")
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON transaction requirements with Action payment options") {
+            val transactionConfig = gson.fromJson("""{
+                deliveryAddressRequired: true,
+                type: "BANK",
+                displayName: "Checking-4773"
+            }""", ActionPaymentTransactionConfig::class.java)
+            app.askForTransactionRequirements(transactionConfig, mutableMapOf("cartSize" to 2 ))
+            val expectedResponse = responseFromJson("""{
+                "conversationToken": "{\"cartSize\":2}",
+                "expectUserResponse": true,
+                "expectedInputs": [
+                {
+                    "inputPrompt": {
+                    "initialPrompts": [
+                    {
+                        "textToSpeech": "PLACEHOLDER_FOR_TXN_REQUIREMENTS"
+                    }
+                    ],
+                    "noInputPrompts": [
+                    ]
+                },
+                    "possibleIntents": [
+                    {
+                        "intent": "actions.intent.TRANSACTION_REQUIREMENTS_CHECK",
+                        "inputValueData": {
+                        "@type": "type.googleapis.com/google.actions.v2.TransactionRequirementsCheckSpec",
+                        "orderOptions": {
+                        "requestDeliveryAddress": true
+                    },
+                        "paymentOptions": {
+                        "actionProvidedOptions": {
+                        "paymentType": "BANK",
+                        "displayName": "Checking-4773"
+                    }
+                    }
+                    }
+                    }
+                    ]
+                }
+                ]
+            }""")
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+    }
+
 })
