@@ -205,13 +205,13 @@ class SignInStatus {
 
 open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val response: ResponseWrapper<S>, val sessionStarted: (() -> Unit)? = null) {
     var actionsApiVersion: String = "1"
-    lateinit var STANDARD_INTENTS: StandardIntents
+    var STANDARD_INTENTS: StandardIntents
     val SUPPORTED_INTENT = SupportedIntent()
-    lateinit var BUILT_IN_ARG_NAMES: BuiltInArgNames
+    var BUILT_IN_ARG_NAMES: BuiltInArgNames
     val INPUT_VALUE_DATA_TYPES = InputValueDataTypes()
-    lateinit var CONVERSATION_STAGES: ConversationStages
+    var CONVERSATION_STAGES: ConversationStages
     val SURFACE_CAPABILITIES = SurfaceCapabilities()
-    lateinit var INPUT_TYPES: InputTypes
+    var INPUT_TYPES: InputTypes
     val SUPPORTED_PERMISSIONS = SupportedPermissions()
     val SIGN_IN_STATUS = SignInStatus()
 
@@ -358,7 +358,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         }
         return fulfillPermissionsRequest(GoogleData.PermissionsRequest(
                 optContext = context,
-                permissions = permissions.toMutableList()))
+                permissions = permissions.toMutableList()), dialogState)
     }
 
     /**
@@ -777,7 +777,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     }
 
 
-    internal abstract fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest): ResponseWrapper<S>?
+    internal abstract fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest, dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
 
     abstract fun getIntent(): String?
     abstract fun tell(speech: String, displayText: String = ""): ResponseWrapper<S>?

@@ -16,6 +16,7 @@ interface Serializer {
     fun <T> serialize(obj: T): String
     fun <T> deserialize(str: String, clazz: Class<T>): T
 }
+
 /**
  * This is the class that handles the conversation API directly from Assistant,
  * providing implementation for all the methods available in the API.
@@ -25,11 +26,8 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest): ResponseWrapper<ActionResponse>? {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
     val serializer: Serializer
+
     /**
      * Constructor for ActionsSdkApp object.
      * To be used in the Actions SDK HTTP endpoint logic.
@@ -425,7 +423,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
                         listSelect = list)
             }
         }
-        return when(inputPrompt) {
+        return when (inputPrompt) {
             is String -> buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
             is SimpleResponse -> buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
             is RichResponse -> buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
@@ -542,7 +540,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         }
         if (isNotApiVersionOne()) {
             expectedIntent.inputValueData {
-                `@type`= INPUT_VALUE_DATA_TYPES.OPTION
+                `@type` = INPUT_VALUE_DATA_TYPES.OPTION
                 carouselSelect = carousel
             }
         } else {
@@ -552,7 +550,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
                 }
             }
         }
-        return when(inputPrompt) {
+        return when (inputPrompt) {
             is String -> buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
             is SimpleResponse -> buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
             is RichResponse -> buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
@@ -781,7 +779,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @private
      * @actionssdk
      */
-    fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<ActionResponse>? {
+    override fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ActionResponse>? {
         debug("fulfillPermissionsRequest_: permissionsValueSpec=$permissionsSpec, dialogState=$dialogState")
         // Build an Expected Intent object.
         val expectedIntent = ExpectedIntent(
@@ -789,14 +787,13 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         if (isNotApiVersionOne()) {
             expectedIntent.inputValueData {
                 `@type` = INPUT_VALUE_DATA_TYPES.PERMISSION
+                optContext = permissionsSpec.optContext
+                permissions = permissionsSpec.permissions
+                expectUserResponse = permissionsSpec.expectUserResponse
             }
-
-            //
-//            }, permissionsValueSpec)
         } else {
             expectedIntent.inputValueSpec = InputValueSpec(
-                    permissionValueSpec = permissionsSpec
-            )
+                    permissionValueSpec = permissionsSpec)
         }
         val inputPrompt = this.buildInputPrompt(false, "PLACEHOLDER_FOR_PERMISSION")
         var outDialogState = dialogState
@@ -1131,6 +1128,9 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
             var paymentOptions: GoogleData.PaymentOptions? = null,
             var dialogSpec: AssistantApp.DialogSpec? = null,
             var carouselSelect: Carousel? = null,
+            var optContext: String? = null,
+            var permissions: MutableList<String>? = null,
+            var expectUserResponse: Boolean = false,
             var transactionRequirementsSpec: AssistantApp.TransactionRequirementsCheckSpec? = null)
 
 }

@@ -962,7 +962,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * @private
      * @apiai
      */
-    override fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest): ResponseWrapper<ApiAiResponse>? {
+    override fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ApiAiResponse>? {
         debug("fulfillPermissionsRequest_: permissionsValueSpec=$permissionsSpec")
         val inputPrompt = "PLACEHOLDER_FOR_PERMISSION"
         val response = buildResponse(inputPrompt, true)

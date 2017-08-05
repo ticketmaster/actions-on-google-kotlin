@@ -658,4 +658,102 @@ object ActionsSdkTest : Spek({
         }
     }
 
+    /**
+     * Describes the behavior for ActionsSdkApp askForPermissions method in v1.
+     */
+    describe("ActionsSdkApp#askForPermissions") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return the valid JSON in the response object for the success case.") {
+            val mockRequest = RequestWrapper(headerV1, createLiveSessionActionsSdkAppBody())
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+
+            app.askForPermissions("To get you a ride",
+                    app.SUPPORTED_PERMISSIONS.NAME,
+                    app.SUPPORTED_PERMISSIONS.DEVICE_PRECISE_LOCATION,
+                    dialogState = mutableMapOf<String, Any?>(
+                            "carType" to "big"))
+
+            // Validating the response object
+            val expectedResponse = responseFromJson("""{
+                "conversationToken": "{\"carType\":\"big\"}",
+                "expectUserResponse": true,
+                "expectedInputs": [
+                {
+                    "inputPrompt": {
+                    "initialPrompts": [
+                    {
+                        "textToSpeech": "PLACEHOLDER_FOR_PERMISSION"
+                    }
+                    ],
+                    "noInputPrompts": [
+                    ]
+                },
+                    "possibleIntents": [
+                    {
+                        "intent": "assistant.intent.action.PERMISSION",
+                        "inputValueSpec": {
+                        "permissionValueSpec": {
+                        "optContext": "To get you a ride",
+                        "permissions": ["NAME", "DEVICE_PRECISE_LOCATION"]
+                    }
+                    }
+                    }
+                    ]
+                }
+                ]
+            }""")
+
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+
+
+        it("Should return the valid JSON in the response object for the success case in v2.") {
+            val mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+            app.askForPermissions("To get you a ride",
+                    app.SUPPORTED_PERMISSIONS.NAME,
+                    app.SUPPORTED_PERMISSIONS.DEVICE_PRECISE_LOCATION
+                    , dialogState = mutableMapOf(
+                    "carType" to "big"))
+            // Validating the response object
+            val expectedResponse = responseFromJson("""{
+                "conversationToken": "{\"carType\":\"big\"}",
+                "expectUserResponse": true,
+                "expectedInputs": [
+                {
+                    "inputPrompt": {
+                    "initialPrompts": [
+                    {
+                        "textToSpeech": "PLACEHOLDER_FOR_PERMISSION"
+                    }
+                    ],
+                    "noInputPrompts": [
+                    ]
+                },
+                    "possibleIntents": [
+                    {
+                        "intent": "actions.intent.PERMISSION",
+                        "inputValueData": {
+                        "@type": "type.googleapis.com/google.actions.v2.PermissionValueSpec",
+                        "optContext": "To get you a ride",
+                        "permissions": ["NAME", "DEVICE_PRECISE_LOCATION"]
+                    }
+                    }
+                    ]
+                }
+                ]
+            }""")
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+
+    }
+
 })
