@@ -1,6 +1,6 @@
 package com.tmsdurham.actions
 
-import com.ticketmaster.apiai.RawInput
+import com.ticketmaster.apiai.*
 import com.tmsdurham.actions.actions.ActionRequest
 import com.tmsdurham.actions.actions.ActionResponse
 import com.winterbe.expekt.expect
@@ -24,18 +24,18 @@ object ActionsSdkTest : Spek({
     fun actionsSdkAppRequestBodyNewSession(): ActionRequest {
         return requestFromJson("""{
         "user": {
-        "user_id": fakeUserId
+        "userId": $fakeUserId
     },
         "conversation": {
-        "conversation_id": "1480373842830",
+        "conversationId": "1480373842830",
         "type": 1
     },
         "inputs": [
         {
             "intent": "assistant.intent.action.MAIN",
-            "raw_inputs": [
+            "rawInputs": [
             {
-                "input_type": 2,
+                "inputType": 2,
                 "query": "talk to hello action"
             }
             ],
@@ -1047,4 +1047,479 @@ object ActionsSdkTest : Spek({
             expect(mockResponse.body).to.equal(expectedResponse)
         }
     }
+
+    /**
+     * Describes the behavior for ActionsSdkApp askForConfirmation method.
+     */
+    describe("ActionsSdkApp#askForConfirmation") {
+        var mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
+        var mockResponse = ResponseWrapper<ActionResponse>()
+        var app = ActionsSdkApp(mockRequest, mockResponse, serializer = serializer)
+
+        beforeEachTest {
+            mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
+            mockResponse = ResponseWrapper<ActionResponse>()
+            debug("before test: ${mockResponse}")
+            app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse, serializer = serializer)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON confirmation request") {
+            app.askForConfirmation("You want to do that?", mutableMapOf("cartSize" to 2))
+            val expectedResponse = responseFromJson("""{
+                "conversationToken": "{\"cartSize\":2}",
+                "expectUserResponse": true,
+                "expectedInputs": [
+                {
+                    "inputPrompt": {
+                    "initialPrompts": [
+                    {
+                        "textToSpeech": "PLACEHOLDER_FOR_CONFIRMATION"
+                    }
+                    ],
+                    "noInputPrompts": []
+                },
+                    "possibleIntents": [
+                    {
+                        "intent": "actions.intent.CONFIRMATION",
+                        "inputValueData": {
+                        "@type": "type.googleapis.com/google.actions.v2.ConfirmationValueSpec",
+                        "dialogSpec": {
+                        "requestConfirmationText": "You want to do that?"
+                    }
+                    }
+                    }
+                    ]
+                }
+                ]
+            }""")
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON confirmation request without prompt") {
+            app.askForConfirmation()
+            val expectedResponse = responseFromJson("""{
+                "conversationToken": "{\"state\":null,\"data\":{}}",
+                "expectUserResponse": true,
+                "expectedInputs": [
+                {
+                    "inputPrompt": {
+                    "initialPrompts": [
+                    {
+                        "textToSpeech": "PLACEHOLDER_FOR_CONFIRMATION"
+                    }
+                    ],
+                    "noInputPrompts": []
+                },
+                    "possibleIntents": [
+                    {
+                        "intent": "actions.intent.CONFIRMATION",
+                        "inputValueData": {
+                        "@type": "type.googleapis.com/google.actions.v2.ConfirmationValueSpec"
+                    }
+                    }
+                    ]
+                }
+                ]
+            }""")
+
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp askForDateTime method.
+     */
+    describe("ActionsSdkApp#askForDateTime") {
+        var mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
+        var mockResponse = ResponseWrapper<ActionResponse>()
+        var app = ActionsSdkApp(mockRequest, mockResponse, serializer = serializer)
+
+        beforeEachTest {
+            mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
+            mockResponse = ResponseWrapper<ActionResponse>()
+            debug("before test: ${mockResponse}")
+            app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse, serializer = serializer)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON datetime request") {
+            app.askForDateTime("When do you want to come in?",
+                    "What is the best date for you?",
+                    "What time of day works best for you?", mutableMapOf("cartSize" to 2))
+
+            val expectedResponse = responseFromJson("""{
+                "conversationToken": "{\"cartSize\":2}",
+                "expectUserResponse": true,
+                "expectedInputs": [
+                {
+                    "inputPrompt": {
+                    "initialPrompts": [
+                    {
+                        "textToSpeech": "PLACEHOLDER_FOR_DATETIME"
+                    }
+                    ],
+                    "noInputPrompts": [
+                    ]
+                },
+                    "possibleIntents": [
+                    {
+                        "intent": "actions.intent.DATETIME",
+                        "inputValueData": {
+                        "@type": "type.googleapis.com/google.actions.v2.DateTimeValueSpec",
+                        "dialogSpec": {
+                        "requestDatetimeText": "When do you want to come in?",
+                        "requestDateText": "What is the best date for you?",
+                        "requestTimeText": "What time of day works best for you?"
+                    }
+                    }
+                    }
+                    ]
+                }
+                ]
+            }""")
+
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON datetime request with partial prompts") {
+            app.askForDateTime("When do you want to come in?",
+                    null)
+            val expectedResponse = responseFromJson("""{
+                "conversationToken": "{\"state\":null,\"data\":{}}",
+                "expectUserResponse": true,
+                "expectedInputs": [
+                {
+                    "inputPrompt": {
+                    "initialPrompts": [
+                    {
+                        "textToSpeech": "PLACEHOLDER_FOR_DATETIME"
+                    }
+                    ],
+                    "noInputPrompts": [
+                    ]
+                },
+                    "possibleIntents": [
+                    {
+                        "intent": "actions.intent.DATETIME",
+                        "inputValueData": {
+                        "@type": "type.googleapis.com/google.actions.v2.DateTimeValueSpec",
+                        "dialogSpec": {
+                        "requestDatetimeText": "When do you want to come in?"
+                    }
+                    }
+                    }
+                    ]
+                }
+                ]
+            }""")
+
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON datetime request without prompts") {
+            app.askForDateTime()
+            val expectedResponse = responseFromJson("""{
+                "conversationToken": "{\"state\":null,\"data\":{}}",
+                "expectUserResponse": true,
+                "expectedInputs": [
+                {
+                    "inputPrompt": {
+                    "initialPrompts": [
+                    {
+                        "textToSpeech": "PLACEHOLDER_FOR_DATETIME"
+                    }
+                    ],
+                    "noInputPrompts": [
+                    ]
+                },
+                    "possibleIntents": [
+                    {
+                        "intent": "actions.intent.DATETIME",
+                        "inputValueData": {
+                        "@type": "type.googleapis.com/google.actions.v2.DateTimeValueSpec"
+                    }
+                    }
+                    ]
+                }
+                ]
+            }""")
+
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+    }
+
+
+    /**
+     * Describes the behavior for ActionsSdkApp askForSignIn method.
+     */
+    describe("ActionsSdkApp#askForSignIn") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON sign in request") {
+            val mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+            app.askForSignIn(mutableMapOf("cartSize" to 2))
+            val expectedResponse = responseFromJson("""{
+                "conversationToken": "{\"cartSize\":2}",
+                "expectUserResponse": true,
+                "expectedInputs": [
+                {
+                    "inputPrompt": {
+                    "initialPrompts": [
+                    {
+                        "textToSpeech": "PLACEHOLDER_FOR_SIGN_IN"
+                    }
+                    ],
+                    "noInputPrompts": []
+                },
+                    "possibleIntents": [
+                    {
+                        "intent": "actions.intent.SIGN_IN",
+                        "inputValueData": {}
+                    }
+                    ]
+                }
+                ]
+            }""")
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp getUser method.
+     */
+    describe("ActionsSdkApp#getUser") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant request info.") {
+            val mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+            // Test new and old API
+            //TODO v1 api
+//            expect(app.getUser()?.userId).to.equal(fakeUserId)
+            expect(app.getUser()?.userId).to.equal(fakeUserId)
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp getUserName method.
+     */
+    describe("ActionsSdkApp#getUserName") {
+
+        var mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
+        var mockResponse = ResponseWrapper<ActionResponse>()
+        var app = ActionsSdkApp(mockRequest, mockResponse, serializer = serializer)
+        var body = ActionRequest()
+
+        fun initMockApp() {
+            mockRequest = RequestWrapper(headerV1, body)
+            mockResponse = ResponseWrapper<ActionResponse>()
+            app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+        }
+
+        it("Should validate assistant request user with sample user information.") {
+            body = createLiveSessionActionsSdkAppBody()
+            body.user?.profile = gson.fromJson("""{
+                "displayName": "John Smith",
+                "givenName": "John",
+                "familyName": "Smith"
+            }""", Profile::class.java)
+            initMockApp()
+            expect(app.getUserName()?.displayName).to.equal("John Smith")
+            expect(app.getUserName()?.givenName).to.equal("John")
+            expect(app.getUserName()?.familyName).to.equal("Smith")
+        }
+
+        it("Should validate assistant request with undefined user information.") {
+            body = createLiveSessionActionsSdkAppBody()
+            // Test the false case
+            body.user?.profile = null
+            initMockApp()
+            expect(app.getUserName()).to.equal(null)
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp getUserLocale method.
+     */
+    describe("ActionsSdkApp#getUserLocale") {
+        var mockRequest: RequestWrapper<ActionRequest>
+        var mockResponse: ResponseWrapper<ActionResponse>
+        var app: ActionsSdkApp? = null
+        var body = ActionRequest()
+        fun initMockApp() {
+            mockRequest = RequestWrapper(headerV1, body)
+            mockResponse = ResponseWrapper<ActionResponse>()
+            app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+        }
+        it("Should validate assistant request user with locale.") {
+            body = createLiveSessionActionsSdkAppBody()
+            body.user = User()
+            body.user?.locale = "en-US"
+            initMockApp()
+            expect(app?.getUserLocale()).to.equal("en-US")
+        }
+
+        it("Should return null for missing locale.") {
+            body = createLiveSessionActionsSdkAppBody()
+            // Test the false case
+            body.user = User()
+            body.user?.locale = null
+            initMockApp()
+            expect(app?.getUserLocale()).to.equal(null)
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp getTransactionRequirementsResult method.
+     */
+    describe("ActionsSdkApp#getTransactionRequirementsResult") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant request user.") {
+            val body = createLiveSessionActionsSdkAppBody()
+            body.inputs!![0].arguments = mutableListOf(gson.fromJson("""
+            {
+                "extension": {
+                "canTransact": true,
+                "@type": "type.googleapis.com/google.actions.v2.TransactionRequirementsCheckResult",
+                "resultType": "OK"
+            },
+                "name": "TRANSACTION_REQUIREMENTS_CHECK_RESULT"
+            }
+            """, Arguments::class.java))
+
+            val mockRequest = RequestWrapper<ActionRequest>(headerV2, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+
+            expect(app.getTransactionRequirementsResult()?.value).to.equal("OK")
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp getDeliveryAddress method.
+     */
+    describe("ActionsSdkApp#getDeliveryAddress") {
+        var body = ActionRequest()
+
+        beforeEachTest {
+            body = createLiveSessionActionsSdkAppBody()
+            body.inputs!![0].arguments = mutableListOf(gson.fromJson("""{
+                "extension": {
+                "userDecision": "ACCEPTED",
+                "@type": "type.googleapis.com/google.actions.v2.TransactionDecisionValue",
+                "location": {
+                "zipCode": "94043",
+                "postalAddress": {
+                "regionCode": "US",
+                "recipients": [
+                "Jane Smith"
+                ],
+                "postalCode": "94043",
+                "locality": "Mountain View",
+                "addressLines": [
+                "1600 Amphitheatre Parkway"
+                ],
+                "administrativeArea": "CA"
+            },
+                "phoneNumber": "+1 415-555-1234",
+                "city": "Mountain View"
+            }
+            },
+                "name": "TRANSACTION_DECISION_VALUE"
+        }""", Arguments::class.java))
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant request delivery address") {
+            val mockRequest = RequestWrapper<ActionRequest>(headerV1, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+            expect(app.getDeliveryAddress()).to.equal(gson.fromJson("""{
+                zipCode: "94043",
+                postalAddress: {
+                regionCode: "US",
+                recipients: [
+                "Jane Smith"
+                ],
+                postalCode: "94043",
+                locality: "Mountain View",
+                addressLines: [
+                "1600 Amphitheatre Parkway"
+                ],
+                administrativeArea: "CA"
+            },
+                phoneNumber: "+1 415-555-1234",
+                city: "Mountain View"
+            }""", Location::class.java))
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant request delivery address for txn decision") {
+            body.inputs!![0].arguments!![0].name = "DELIVERY_ADDRESS_VALUE"
+            val mockRequest = RequestWrapper<ActionRequest>(headerV1, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+            expect(app.getDeliveryAddress()).to.equal(gson.fromJson("""{
+                zipCode: "94043",
+                postalAddress: {
+                regionCode: "US",
+                recipients: [
+                "Jane Smith"
+                ],
+                postalCode: "94043",
+                locality: "Mountain View",
+                addressLines: [
+                "1600 Amphitheatre Parkway"
+                ],
+                administrativeArea: "CA"
+            },
+                phoneNumber: "+1 415-555-1234",
+                city: "Mountain View"
+            }""", Location::class.java))
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return null when user rejects") {
+            body.inputs!![0].arguments!![0].extension?.userDecision = "REJECTED"
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+
+            expect(app.getDeliveryAddress()).to.equal(null)
+        }
+    }
+
 })

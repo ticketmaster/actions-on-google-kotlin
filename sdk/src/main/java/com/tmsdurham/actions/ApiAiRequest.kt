@@ -2,6 +2,9 @@ package com.ticketmaster.apiai
 
 import com.ticketmaster.apiai.google.GoogleData
 import com.tmsdurham.actions.*
+import com.tmsdurham.actions.actions.ActionRequest
+import com.tmsdurham.actions.actions.Conversation
+import com.tmsdurham.actions.actions.Input
 
 fun apiAiRequest(init: ApiAiRequest.() -> Unit): ApiAiRequest {
     val request = ApiAiRequest()
@@ -108,7 +111,7 @@ data class Context(
 
 data class OriginalRequest(
         var source: String? = null,
-        var data: OriginalRequestData? = null,
+        var data: ActionRequest? = null,
         var version: String? = null)
 
 data class OriginalRequestData(
@@ -117,10 +120,9 @@ data class OriginalRequestData(
         var device: Device? = null,
         var surface: Surface? = null,
         var sender: Sender? = null,
-        var inputs: MutableList<Inputs>? = null,
+        var inputs: MutableList<Input>? = null,
         var isInSandbox: Boolean? = null)
 
-data class Conversation(var type: String)
 data class Device(val location: DeviceLocation? = null)
 
 data class DeviceLocation(var coordinates: Coordinates? = null, var formattedAddress: String? = null,
@@ -151,7 +153,7 @@ data class Arguments(
         val rawText: String? = null,
         var textValue: String? = null,
         var text_value: String? = null,
-        val name: String? = null,
+        var name: String? = null,
         val otherValue: Any? = null,
         val extension: TransactionRequirementsCheckResult? = null)
 
@@ -173,7 +175,7 @@ data class FinalOrderHolder(val finalOrder: Order? = null, val orderDate: String
 data class TransactionRequirementsCheckResult(
         val `@type`: String = "",
         val resultType: TransactionValues.ResultType = TransactionValues.ResultType.UNSPECIFIED,
-        val userDecision: String = "",
+        var userDecision: String = "",
         val status: String = "",
         var location: Location? = null,
         val order: FinalOrderHolder? = null)
@@ -181,9 +183,9 @@ data class TransactionRequirementsCheckResult(
 
 data class RawInput(val query: String? = null, val inputType: String? = null)
 
-data class Inputs(
-        var arguments: List<Arguments>? = null,
-        val intent: String? = null,
-        var speech: String? = null,
-        val rawInputs: List<RawInput>? = null)
+//data class Inputs(
+//        var arguments: List<Arguments>? = null,
+//        val intent: String? = null,
+//        var speech: String? = null,
+//        val rawInputs: List<RawInput>? = null)
 

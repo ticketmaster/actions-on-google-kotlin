@@ -1,9 +1,13 @@
 package com.tmsdurham.actions.actions
 
-import com.ticketmaster.apiai.RawInput
+import com.ticketmaster.apiai.*
 
 data class ActionRequest(val conversation: Conversation? = null,
-                         var inputs: MutableList<Input>? = null)
+                         var inputs: MutableList<Input>? = null,
+                         var user: User? = null,
+                         var device: Device? = null,
+                         var isInSandbox: Boolean? = null,
+                         var surface: Surface? = null)
 
 data class Conversation(var type: String? = null,
                         val conversationToken: ConversationToken? = null,
@@ -12,6 +16,7 @@ data class Conversation(var type: String? = null,
 
 data class Input(var textValue: String? = null,
                  var intent: String? = null,
+                 var arguments: MutableList<Arguments>? = null,
                  var rawInputs: MutableList<RawInput>? = null)
 
 data class ConversationToken(var state: String? = null,

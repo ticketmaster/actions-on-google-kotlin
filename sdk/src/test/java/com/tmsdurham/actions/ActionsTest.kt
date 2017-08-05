@@ -6,6 +6,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.ticketmaster.apiai.*
+import com.tmsdurham.actions.actions.Input
 import com.winterbe.expekt.expect
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
@@ -1365,7 +1366,7 @@ object ActionsTest : Spek({
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should validate assistant request user.") {
             body = createLiveSessionApiAppBody()
-            body?.originalRequest?.data?.inputs?.get(0)?.arguments = listOf(Arguments(
+            body?.originalRequest?.data?.inputs?.get(0)?.arguments = mutableListOf(Arguments(
                     name = "permission_granted",
                     textValue = "true")
             )
@@ -1442,7 +1443,7 @@ object ActionsTest : Spek({
             val t = TypeToken.get(Arguments::class.java).type
             val type = TypeToken.getParameterized(List::class.java, t)
             body.originalRequest?.data?.inputs?.get(0)?.arguments =
-                    listOf(Arguments(rawText = "raw text one", textValue = "text value one", name = "arg_value_one"),
+                    mutableListOf(Arguments(rawText = "raw text one", textValue = "text value one", name = "arg_value_one"),
                             Arguments(rawText = "45", name = "other_value", otherValue = mapOf("key" to "value")))
 
             val mockRequest = RequestWrapper(headerV2, body)
@@ -1690,7 +1691,7 @@ object ActionsTest : Spek({
                         "annotation_sets": []
                     }
                     ]
-                }""", Inputs::class.java))
+                }""", Input::class.java))
                 body.result.contexts = gson.fromJson("""[
                 {
                     "name": "actions_intent_option",
@@ -1726,7 +1727,7 @@ object ActionsTest : Spek({
                     "annotation_sets": []
                 }
                 ]
-            }""", Inputs::class.java))
+            }""", Input::class.java))
                 mockRequest = mockRequest.copy(body = body)
                 app = ApiAiApp(
                         request = mockRequest,
@@ -1862,7 +1863,7 @@ object ActionsTest : Spek({
                 }
                 ]
             }
-            ]""", arrayOf<Inputs>().javaClass).toMutableList()
+            ]""", arrayOf<Input>().javaClass).toMutableList()
             val mockRequest = RequestWrapper(headerV1, body)
             val mockResponse = ResponseWrapper<ApiAiResponse>()
             val app = ApiAiApp(
@@ -1882,7 +1883,7 @@ object ActionsTest : Spek({
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should raw input from API.ai.") {
             val body = createLiveSessionApiAppBody()
-            body.result?.resolvedQuery = "is it 667"
+            body.result.resolvedQuery = "is it 667"
 
             val mockRequest = RequestWrapper(headerV1, body)
             val mockResponse = ResponseWrapper<ApiAiResponse>()

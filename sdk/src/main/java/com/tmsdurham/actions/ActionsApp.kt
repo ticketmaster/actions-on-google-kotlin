@@ -22,9 +22,6 @@ interface Serializer {
  * providing implementation for all the methods available in the API.
  */
 class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
-    override fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ActionResponse>? {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
 
     val serializer: Serializer
 
@@ -916,18 +913,15 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @private
      * @actionssdk
      */
-    fun fulfillDateTimeRequest(dateTimeValueSpec: DateTimeValueSpec, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<ActionResponse>? {
-        debug("fulfillDateTimeRequest_: dateTimeValueSpec=$dateTimeValueSpec," +
+    override fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ActionResponse>? {
+        debug("fulfillDateTimeRequest_: dateTimeValueSpec=$confirmationValueSpec," +
                 " dialogState=$dialogState")
         // Build an Expected Intent object.
         val expectedIntent = ExpectedIntent(
                 intent = STANDARD_INTENTS.DATETIME)
-        expectedIntent.inputValueSpec {
-
-        }
         expectedIntent.inputValueData {
             `@type` = INPUT_VALUE_DATA_TYPES.DATETIME
-            //TODO fill fields from DateTimeValueSpec
+            dialogSpec = confirmationValueSpec.dialogSpec
         }
 
         // Send an Ask request to Assistant.
