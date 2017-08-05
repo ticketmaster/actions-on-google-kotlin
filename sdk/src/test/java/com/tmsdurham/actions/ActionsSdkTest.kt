@@ -1522,4 +1522,122 @@ object ActionsSdkTest : Spek({
         }
     }
 
+    /**
+     * Describes the behavior for ActionsSdkApp getTransactionDecision method.
+     */
+    describe("ActionsSdkApp#getTransactionDecision") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant request delivery address") {
+            val body = createLiveSessionActionsSdkAppBody()
+            body.inputs!![0].arguments = mutableListOf(gson.fromJson("""{
+                "extension": {
+                "userDecision": "ORDER_ACCEPTED",
+                "checkResult": {
+                "resultType": "OK",
+                "order": {
+                "finalOrder": { "fakeOrder": "fake_order" },
+                "googleOrderId": "goog_123",
+                "actionOrderId": "action_123",
+                "orderDate": {
+                "seconds": 40,
+                "nanos": 880000000
+            },
+                "paymentInfo": { "fakePayment": "fake_payment" },
+                "customerInfo": {
+                "email": "username@example.com"
+            }
+            }
+            }
+            },
+                "name": "TRANSACTION_DECISION_VALUE"
+            }""", Arguments::class.java))
+
+            val mockRequest = RequestWrapper(headerV2, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer
+            )
+            expect(app.getTransactionDecision()).to.equal(gson.fromJson("""{
+                "userDecision": "ORDER_ACCEPTED",
+                "checkResult": {
+                "resultType": "OK",
+                "order": {
+                "finalOrder": { "fakeOrder": "fake_order" },
+                "googleOrderId": "goog_123",
+                "actionOrderId": "action_123",
+                "orderDate": {
+                "seconds": 40,
+                "nanos": 880000000
+            },
+                "paymentInfo": { "fakePayment": "fake_payment" },
+                "customerInfo": {
+                "email": "username@example.com"
+            }
+            }
+}
+}
+            """, TransactionRequirementsCheckResult::class.java))
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp getUserConfirmation method.
+     */
+    describe("ActionsSdkApp#getUserConfirmation") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant positive confirmation decision") {
+            val body = createLiveSessionActionsSdkAppBody()
+            body.inputs!![0].arguments = mutableListOf(gson.fromJson("""
+            {
+                "name": "CONFIRMATION",
+                "boolValue": true
+            }""", Arguments::class.java))
+
+            val mockRequest = RequestWrapper(headerV2, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                request = mockRequest,
+                response = mockResponse,
+                    serializer = serializer)
+
+            expect(app.getUserConfirmation()).to.equal(true)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant negative confirmation decision") {
+            val body = createLiveSessionActionsSdkAppBody()
+            body.inputs!![0].arguments = mutableListOf(gson.fromJson("""
+            {
+                "name": "CONFIRMATION",
+                "boolValue": false
+            }""", Arguments::class.java))
+
+            val mockRequest = RequestWrapper(headerV2, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+
+            expect(app.getUserConfirmation()).to.equal(false)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant missing confirmation decision") {
+            val body = createLiveSessionActionsSdkAppBody()
+            body.inputs!![0].arguments = mutableListOf()
+            val mockRequest = RequestWrapper(headerV2, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer
+            )
+            expect(app.getUserConfirmation()).to.equal(null)
+        }
+    }
+
 })
