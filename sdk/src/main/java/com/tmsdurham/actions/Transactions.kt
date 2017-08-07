@@ -1026,23 +1026,26 @@ data class LineItem(var id: String, var name: String) {
  * @param {boolean} isGoogleOrderId True if the order ID is provided by
  *     Google. False if the order ID is app provided.
  */
-data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): HashMap<String, Any>() {
+data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): MutableMap<String, Any?> by mutableMapOf() {
     /**
      * Google provided identifier of the order.
      * @type {string}
      */
-    var googleOrderId: String?
+//    private var googleOrderId: String?
 
     /**
      * App provided identifier of the order.
      * @type {string}
      */
-    var actionOrderId: String?
+//    private var actionOrderId: String?
+
 
     init {
 
-        googleOrderId = if (isGoogleOrderId) orderId else null
-        actionOrderId = if (!isGoogleOrderId) orderId else null
+        this["googleOrderId"] = if (isGoogleOrderId) orderId else null
+        this["actionOrderId"] = if (!isGoogleOrderId) orderId else null
+        this["lineItemUpdates"] = mutableMapOf<String, LineItemUpdate>()
+        this["orderManagementActions"] = mutableListOf<OrderManagementAction>()
     }
 
 
@@ -1050,38 +1053,40 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): HashM
      * State of the order.
      * @type {Object}
      */
-    var orderState: OrderState? = null
+//    private var orderState: OrderState? = null
 
     /**
      * Updates for items in the order. Mapped by item id to state or price.
      * @type {Object}
      */
-    var lineItemUpdates = mutableMapOf<String, LineItemUpdate>()
+//    private var lineItemUpdates = mutableMapOf<String, LineItemUpdate>()
 
     /**
      * UTC timestamp of the order update.
      * @type {Object}
      */
-    var updateTime: UpdateTime? = null
+//    private var updateTime: UpdateTime? = null
     data class UpdateTime(var seconds: Long, var nanos: Long)
 
     /**
      * Actionable items presented to the user to manage the order.
      * @type {Object}
      */
-    var orderManagementActions: MutableList<OrderManagementAction>? = null
+//    private var orderManagementActions: MutableList<OrderManagementAction>? = null
 
     /**
      * Notification content to the user for the order update.
      * @type {Object}
      */
-    var userNotification: UserNotification? = null
+//    private var userNotification: UserNotification? = null
 
     /**
      * Updated total price of the order.
      * @type {TotalPrice}
      */
-    var totalPrice: GoogleData.TotalPrice? = null
+//    private var totalPrice: GoogleData.TotalPrice? = null
+
+//    var type: Any? = null
 
     /**
      * Set the Google provided order ID of the order.
@@ -1094,7 +1099,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): HashM
             error("orderId cannot be empty")
             return this
         }
-        this.googleOrderId = orderId
+        this["googleOrderId"] = orderId
         return this
     }
 
@@ -1109,7 +1114,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): HashM
             error("orderId cannot be empty")
             return this
         }
-        this.actionOrderId = orderId
+        this["actionOrderId"] = orderId
         return this
     }
 
@@ -1125,7 +1130,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): HashM
             error("label cannot be empty")
             return this
         }
-        orderState = OrderState(state, label)
+        this["orderState"] = OrderState(state, label)
         return this
     }
 
@@ -1141,7 +1146,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): HashM
             error("Invalid seconds")
             return this
         }
-        updateTime = UpdateTime(seconds, nanos)
+        this["updateTime"] = UpdateTime(seconds, nanos)
         return this
     }
 
@@ -1161,7 +1166,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): HashM
             error("text cannot be empty")
             return this
         }
-        this.userNotification = UserNotification(title, text)
+        this["userNotification"] = UserNotification(title, text)
         return this;
     }
 
@@ -1181,7 +1186,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): HashM
             error("currencyCode cannot be empty")
             return this
         }
-        totalPrice = totalPrice {
+        this["totalPrice"] = totalPrice {
             type = priceType
             amount {
                 this.currencyCode = currencyCode
@@ -1209,7 +1214,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): HashM
             error("URL cannot be empty")
             return this
         }
-        orderManagementActions?.add(OrderManagementAction(
+        (this["orderManagementActions"] as MutableList<OrderManagementAction>)?.add(OrderManagementAction(
                 type = type,
                 button = Button(
                         title = label,
@@ -1257,6 +1262,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): HashM
             }
         }
 
+        var lineItemUpdates = this["lineItemUpdates"] as MutableMap<String, LineItemUpdate>
         if (lineItemUpdates?.get(itemId)?.reason != null) {
             lineItemUpdates!![itemId]?.price = newPrice
             lineItemUpdates!![itemId]?.reason = if (reason != null) reason else
@@ -1297,6 +1303,8 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): HashM
             return this
         }
 
+        var lineItemUpdates = this["lineItemUpdates"] as MutableMap<String, LineItemUpdate>
+
         lineItemUpdates[itemId] = lineItemUpdates[itemId] ?: LineItemUpdate()
         lineItemUpdates[itemId]?.orderState = OrderState(state, label)
         lineItemUpdates[itemId]?.reason = if (reason != null) reason else lineItemUpdates[itemId]?.reason
@@ -1329,7 +1337,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): HashM
             remove(it.name)
         }
 
-        this[type] = data
+        this["type"] = data
         return this
     }
 }

@@ -22,7 +22,7 @@ allprojects {
         projectVersion = "0.14" //Version used in deployed artifact
         kotlinVersion = '1.1.3-2'
         gsonVersion = '2.8.1'
-        sdkVersion = '0.5'
+        sdkVersion = '0.6'
     }
 }
 

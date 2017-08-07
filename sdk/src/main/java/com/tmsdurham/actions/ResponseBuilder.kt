@@ -78,7 +78,7 @@ data class ListSelect(
         var items: MutableList<Items>? = null)
 
 data class RichResponse(
-        var items: MutableList<RichResponseItem>? = null,
+        var items: MutableList<RichResponseItem> = mutableListOf(),
         var suggestions: MutableList<Suggestions>? = mutableListOf(),
         var altLinkSuggestion: AltLinkSuggestion? = null,
         var linkOutSuggestion: LinkOutSuggestion? = null) {
@@ -111,7 +111,11 @@ data class RichResponse(
         if (items == null) {
             items = mutableListOf()
         }
-        items!!.add(simpleResponseObj)
+        if (items!!.get(0) != null && items!!.get(0).simpleResponse == null) {
+            items!!.add(0, simpleResponseObj)
+        } else {
+            items!!.add(simpleResponseObj)
+        }
         return this
     }
 
