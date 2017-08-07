@@ -85,7 +85,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T, S>) {
         }
         val deviceLocation = data.device?.location
         //TODO look into address
-//        deviceLocation.address = deviceLocation?.formattedAddress
+        deviceLocation?.address = deviceLocation?.formattedAddress
         return deviceLocation
     }
 
@@ -141,10 +141,10 @@ class RequestExtractor<T, S>(val app: AssistantApp<T, S>) {
     fun getArgumentCommon(argName: String): Any? {
         debug("getArgumentCommon: argName=$argName")
         if (argName.isBlank()) {
-            this.app.handleError("Invalid argument name")
+            app.handleError("Invalid argument name")
             return null
         }
-        val argument = this.findArgument(argName)
+        val argument = findArgument(argName)
         if (argument == null) {
             debug("Failed to get argument value: $argName")
             return null
@@ -251,7 +251,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T, S>) {
      *     date and time given.
      * @requestextractors
      */
-    fun getDateTime(): String? {
+    fun getDateTime(): DateTimeValue? {
         debug("getDateTime")
         val argument = findArgument(app.BUILT_IN_ARG_NAMES.DATETIME)
         if (argument != null) {

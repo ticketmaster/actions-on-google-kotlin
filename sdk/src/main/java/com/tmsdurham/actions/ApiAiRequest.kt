@@ -126,7 +126,8 @@ data class OriginalRequestData(
 data class Device(val location: DeviceLocation? = null)
 
 data class DeviceLocation(var coordinates: Coordinates? = null, var formattedAddress: String? = null,
-                          var zipCode: String? = null, var city: String? = null)
+                          var zipCode: String? = null, var city: String? = null,
+                          var address: String? = null)
 
 data class Coordinates(val latitude: Double? = null, val longitude: Double? = null)
 
@@ -148,14 +149,17 @@ data class Capabilities(val name: String? = null)
 
 
 data class Arguments(
-        val datetimeValue: String? = null,
+        val datetimeValue: DateTimeValue? = null,
         val boolValue: Boolean? = null,
         val rawText: String? = null,
         var textValue: String? = null,
         var text_value: String? = null,
         var name: String? = null,
-        val otherValue: Any? = null,
         val extension: TransactionRequirementsCheckResult? = null)
+
+data class DateTimeValue(var date: Date? = null, var time: Time? = null)
+data class Date(var month: Int? = null, var year: Int? = null, var day: Int? = null)
+data class Time(var hours: Int? = null)
 
 data class PostalAddress(var regionCode: String? = null,
                          var recipients: MutableList<String>? = null,

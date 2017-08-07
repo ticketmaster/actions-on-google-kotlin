@@ -10,7 +10,7 @@ data class ActionRequest(val conversation: Conversation? = null,
                          var surface: Surface? = null)
 
 data class Conversation(var type: String? = null,
-                        val conversationToken: ConversationToken? = null,
+                        var conversationToken: MutableMap<String, Any?>? = null,
                         var conversationId: String? = null,
                         var inputs: MutableList<Input>? = null)
 
@@ -18,6 +18,3 @@ data class Input(var textValue: String? = null,
                  var intent: String? = null,
                  var arguments: MutableList<Arguments>? = null,
                  var rawInputs: MutableList<RawInput>? = null)
-
-data class ConversationToken(var state: String? = null,
-                             var data: Any?)

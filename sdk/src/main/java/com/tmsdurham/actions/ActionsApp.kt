@@ -757,7 +757,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         if (request.body?.conversation?.conversationToken != null) {
             val json = request.body.conversation.conversationToken
 //            data = json.data
-            state = json.state
+            state = json?.get("state") as String?
         } else {
             data = mutableMapOf()
         }

@@ -1,5 +1,7 @@
 package com.tmsdurham.actions
 
+import com.google.gson.internal.LinkedTreeMap
+import com.google.gson.reflect.TypeToken
 import com.ticketmaster.apiai.*
 import com.tmsdurham.actions.actions.ActionRequest
 import com.tmsdurham.actions.actions.ActionResponse
@@ -1598,8 +1600,8 @@ object ActionsSdkTest : Spek({
             val mockRequest = RequestWrapper(headerV2, body)
             val mockResponse = ResponseWrapper<ActionResponse>()
             val app = ActionsSdkApp(
-                request = mockRequest,
-                response = mockResponse,
+                    request = mockRequest,
+                    response = mockResponse,
                     serializer = serializer)
 
             expect(app.getUserConfirmation()).to.equal(true)
@@ -1640,4 +1642,512 @@ object ActionsSdkTest : Spek({
         }
     }
 
+    /**
+     * Describes the behavior for ActionsSdkApp getDateTime method.
+     */
+    describe("ActionsSdkApp#getDateTime") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant date time info") {
+            val body = createLiveSessionActionsSdkAppBody()
+            body.inputs!![0].arguments = mutableListOf(gson.fromJson("""
+            {
+                "datetimeValue": {
+                "date": {
+                "month": 5,
+                "year": 2017,
+                "day": 26
+            },
+                "time": {
+                "hours": 9
+            }
+            },
+                "name": "DATETIME"
+            }
+            """, Arguments::class.java))
+            val mockRequest = RequestWrapper(headerV2, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+            expect(app.getDateTime()).to.equal(gson.fromJson("""{
+            date: {
+            month: 5,
+            year: 2017,
+            day: 26
+        },
+            time: {
+            hours: 9
+        }
+        }""", DateTimeValue::class.java))
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant missing date time info") {
+            val body = createLiveSessionActionsSdkAppBody()
+            body.inputs!![0].arguments = mutableListOf()
+            val mockRequest = RequestWrapper(headerV2, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+
+            expect(app.getDateTime()).to.equal(null)
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp getSignInStatus method.
+     */
+    describe("ActionsSdkApp#getSignInStatus") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant sign in status") {
+            val body = createLiveSessionActionsSdkAppBody()
+            body.inputs!![0].arguments = mutableListOf(gson.fromJson("""
+            {
+                "name": "SIGN_IN",
+                "extension": {
+                "@type": "type.googleapis.com/google.actions.v2.SignInValue",
+                "status": "foo_status"
+            }
+            }""", Arguments::class.java))
+
+            val mockRequest = RequestWrapper(headerV2, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+
+            expect(app.getSignInStatus()).to.equal("foo_status")
+        }
+
+// Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant missing sign in status") {
+            val body = createLiveSessionActionsSdkAppBody()
+            body.inputs!![0].arguments = mutableListOf()
+            val mockRequest = RequestWrapper(headerV2, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+            expect(app.getSignInStatus()).to.equal(null)
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp getDeviceLocation method.
+     */
+    describe("ActionsSdkApp#getDeviceLocation") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant request for device location when location is provided.") {
+            val body = createLiveSessionActionsSdkAppBody()
+            body.device = gson.fromJson("""{
+                "location": {
+                "coordinates": {
+                "latitude": 37.3861,
+                "longitude": 122.0839
+            },
+                "formattedAddress": "123 Main St, Anytown, CA 12345, United States",
+                "zipCode": "12345",
+                "city": "Anytown"
+            }
+            }""", Device::class.java)
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+
+            expect(app.getDeviceLocation()?.coordinates).to.equal(gson.fromJson("""{
+            latitude: 37.3861,
+            longitude: 122.0839
+        }""", Coordinates::class.java))
+            expect(app.getDeviceLocation()?.address)
+                    .to.equal("123 Main St, Anytown, CA 12345, United States")
+            expect(app.getDeviceLocation()?.zipCode).to.equal("12345")
+            expect(app.getDeviceLocation()?.city).to.equal("Anytown")
+        }
+
+        it("Should validate assistant request for device location when location is undefined.") {
+            // Test the false case
+            val body = createLiveSessionActionsSdkAppBody()
+            body.device = null
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+
+            expect(app.getDeviceLocation()).to.equal(null)
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp isPermissionGranted method.
+     */
+    describe("ActionsSdkApp#isPermissionGranted") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate when permissions were granted.") {
+            val body = createLiveSessionActionsSdkAppBody()
+            body.inputs!![0].arguments = mutableListOf(gson.fromJson("""
+            {
+                "name": "permission_granted",
+                "text_value": "true"
+            }""", Arguments::class.java))
+
+
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+
+            expect(app.isPermissionGranted()).to.equal(true)
+        }
+
+        it("Should validate when permissions were not granted.") {
+            // Test the false case
+            val body = createLiveSessionActionsSdkAppBody()
+            body.inputs!![0].arguments = mutableListOf(gson.fromJson("""
+        {
+            "name": "permission_granted",
+            "text_value": "false"
+        }""", Arguments::class.java))
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+
+            expect(app.isPermissionGranted()).to.equal(false)
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp isInSandbox method.
+     */
+    describe("ActionsSdkApp#isInSandbox") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate when app is in sandbox mode.") {
+            val body = createLiveSessionActionsSdkAppBody()
+            body.isInSandbox = true
+            val mockRequest = RequestWrapper(headerV2, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer
+            )
+            expect(app.isInSandbox()).to.equal(true)
+        }
+        it("Should validate when app is not in sandbox mode.") {
+            // Test the false case
+            val body = createLiveSessionActionsSdkAppBody()
+            body.isInSandbox = false
+            val mockRequest = RequestWrapper(headerV2, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+            expect(app.isInSandbox()).to.equal(false)
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp hasSurfaceCapability method.
+     */
+    describe("ActionsSdkApp#hasSurfaceCapability") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return true for a valid capability from incoming JSON for the success case.") {
+            val body = createLiveSessionActionsSdkAppBody()
+            body.surface = gson.fromJson("""{
+            "capabilities": [
+            {
+                "name": "actions.capability.AUDIO_OUTPUT"
+            },
+            {
+                "name": "actions.capability.SCREEN_OUTPUT"
+            }
+            ]
+        }""", Surface::class.java)
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+
+            val hasScreenOutput =
+                    app.hasSurfaceCapability(app.SURFACE_CAPABILITIES.SCREEN_OUTPUT)
+            val hasMagicPowers =
+                    app.hasSurfaceCapability("MAGIC_POWERS")
+            expect(hasScreenOutput).to.equal(true)
+            expect(hasMagicPowers).to.equal(false)
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp getSurfaceCapabilities method.
+     */
+    describe("ActionsSdkApp#getSurfaceCapabilities") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid list of capabilities from incoming JSON for the success case.") {
+            val body = createLiveSessionActionsSdkAppBody()
+            body.surface = gson.fromJson("""{
+                "capabilities": [
+                {
+                    "name": "actions.capability.AUDIO_OUTPUT"
+                },
+                {
+                    "name": "actions.capability.SCREEN_OUTPUT"
+                }
+                ]
+            }""", Surface::class.java)
+
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+
+            val capabilities = app.getSurfaceCapabilities()
+            expect(capabilities).to.equal(mutableListOf(
+                    app.SURFACE_CAPABILITIES.AUDIO_OUTPUT,
+                    app.SURFACE_CAPABILITIES.SCREEN_OUTPUT
+            ))
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp getInputType method.
+     */
+    describe("ActionsSdkApp#getInputType") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid input type from incoming JSON for the success case.") {
+            val KEYBOARD = 3
+            val body = createLiveSessionActionsSdkAppBody()
+            body.inputs!![0].rawInputs = mutableListOf(gson.fromJson("""
+            {
+                "inputType": $KEYBOARD,
+                "query": "talk to action snippets"
+            }""", RawInput::class.java))
+
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+
+            val inputType = app.getInputType()
+            expect(inputType).to.equal(app.INPUT_TYPES.KEYBOARD)
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp getApiVersion method.
+     */
+    describe("ActionsSdkApp#getApiVersion") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant request info.") {
+            val headers = mapOf(
+                    "Content-Type" to "application/json",
+                    "Google-Assistant-API-Version" to "v1"
+            )
+            val mockRequest = RequestWrapper(headers, createLiveSessionActionsSdkAppBody())
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+            expect(app.getApiVersion()).to.equal("v1")
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp getDialogState method.
+     */
+    describe("ActionsSdkApp#getDialogState") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant dialog state info.") {
+            val body = createLiveSessionActionsSdkAppBody()
+            body.conversation?.conversationToken = mutableMapOf("started" to true)
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+            val dialogState = mutableMapOf("started" to true)
+            expect(dialogState).to.equal(app.getDialogState() as Map<String, Boolean>?)
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp getActionVersionLabel method.
+     */
+    describe("ActionsSdkApp#getActionVersionLabel") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant action version label info.") {
+            var headers = headerV1.toMutableMap()
+            headers["Agent-Version-Label"] = "1.0.0"
+            val mockRequest = RequestWrapper(headers, createLiveSessionActionsSdkAppBody())
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+            expect(app.getActionVersionLabel()).to.equal("1.0.0")
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp getConversationId method.
+     */
+    describe("ActionsSdkApp#getConversationId") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant conversation ID.") {
+            val body = createLiveSessionActionsSdkAppBody()
+            body.conversation?.conversationId = fakeConversationId
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+            expect(app.getConversationId()).to.equal(fakeConversationId)
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp getArgument method.
+     */
+    describe("ActionsSdkApp#getArgument") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate assistant intent.") {
+            val body = createLiveSessionActionsSdkAppBody()
+            val type = object : TypeToken<java.util.List<Arguments>>() {}.getType()
+
+            body.inputs!![0].arguments = gson.fromJson("""[
+            {
+                "name": "number",
+                "rawText": "45",
+                "textValue": "45"
+            },
+            {
+                "name": "otherValue",
+                "raw_text": "45",
+                "otherValue": {
+                "key": "value"
+            }
+            }]
+            """, type)
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+            expect(app.getArgument("number")).to.equal("45")
+            var tmp = app.getArgument("otherValue")
+            var tmp2 = gson.fromJson("""{
+            "name": "otherValue",
+            "rawText": "45",
+            "otherValue": {
+            "key": "value"
+        }
+        }""", LinkedTreeMap::class.java)
+
+            //below is for custom payloads in arguments.  Unclear is this is needed, and for now is not supported.
+            /*
+            expect(app.getArgument("otherValue")).to.equal(gson.fromJson("""{
+            "name": "otherValue",
+            "rawText": "45",
+            "otherValue": {
+            "key": "value"
+        }
+        }""", LinkedTreeMap::class.java))
+        */
+            app.tell("You said " + app.getArgument("number"))
+            val expectedResponse = responseFromJson("""{
+            "expectUserResponse": false,
+            "finalResponse": {
+            "speechResponse": {
+            "textToSpeech": "You said 45"
+        }
+        }
+        }""")
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+    }
+
+    /**
+     * Describes the behavior for ActionsSdkApp getSelectedOption method.
+     */
+    describe("ActionsSdkApp#getSelectedOption") {
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should get the selected option when given in APIAI context.") {
+            val body = createLiveSessionActionsSdkAppBody()
+            body.inputs!![0].arguments = mutableListOf(gson.fromJson("""
+        {
+            "name": "OPTION",
+            "text_value": "first_item"
+        }""", Arguments::class.java))
+
+            val mockRequest = RequestWrapper(headerV1, body)
+            val mockResponse = ResponseWrapper<ActionResponse>()
+            val app = ActionsSdkApp(
+                    request = mockRequest,
+                    response = mockResponse,
+                    serializer = serializer)
+
+            expect(app.getSelectedOption()).to.equal("first_item")
+        }
+
+
+        /**
+         * Describes the behavior for ActionsSdkApp tell with SSML method.
+         */
+        describe("ActionsSdkApp#tell") {
+            // Success case test, when the API returns a valid 200 response with the response object
+            it("Should validate assistant tell SSML.") {
+                val body = createLiveSessionActionsSdkAppBody()
+                body.inputs!![0].rawInputs = mutableListOf(gson.fromJson("""
+        {
+            "input_type": 2,
+            "query": "45"
+        }""", RawInput::class.java))
+
+                val mockRequest = RequestWrapper(headerV1, body)
+                val mockResponse = ResponseWrapper<ActionResponse>()
+                val app = ActionsSdkApp(
+                        request = mockRequest,
+                        response = mockResponse,
+                        serializer = serializer)
+
+                app.tell("<speak>You said <break time=\"2\"/>" + app.getRawInput() + "</speak>")
+                val expectedResponse = responseFromJson("""{
+        "expectUserResponse": false,
+        "finalResponse": {
+        "speechResponse": {
+        "ssml": "<speak>You said <break time=\"2\"/>45</speak>"
+    }
+    }
+    }""")
+                expect(mockResponse.body).to.equal(expectedResponse)
+            }
+        }
+    }
 })
