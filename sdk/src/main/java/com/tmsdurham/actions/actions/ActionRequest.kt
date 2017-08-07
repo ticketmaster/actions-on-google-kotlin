@@ -10,7 +10,7 @@ data class ActionRequest(val conversation: Conversation? = null,
                          var surface: Surface? = null)
 
 data class Conversation(var type: String? = null,
-                        var conversationToken: MutableMap<String, Any?>? = null,
+                        var conversationToken: String? = null,
                         var conversationId: String? = null,
                         var inputs: MutableList<Input>? = null)
 

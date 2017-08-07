@@ -53,33 +53,33 @@ fun welcome(app: ApiAiApp) =
 fun normalAsk(app: ApiAiApp) = app.ask("Ask me to show you a list, carousel, or basic card")
 
 fun suggestions(app: ApiAiApp) =
-    app.ask(app
-            .buildRichResponse()
-            .addSimpleResponse("This is a simple response for suggestions")
-            .addSuggestions("Suggestion Chips")
-            .addSuggestions("Basic Card", "List", "Carousel")
-            .addSuggestionLink("Suggestion Link", "https://assistant.google.com/"))
+        app.ask(app
+                .buildRichResponse()
+                .addSimpleResponse("This is a simple response for suggestions")
+                .addSuggestions("Suggestion Chips")
+                .addSuggestions("Basic Card", "List", "Carousel")
+                .addSuggestionLink("Suggestion Link", "https://assistant.google.com/"))
 
 fun basicCard(app: ApiAiApp) =
-    app.ask(app.buildRichResponse()
-            .addSimpleResponse("This is the first simple response for a basic card")
-            .addSuggestions(
-                    "Basic Card", "List", "Carousel", "Suggestions")
-            // Create a basic card and add it to the rich response
-            .addBasicCard(app.buildBasicCard("""This is a basic card.  Text in a
+        app.ask(app.buildRichResponse()
+                .addSimpleResponse("This is the first simple response for a basic card")
+                .addSuggestions(
+                        "Basic Card", "List", "Carousel", "Suggestions")
+                // Create a basic card and add it to the rich response
+                .addBasicCard(app.buildBasicCard("""This is a basic card.  Text in a
                     basic card can include "quotes" and most other unicode characters
                     including emoji 📱.  Basic cards also support some markdown
                     formatting like *emphasis* or _italics_, **strong** or __bold__,
             and ***bold itallic*** or ___strong emphasis___ as well as other things
                     like line""" + "  \nbreaks") // Note the two spaces before "\n" required for a
-                    // line break to be rendered in the card
-                    .setSubtitle("This is a subtitle")
-                    .setTitle("Title: this is a title")
-                    .addButton("This is a button", "https://assistant.google.com/")
-                    .setImage(IMG_URL_AOG, "Image alternate text"))
-            .addSimpleResponse(speech = "This is the 2nd simple response ",
-                    displayText = "This is the 2nd simple response")
-    )
+                        // line break to be rendered in the card
+                        .setSubtitle("This is a subtitle")
+                        .setTitle("Title: this is a title")
+                        .addButton("This is a button", "https://assistant.google.com/")
+                        .setImage(IMG_URL_AOG, "Image alternate text"))
+                .addSimpleResponse(speech = "This is the 2nd simple response ",
+                        displayText = "This is the 2nd simple response")
+        )
 
 
 fun list(app: ApiAiApp) {
@@ -174,22 +174,22 @@ fun itemSelected(app: ApiAiApp) {
 
 // Receive a rich response from API.AI and modify it
 fun cardBuilder(app: ApiAiApp) =
-    app.ask(app.getIncomingRichResponse()
-            .addBasicCard(app.buildBasicCard("""Actions on Google let you build for
+        app.ask(app.getIncomingRichResponse()
+                .addBasicCard(app.buildBasicCard("""Actions on Google let you build for
             the Google Assistant. Reach users right when they need you. Users don’t
             need to pre-enable skills or install new apps.""" + "  \n  \nThis was written in the fulfillment webhook!")
-    .setSubtitle("Engage users through the Google Assistant")
-            .setTitle("Actions on Google")
-            .addButton("Developer Site", "https://developers.google.com/actions/")
-            .setImage("https://lh3.googleusercontent.com/Z7LtU6hhrhA-5iiO1foAfGB" +
-                    "75OsO2O7phVesY81gH0rgQFI79sjx9aRmraUnyDUF_p5_bnBdWcXaRxVm2D1Rub92" +
-                    "L6uxdLBl=s1376", "Actions on Google")))
+                        .setSubtitle("Engage users through the Google Assistant")
+                        .setTitle("Actions on Google")
+                        .addButton("Developer Site", "https://developers.google.com/actions/")
+                        .setImage("https://lh3.googleusercontent.com/Z7LtU6hhrhA-5iiO1foAfGB" +
+                                "75OsO2O7phVesY81gH0rgQFI79sjx9aRmraUnyDUF_p5_bnBdWcXaRxVm2D1Rub92" +
+                                "L6uxdLBl=s1376", "Actions on Google")))
 
 // Leave conversation with card
 fun byeCard(app: ApiAiApp) =
-    app.tell(app.buildRichResponse()
-            .addSimpleResponse("Goodbye, World!")
-            .addBasicCard(app.buildBasicCard("This is a goodbye card.")))
+        app.tell(app.buildRichResponse()
+                .addSimpleResponse("Goodbye, World!")
+                .addBasicCard(app.buildBasicCard("This is a goodbye card.")))
 
 fun byeResponse(action: ApiAiApp) =
         action.tell(speech = "Okay see you later",

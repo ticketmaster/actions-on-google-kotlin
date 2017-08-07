@@ -108,16 +108,10 @@ data class RichResponse(
         }
         val simpleResponseObj = RichResponseItem(simpleResponse = simpleResponse)
 
-        // Check first if needs to replace BasicCard at beginning of items list
         if (items == null) {
             items = mutableListOf()
         }
-        if (items!!.size > 0 && (items!![0].basicCard != null ||
-                items!![0].structuredResponse != null)) {
-            items!!.add(simpleResponseObj)
-        } else {
-            items!!.add(0, simpleResponseObj)
-        }
+        items!!.add(simpleResponseObj)
         return this
     }
 
@@ -149,11 +143,7 @@ data class RichResponse(
         }
         val item = RichResponseItem()
         item.basicCard = basicCard
-        if (items?.size == 0) {
-            items?.add(item)
-        } else {
-            items?.add(0, item)
-        }
+        items?.add(item)
 
         return this
     }

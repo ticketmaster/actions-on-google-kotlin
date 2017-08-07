@@ -1983,7 +1983,7 @@ object ActionsSdkTest : Spek({
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should validate assistant dialog state info.") {
             val body = createLiveSessionActionsSdkAppBody()
-            body.conversation?.conversationToken = mutableMapOf("started" to true)
+            body.conversation?.conversationToken = gson.toJson(mutableMapOf("started" to true))
             val mockRequest = RequestWrapper(headerV1, body)
             val mockResponse = ResponseWrapper<ActionResponse>()
             val app = ActionsSdkApp(

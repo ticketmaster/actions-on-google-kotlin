@@ -116,9 +116,17 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      */
     fun getDialogState(): Any? {
         debug("getDialogState")
-        if (this.request.body.conversation?.conversationToken != null) {
+        if (this.request.body.conversation?.conversationToken?.isNotBlank() ?: false) {
             //TODO revisit if converstationToken is String or object
-            return request.body?.conversation?.conversationToken
+            var token = request.body?.conversation?.conversationToken
+            var dialogState: MutableMap<String, Any?>? = null
+            try {
+                dialogState = serializer.deserialize(token!!, mutableMapOf<String, Any?>()::class.java)
+            } catch (e: Exception) {
+                debug("Error deserializing conversationToken: " + e.message)
+            }
+
+            return dialogState
         }
         return mutableMapOf<String, Any?>()
     }
@@ -756,8 +764,9 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         debug("extractData")
         if (request.body?.conversation?.conversationToken != null) {
             val json = request.body.conversation.conversationToken
+              //TODO extract state from token
 //            data = json.data
-            state = json?.get("state") as String?
+//            state = json?.get("state") as String?
         } else {
             data = mutableMapOf()
         }
