@@ -1,6 +1,7 @@
 package com.tmsdurham.actions
 
 import com.ticketmaster.apiai.*
+import com.tmsdurham.actions.actions.ActionRequest
 
 
 /**
@@ -8,7 +9,7 @@ import com.ticketmaster.apiai.*
  *
  * This class contains the methods to extract data from the request object.
  */
-class RequestExtractor<T, S>(val app: AssistantApp<T,S>) {
+class RequestExtractor<T, S>(val app: AssistantApp<T, S>) {
 
 
     /**
@@ -26,37 +27,36 @@ class RequestExtractor<T, S>(val app: AssistantApp<T,S>) {
      * @return {User} Null if no value.
      * @requestextractor
      */
-    fun getUser (): User? {
+    fun getUser(): User? {
         debug("getUser")
-        val data = when(app.request.body) {
-            is ApiAiRequest -> { app.request.body?.originalRequest?.data}
-            //TODO Action SDK user
-            else -> null
+        when (app.request.body) {
+            is ApiAiRequest -> {
+                val data = app.request.body.originalRequest?.data
+                if (data?.user == null) {
+                    app.handleError("No user object")
+                    return null
+                }
+
+                val requestUser = data.user
+
+                // User object includes original API properties
+                return requestUser
+            }
+
+            is ActionRequest -> {
+                return app.request.body.user
+            }
+        //TODO Action SDK user
+            else -> return null
         }
-
-        if (data?.user == null) {
-            app.handleError("No user object")
-            return null
-        }
-
-        val requestUser = data.user
-
-        // User object includes original API properties
-        val user = requestUser
-
-        // Backwards compatibility
-//        user.user_id = user.userId;
-//        user.access_token = user.accessToken;
-
-
-        return user
     }
 
-    fun requestData() = when(app.request.body) {
-            is ApiAiRequest -> { app.request.body?.originalRequest?.data}
-            //TODO Action SDK user
-            else -> null
-        }
+    fun requestData(): ActionRequest? = when (app.request.body) {
+        is ApiAiRequest -> { app.request.body.originalRequest?.data }
+        is ActionRequest -> { app.request.body }
+        else -> null
+    }
+
     /**
      * If granted permission to device"s location in previous intent, returns device"s
      * location (see {@link AssistantApp#askForPermissions|askForPermissions}).
@@ -77,15 +77,15 @@ class RequestExtractor<T, S>(val app: AssistantApp<T,S>) {
      * @return {DeviceLocation} Null if location permission is not granted.
      * @requestextractor
      */
-    fun getDeviceLocation (): DeviceLocation? {
+    fun getDeviceLocation(): DeviceLocation? {
         debug("getDeviceLocation")
         val data = requestData()
         if (data?.device?.location == null) {
             return null
         }
-        val deviceLocation =  data?.device?.location
+        val deviceLocation = data.device?.location
         //TODO look into address
-//        deviceLocation.address = deviceLocation?.formattedAddress
+        deviceLocation?.address = deviceLocation?.formattedAddress
         return deviceLocation
     }
 
@@ -97,12 +97,12 @@ class RequestExtractor<T, S>(val app: AssistantApp<T,S>) {
     fun findArgument(vararg targets: String): Arguments? {
         val data = requestData()
         data?.inputs?.forEach {
-                it?.arguments?.forEach {
-                    if (targets.contains(it.name)) {
-                        return it
-                    }
+            it.arguments?.forEach {
+                if (targets.contains(it.name)) {
+                    return it
                 }
             }
+        }
         return null
     }
 
@@ -138,20 +138,20 @@ class RequestExtractor<T, S>(val app: AssistantApp<T,S>) {
      *     or null if no matching argument.
      * @requestextractor
      */
-    fun getArgumentCommon (argName: String): Any? {
+    fun getArgumentCommon(argName: String): Any? {
         debug("getArgumentCommon: argName=$argName")
         if (argName.isBlank()) {
-            this.app.handleError("Invalid argument name")
+            app.handleError("Invalid argument name")
             return null
         }
-        val argument = this.findArgument(argName)
+        val argument = findArgument(argName)
         if (argument == null) {
             debug("Failed to get argument value: $argName")
             return null
-        } else if (argument?.textValue != null) {
-            return argument?.textValue
-        } else if (argument?.text_value != null) {
-            return argument?.text_value
+        } else if (argument.textValue != null) {
+            return argument.textValue
+        } else if (argument.text_value != null) {
+            return argument.text_value
         } else {
             if (!this.app.isNotApiVersionOne()) {
                 return argument
@@ -171,7 +171,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T,S>) {
      * @return {String?} One of Transactions.ResultType.
      * @requestextractor
      */
-    fun getTransactionRequirementsResult (): TransactionValues.ResultType? {
+    fun getTransactionRequirementsResult(): TransactionValues.ResultType? {
         debug("getTransactionRequirementsResult")
         val argument = this.findArgument(app.BUILT_IN_ARG_NAMES.TRANSACTION_REQ_CHECK_RESULT)
         if (argument?.extension?.resultType != null) {
@@ -188,7 +188,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T,S>) {
      *     denies permission, or no address given.
      * @requestextractor
      */
-    fun getDeliveryAddress (): Location? {
+    fun getDeliveryAddress(): Location? {
         debug("getDeliveryAddress")
         val argument = findArgument(app.BUILT_IN_ARG_NAMES.DELIVERY_ADDRESS_VALUE, app.BUILT_IN_ARG_NAMES.TRANSACTION_DECISION_VALUE)
         if (argument?.extension != null) {
@@ -217,7 +217,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T,S>) {
      *     Transactions.ConfirmationDecision. Null if no decision given.
      * @requestextractor
      */
-    fun getTransactionDecision (): TransactionRequirementsCheckResult? {
+    fun getTransactionDecision(): TransactionRequirementsCheckResult? {
         debug("getTransactionDecision")
         val argument = findArgument(app.BUILT_IN_ARG_NAMES.TRANSACTION_DECISION_VALUE)
         if (argument?.extension != null) {
@@ -234,7 +234,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T,S>) {
      *     confirmation decision given.
      * @requestextractor
      */
-    fun getUserConfirmation (): Boolean? {
+    fun getUserConfirmation(): Boolean? {
         debug("getUserConfirmation")
         val argument = findArgument(app.BUILT_IN_ARG_NAMES.CONFIRMATION)
         if (argument != null) {
@@ -251,7 +251,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T,S>) {
      *     date and time given.
      * @requestextractors
      */
-    fun getDateTime (): String? {
+    fun getDateTime(): DateTimeValue? {
         debug("getDateTime")
         val argument = findArgument(app.BUILT_IN_ARG_NAMES.DATETIME)
         if (argument != null) {
@@ -270,7 +270,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T,S>) {
      * Null if no sign in status.
      * @requestextractor
      */
-    fun getSignInStatus (): String? {
+    fun getSignInStatus(): String? {
         debug("getSignInStatus")
         val argument = findArgument(app.BUILT_IN_ARG_NAMES.SIGN_IN)
         if (argument?.extension?.status != null) {
@@ -288,7 +288,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T,S>) {
      * @return {Boolean} True if app is being used in Sandbox mode.
      * @requestextractor
      */
-    fun isInSandbox (): Boolean {
+    fun isInSandbox(): Boolean {
         val data = requestData()
         return data?.isInSandbox ?: false
     }
@@ -300,15 +300,15 @@ class RequestExtractor<T, S>(val app: AssistantApp<T,S>) {
      *     AssistantApp.SurfaceCapabilities.
      * @apiai
      */
-    fun getSurfaceCapabilities (): MutableList<String>? {
+    fun getSurfaceCapabilities(): MutableList<String>? {
         debug("getSurfaceCapabilities")
         val data = requestData()
         if (data?.surface?.capabilities == null) {
             error("No surface capabilities in incoming request")
             return null
         }
-        if (data?.surface?.capabilities != null) {
-            return data?.surface?.capabilities?.map { it.name}?.filterNotNull()?.toMutableList()
+        if (data.surface?.capabilities != null) {
+            return data.surface?.capabilities?.map { it.name }?.filterNotNull()?.toMutableList()
         } else {
             error("No surface capabilities in incoming request")
             return null
@@ -322,13 +322,13 @@ class RequestExtractor<T, S>(val app: AssistantApp<T,S>) {
      *     Null if no input type given.
      * @requestextractor
      */
-    fun getInputType (): String? {
+    fun getInputType(): String? {
         debug("getInputType")
         val data = requestData()
         debug(data.toString())
         data?.inputs?.forEach {
             it.rawInputs?.forEach {
-                if (it?.inputType != null) {
+                if (it.inputType != null) {
                     return it.inputType
                 }
             }
@@ -359,7 +359,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T,S>) {
      * @return {Boolean} true if permissions granted.
      * @requestextractor
      */
-    fun isPermissionGranted (): Boolean {
+    fun isPermissionGranted(): Boolean {
         debug("isPermissionGranted")
         return getArgumentCommon(app.BUILT_IN_ARG_NAMES.PERMISSION_GRANTED) ?: "" == "true"
     }

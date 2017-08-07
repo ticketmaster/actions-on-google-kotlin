@@ -2,6 +2,9 @@ package com.ticketmaster.apiai
 
 import com.ticketmaster.apiai.google.GoogleData
 import com.tmsdurham.actions.*
+import com.tmsdurham.actions.actions.ActionRequest
+import com.tmsdurham.actions.actions.Conversation
+import com.tmsdurham.actions.actions.Input
 
 fun apiAiRequest(init: ApiAiRequest.() -> Unit): ApiAiRequest {
     val request = ApiAiRequest()
@@ -99,16 +102,16 @@ data class Context(
         var lifespan: Int = 0) {
 
     override fun equals(other: Any?) =
-        if (other is Context) {
-            this.name.toLowerCase().equals(other.name.toLowerCase())
-        } else {
-            false
-        }
+            if (other is Context) {
+                this.name.toLowerCase().equals(other.name.toLowerCase())
+            } else {
+                false
+            }
 }
 
 data class OriginalRequest(
         var source: String? = null,
-        var data: OriginalRequestData? = null,
+        var data: ActionRequest? = null,
         var version: String? = null)
 
 data class OriginalRequestData(
@@ -117,14 +120,14 @@ data class OriginalRequestData(
         var device: Device? = null,
         var surface: Surface? = null,
         var sender: Sender? = null,
-        var inputs: MutableList<Inputs>? = null,
+        var inputs: MutableList<Input>? = null,
         var isInSandbox: Boolean? = null)
 
-data class Conversation(var type: String)
 data class Device(val location: DeviceLocation? = null)
 
 data class DeviceLocation(var coordinates: Coordinates? = null, var formattedAddress: String? = null,
-                          var zipCode: String? = null, var city: String? = null)
+                          var zipCode: String? = null, var city: String? = null,
+                          var address: String? = null)
 
 data class Coordinates(val latitude: Double? = null, val longitude: Double? = null)
 
@@ -146,14 +149,17 @@ data class Capabilities(val name: String? = null)
 
 
 data class Arguments(
-        val datetimeValue: String? = null,
+        val datetimeValue: DateTimeValue? = null,
         val boolValue: Boolean? = null,
         val rawText: String? = null,
         var textValue: String? = null,
         var text_value: String? = null,
-        val name: String? = null,
-        val otherValue: Any? = null,
+        var name: String? = null,
         val extension: TransactionRequirementsCheckResult? = null)
+
+data class DateTimeValue(var date: Date? = null, var time: Time? = null)
+data class Date(var month: Int? = null, var year: Int? = null, var day: Int? = null)
+data class Time(var hours: Int? = null)
 
 data class PostalAddress(var regionCode: String? = null,
                          var recipients: MutableList<String>? = null,
@@ -161,29 +167,29 @@ data class PostalAddress(var regionCode: String? = null,
                          var locality: String? = null,
                          var addressLines: MutableList<String>? = null,
                          val administrativeArea: String? = null)
+
 data class Location(var zipCode: String? = null,
                     var postalAddress: PostalAddress? = null,
                     var phoneNumber: String? = null,
                     var city: String? = null,
                     var coordinates: Coordinates?)
 
-data class FinalOrderHolder(val finalOrder: Order? = null, val  orderDate: String = "", val googleOrderId: String = "")
+data class FinalOrderHolder(val finalOrder: Order? = null, val orderDate: String = "", val googleOrderId: String = "")
 
 data class TransactionRequirementsCheckResult(
         val `@type`: String = "",
         val resultType: TransactionValues.ResultType = TransactionValues.ResultType.UNSPECIFIED,
-        val userDecision: String = "",
+        var userDecision: String = "",
         val status: String = "",
         var location: Location? = null,
         val order: FinalOrderHolder? = null)
 
 
-data class RawInputs(val query: String? = null, val inputType: String? = null)
+data class RawInput(val query: String? = null, val inputType: String? = null)
 
-data class Inputs(
-        var arguments: List<Arguments>? = null,
-        val intent: String? = null,
-        val rawInputs: List<RawInputs>? = null)
-
-data class DialogState(val state: String = "", val data: MutableMap<String, Any>? = null)
+//data class Inputs(
+//        var arguments: List<Arguments>? = null,
+//        val intent: String? = null,
+//        var speech: String? = null,
+//        val rawInputs: List<RawInput>? = null)
 

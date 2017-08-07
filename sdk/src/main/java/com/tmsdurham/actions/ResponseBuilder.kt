@@ -79,7 +79,7 @@ data class ListSelect(
 
 data class RichResponse(
         var items: MutableList<RichResponseItem>? = null,
-        var suggestions: MutableList<Suggestions>? = null,
+        var suggestions: MutableList<Suggestions>? = mutableListOf(),
         var altLinkSuggestion: AltLinkSuggestion? = null,
         var linkOutSuggestion: LinkOutSuggestion? = null) {
 
@@ -126,6 +126,7 @@ data class RichResponse(
                 speech = simpleResponse.textToSpeech ?: "",
                 displayText = simpleResponse.displayText ?: "")
     }
+
 
     /**
      * Adds a BasicCard to list of items.

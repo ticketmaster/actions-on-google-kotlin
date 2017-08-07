@@ -535,7 +535,7 @@ open class TransactionValues {
  * @type {string}
  * @param {string} orderId Unique identifier for the order.
  */
-data class Order(val orderId: String) {
+data class Order(val id: String) {
 
     /**
      * Cart for the order.

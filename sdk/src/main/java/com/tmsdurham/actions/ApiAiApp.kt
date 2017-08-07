@@ -25,7 +25,6 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
     val TYPE = "type"
     val PLATFORM = "platform"
 
-    var data: MutableMap<String, Any>? = null
 
     constructor(request: RequestWrapper<ApiAiRequest>, response: ResponseWrapper<ApiAiResponse>, sessionStarted: (() -> Unit)? = null) :
             super(request, response, sessionStarted) {
@@ -872,7 +871,6 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
             handleError("No contexts included in request")
             return mutableListOf()
         }
-        debug("HERE!!! + $request")
         return request.body.result?.contexts?.filter { it.name != ACTIONS_API_AI_CONTEXT }?.filterNotNull().toMutableList()
     }
 
@@ -958,14 +956,14 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * Uses a PermissionsValueSpec object to construct and send a
      * permissions request to the user.
      *
-     * @param {Object} permissionsSpec PermissionsValueSpec object containing
+     * @param {Object} permissionsValueSpec PermissionsValueSpec object containing
      *     the permissions prefix and permissions requested.
      * @return {Object} The HTTP response.
      * @private
      * @apiai
      */
-    override fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest): ResponseWrapper<ApiAiResponse>? {
-        debug("fulfillPermissionsRequest_: permissionsSpec=$permissionsSpec")
+    override fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ApiAiResponse>? {
+        debug("fulfillPermissionsRequest_: permissionsValueSpec=$permissionsSpec")
         val inputPrompt = "PLACEHOLDER_FOR_PERMISSION"
         val response = buildResponse(inputPrompt, true)
 
@@ -1026,7 +1024,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * @apiai
      */
     override fun fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: TransactionRequirementsCheckSpec,
-                                                     dialogState: DialogState?): ResponseWrapper<ApiAiResponse>? {
+                                                     dialogState: MutableMap<String, Any?>?): ResponseWrapper<ApiAiResponse>? {
         debug("fulfillTransactionRequirementsCheck_: transactionRequirementsSpec=%s")
         val response = buildResponse("PLACEHOLDER_FOR_TXN_REQUIREMENTS", true)
         response {
@@ -1058,7 +1056,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * @private
      * @apiai
      */
-    override fun fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: DialogState?): ResponseWrapper<ApiAiResponse>? {
+    override fun fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ApiAiResponse>? {
         debug("fulfillTransactionDecision_: transactionDecisionValueSpec=$transactionDecisionValueSpec")
         val response = buildResponse("PLACEHOLDER_FOR_TXN_DECISION", true)
         response {
@@ -1091,7 +1089,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * @private
      * @apiai
      */
-    override fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState?): ResponseWrapper<ApiAiResponse>? {
+    override fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ApiAiResponse>? {
         debug("fulfillConfirmationRequest_: confirmationValueSpec=$confirmationValueSpec")
         val response = this.buildResponse("PLACEHOLDER_FOR_CONFIRMATION", true)
         response {
@@ -1120,7 +1118,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * @private
      * @apiai
      */
-    override fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState?): ResponseWrapper<ApiAiResponse>? {
+    override fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ApiAiResponse>? {
         debug("fulfillDateTimeRequest_: dateTimeValueSpec=$confirmationValueSpec")
         val response = buildResponse("PLACEHOLDER_FOR_DATETIME", true)
         response {
@@ -1148,7 +1146,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * @private
      * @apiai
      */
-    override fun fulfillSignInRequest(dialogState: DialogState?): ResponseWrapper<ApiAiResponse>? {
+    override fun fulfillSignInRequest(dialogState: MutableMap<String, Any?>?): ResponseWrapper<ApiAiResponse>? {
         debug("fulfillSignInRequest_")
         val response = buildResponse("PLACEHOLDER_FOR_SIGN_IN", true)
         response {
@@ -1212,9 +1210,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
 
         val speech = richResponse.items?.first()?.simpleResponse?.textToSpeech!!
         var noInputsFinal = mutableListOf<GoogleData.NoInputPrompts>()
-        val dialogState = DialogState(
-                state = state, //TODO (this.state instanceof State ? this.state.getName() : this.state),
-                data = data)
+        val dialogState = mutableMapOf<String, Any?>(
+                "state" to state, //TODO (this.state instanceof State ? this.state.getName() : this.state),
+                "data" to data)
         if (noInputs != null) {
             if (noInputs.size > INPUTS_MAX) {
                 handleError("Invalid number of no inputs")
@@ -1240,7 +1238,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
                     Context(
                             name = ACTIONS_API_AI_CONTEXT,
                             lifespan = MAX_LIFESPAN,
-                            parameters = dialogState.data))
+                            parameters = dialogState["data"] as MutableMap<String, Any>?))
         }
         response.contextOut = response.contextOut.plus(contexts.values).toMutableList()
         this.response.body = response
@@ -1266,9 +1264,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         }
 
         var noInputsFinal = mutableListOf<GoogleData.NoInputPrompts>()
-        val dialogState = DialogState(
-                state = state, //TODO (this.state instanceof State ? this.state.getName() : this.state),
-                data = data)
+        val dialogState = mutableMapOf<String, Any?>(
+                "state" to state, //TODO (this.state instanceof State ? this.state.getName() : this.state),
+                "data" to data)
         if (noInputs != null) {
             if (noInputs.size > INPUTS_MAX) {
                 handleError("Invalid number of no inputs")
@@ -1293,7 +1291,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
                     Context(
                             name = ACTIONS_API_AI_CONTEXT,
                             lifespan = MAX_LIFESPAN,
-                            parameters = dialogState.data))
+                            parameters = dialogState["data"] as MutableMap<String, Any>?))
         }
         response.contextOut.addAll(contexts.values)
         this.response.body = response
@@ -1306,7 +1304,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      */
     override fun extractData() {
         debug("extractData")
-        data = request.body.result.contexts.find { it.name == ACTIONS_API_AI_CONTEXT }?.parameters
+        data = request.body.result.contexts.find { it.name == ACTIONS_API_AI_CONTEXT }?.parameters ?: mutableMapOf()
     }
 
 }

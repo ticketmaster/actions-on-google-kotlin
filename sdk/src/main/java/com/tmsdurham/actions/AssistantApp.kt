@@ -205,19 +205,21 @@ class SignInStatus {
 
 open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val response: ResponseWrapper<S>, val sessionStarted: (() -> Unit)? = null) {
     var actionsApiVersion: String = "1"
-    lateinit var STANDARD_INTENTS: StandardIntents
+    var STANDARD_INTENTS: StandardIntents
     val SUPPORTED_INTENT = SupportedIntent()
-    lateinit var BUILT_IN_ARG_NAMES: BuiltInArgNames
+    var BUILT_IN_ARG_NAMES: BuiltInArgNames
     val INPUT_VALUE_DATA_TYPES = InputValueDataTypes()
-    lateinit var CONVERSATION_STAGES: ConversationStages
+    var CONVERSATION_STAGES: ConversationStages
     val SURFACE_CAPABILITIES = SurfaceCapabilities()
-    lateinit var INPUT_TYPES: InputTypes
+    var INPUT_TYPES: InputTypes
     val SUPPORTED_PERMISSIONS = SupportedPermissions()
     val SIGN_IN_STATUS = SignInStatus()
 
     var responded = false
-    var apiVersion: String = ""
-    var state: String = ""
+    var apiVersion_: String = ""
+    var state: String? = null
+    //TODO is it DialogState?
+    var data: MutableMap<String, Any> = mutableMapOf()
     var contexts = mutableMapOf<String, Context>()
     val requestExtractor: RequestExtractor<T, S>
 
@@ -237,7 +239,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         } else {
             if (request.headers[ACTIONS_CONVERSATION_API_VERSION_HEADER] != null) {
                 actionsApiVersion = request.headers[ACTIONS_CONVERSATION_API_VERSION_HEADER]!!
-                debug("Actions API version from header: " + this.actionsApiVersion);
+                debug("Actions API version from header: " + this.actionsApiVersion)
             }
             if (request.body is ApiAiRequest) {
                 if (request.body.originalRequest != null) {
@@ -259,8 +261,8 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
          */
         // Populates API version.
         if (request.get(CONVERSATION_API_VERSION_HEADER) != null) {
-            apiVersion = request.get(CONVERSATION_API_VERSION_HEADER) ?: ""
-            debug("Assistant API version: " + apiVersion)
+            apiVersion_ = request.get(CONVERSATION_API_VERSION_HEADER) ?: ""
+            debug("Assistant API version: " + apiVersion_)
         }
 
         requestExtractor = RequestExtractor(this)
@@ -328,7 +330,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @actionssdk
      * @apiai
      */
-    fun askForPermissions(context: String, vararg permissions: String, dialogState: DialogState? = null): ResponseWrapper<S>? {
+    fun askForPermissions(context: String, vararg permissions: String, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
         debug("askForPermissions: context=$context, permissions=$permissions, dialogState=$dialogState")
         if (context.isEmpty()) {
             handleError("Assistant context can NOT be empty.")
@@ -356,7 +358,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         }
         return fulfillPermissionsRequest(GoogleData.PermissionsRequest(
                 optContext = context,
-                permissions = permissions.toMutableList()))
+                permissions = permissions.toMutableList()), dialogState)
     }
 
     /**
@@ -392,7 +394,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @actionssdk
      * @apiai
      */
-    fun askForConfirmation (prompt: String = "", dialogState: DialogState? = null): ResponseWrapper<S>? {
+    fun askForConfirmation (prompt: String = "", dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
         debug("askForConfirmation: prompt=$prompt, dialogState=$dialogState")
         val confirmationValueSpec = ConfirmationValueSpec()
         if (prompt.isNotBlank()) {
@@ -445,7 +447,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @actionssdk
      * @apiai
      */
-    fun askForDateTime (initialPrompt: String? = null, datePrompt: String? =null, timePrompt: String? = null, dialogState: DialogState? = null): ResponseWrapper<S>? {
+    fun askForDateTime (initialPrompt: String? = null, datePrompt: String? =null, timePrompt: String? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
         debug("askForConfirmation: initialPrompt=$initialPrompt, datePrompt=$datePrompt, timePrompt=$timePrompt, dialogState=$dialogState")
         val confirmationValueSpec = ConfirmationValueSpec()
         if (initialPrompt != null || datePrompt != null || timePrompt != null) {
@@ -496,15 +498,15 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @actionssdk
      * @apiai
      */
-    fun askForSignIn (dialogState: DialogState?= null): ResponseWrapper<S>? {
+    fun askForSignIn (dialogState: MutableMap<String, Any?>?= null): ResponseWrapper<S>? {
         debug("askForSignIn: dialogState=$dialogState")
         return fulfillSignInRequest(dialogState)
     }
 
 
-    abstract fun fulfillSignInRequest(dialogState: DialogState?): ResponseWrapper<S>?
-    abstract fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState?): ResponseWrapper<S>?
-    abstract fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: DialogState?): ResponseWrapper<S>?
+    abstract fun fulfillSignInRequest(dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
+    abstract fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
+    abstract fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
 
     data class ConfirmationValueSpec(var dialogSpec: DialogSpec? = null)
 
@@ -553,7 +555,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @actionssdk
      * @apiai
      */
-    fun askForTransactionRequirements (transactionConfig: TransactionConfig?= null, dialogState: DialogState? = null): ResponseWrapper<S>? {
+    fun askForTransactionRequirements (transactionConfig: TransactionConfig?= null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
         debug("checkForTransactionRequirements: transactionConfig=$transactionConfig," +
                 " dialogState=$dialogState")
         val transactionRequirementsCheckSpec = TransactionRequirementsCheckSpec()
@@ -609,14 +611,14 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
      * @apiai
      */
-    fun askForTransactionDecision (order: Order, transactionConfig: TransactionConfig? = null, dialogState: DialogState? = null): ResponseWrapper<S>? {
+    fun askForTransactionDecision (order: Order, transactionConfig: TransactionConfig? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
         debug("askForTransactionDecision: order=$order, transactionConfig=$transactionConfig, dialogState=$dialogState")
         if (order == null) {
             this.handleError("Invalid order")
             return null
         }
         if (transactionConfig?.type != null &&
-                transactionConfig?.cardNetworks?.isNotEmpty() ?: false) {
+                transactionConfig.cardNetworks?.isNotEmpty() ?: false) {
             handleError("Invalid transaction configuration. Must be of type" +
                     "ActionPaymentTransactionConfig or GooglePaymentTransactionConfig")
             return null
@@ -650,8 +652,8 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     data class TransactionRequirementsCheckSpec(var orderOptions: GoogleData.OrderOptions? = null,
                                                 var paymentOptions: GoogleData.PaymentOptions? = null)
 
-    abstract fun  fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: TransactionRequirementsCheckSpec, dialogState: DialogState? = null): ResponseWrapper<S>?
-    abstract fun  fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: DialogState? = null): ResponseWrapper<S>?
+    abstract fun  fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: TransactionRequirementsCheckSpec, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>?
+    abstract fun  fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>?
 
 
     fun doResponse(response: ResponseWrapper<S>?, responseCode: Int = 0): ResponseWrapper<S>? {
@@ -667,8 +669,8 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
             if (responseCode != 0) {
                 code = responseCode
             }
-            if (apiVersion !== null) {
-                response.append(CONVERSATION_API_VERSION_HEADER, apiVersion)
+            if (apiVersion_ != null) {
+                response.append(CONVERSATION_API_VERSION_HEADER, apiVersion_)
             }
             response.append(HTTP_CONTENT_TYPE_HEADER, HTTP_CONTENT_TYPE_JSON)
             // If request was in Proto2 format, convert response to Proto2
@@ -680,7 +682,6 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
 //                    response = transformToSnakeCase(response);
 //                }
             }
-            debug("Response $response")
             val httpResponse = response.status(code).send(response.body!!)
             this.responded = true
             return httpResponse
@@ -776,7 +777,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     }
 
 
-    internal abstract fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest): ResponseWrapper<S>?
+    internal abstract fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest, dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
 
     abstract fun getIntent(): String?
     abstract fun tell(speech: String, displayText: String = ""): ResponseWrapper<S>?
@@ -1037,7 +1038,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
                 prepaidCardDisallowed = transactionConfig?.prepaidCardDisallowed ?: false
             )
             if (transactionConfig?.tokenizationParameters != null) {
-                paymentOptions?.googleProvidedOptions?.tokenizationParameters = GoogleData.TokenizationParameters(
+                paymentOptions.googleProvidedOptions?.tokenizationParameters = GoogleData.TokenizationParameters(
                     tokenizationType = "PAYMENT_GATEWAY",
                     parameters = transactionConfig.tokenizationParameters
                 )
@@ -1049,6 +1050,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
 
     fun getUser() = requestExtractor.getUser()
     fun getDeviceLocation() = requestExtractor.getDeviceLocation()
+    fun getArgumentCommon(argName: String) = requestExtractor.getArgumentCommon(argName)
     fun getTransactionRequirementsResult() = requestExtractor.getTransactionRequirementsResult()
     fun getDeliveryAddress() = requestExtractor.getDeliveryAddress()
     fun getTransactionDecision() = requestExtractor.getTransactionDecision()
