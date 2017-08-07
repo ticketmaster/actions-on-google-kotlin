@@ -1029,8 +1029,8 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         var paymentOptions = GoogleData.PaymentOptions()
         if (transactionConfig?.type != null) { // Action payment
             paymentOptions.actionProvidedOptions = GoogleData.ActionProvidedOptions(
-                paymentType = transactionConfig?.type,
-                displayName = transactionConfig?.displayName
+                paymentType = transactionConfig.type,
+                displayName = transactionConfig.displayName
             )
         } else { // Google payment
             paymentOptions.googleProvidedOptions = GoogleData.GoogleProvidedOptions(
