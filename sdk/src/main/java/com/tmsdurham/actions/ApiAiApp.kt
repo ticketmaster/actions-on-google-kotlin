@@ -1155,7 +1155,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
                     google {
                         systemIntent {
                             intent = STANDARD_INTENTS.SIGN_IN
-                            data { }
+                            data {
+                               `@type` = INPUT_VALUE_DATA_TYPES.SIGN_IN
+                            }
                         }
                     }
                 }

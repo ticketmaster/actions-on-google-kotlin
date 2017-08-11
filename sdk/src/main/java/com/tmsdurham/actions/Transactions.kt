@@ -678,7 +678,18 @@ data class Order(val id: String) {
     }
 
     data class Extension(val `@type`: String, var locations: MutableMap<TransactionValues.LocationType, Location>? = null, var time: Time? = null)
-    data class Location(val length: Int? = null)
+    data class Location(val postalAddress: PostalAddress? = null)
+
+
+    data class PostalAddress(var regionCode: String? = null,
+                             var languageCode: String? = null,
+                             var postalCode: String? = null,
+                             var administrativeArea: String? = null,
+                             var locality: String? = null,
+                             var addressLines: MutableList<String>? = null,
+                             var recipients: String? = null,
+                             var phoneNumber: String? = null,
+                             var notes: String? = null)
 
     /**
      * Adds an associated location to the order. Up to 2 locations can be added.
@@ -721,11 +732,11 @@ data class Order(val id: String) {
             error("time cannot be empty")
             return this
         }
-        if (this.extension != null) {
-            this.extension = Extension(
+        if (extension == null) {
+            extension = Extension(
                     `@type` = GENERIC_EXTENSION_TYPE)
         }
-        this.extension?.time = Time(type = type, time_iso8601 = time)
+        extension?.time = Time(type = type, time_iso8601 = time)
         return this
     }
 }
