@@ -677,7 +677,7 @@ data class Order(val id: String) {
         return this
     }
 
-    data class Extension(val `@type`: String, var locations: MutableMap<TransactionValues.LocationType, Location>? = null, var time: Time? = null)
+    data class Extension(val `@type`: String, var locations: MutableList<Location>? = null, var time: Time? = null)
     data class Location(val postalAddress: PostalAddress? = null)
 
 
@@ -708,14 +708,14 @@ data class Order(val id: String) {
                     `@type` = GENERIC_EXTENSION_TYPE)
         }
         if (extension?.locations == null) {
-            extension?.locations = mutableMapOf()
+            extension?.locations = mutableListOf()
         }
         if (extension?.locations?.size ?: 0 >= ORDER_LOCATION_LIMIT) {
             error("Order can have no more than " + ORDER_LOCATION_LIMIT +
                     " associated locations")
             return this
         }
-        extension?.locations?.put(type, location)
+        extension?.locations?.add(location)
         return this
     }
 
@@ -954,7 +954,7 @@ data class LineItem(var id: String, var name: String) {
      * @param {Int} nanos Partial unit count of price.
      * @return {LineItem} Returns current constructed LineItem.
      */
-    fun setPrice(priceType: TransactionValues.PriceType, currencyCode: String, units: Int, nanos: Int): LineItem {
+    fun setPrice(priceType: TransactionValues.PriceType, currencyCode: String, units: Int, nanos: Int = 0): LineItem {
         if (currencyCode.isEmpty()) {
             error("currencyCode cannot be empty")
             return this
@@ -1059,6 +1059,8 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): Mutab
         this["orderManagementActions"] = mutableListOf<OrderManagementAction>()
     }
 
+    var lineItemUpdates: MutableMap<String, LineItemUpdate> by this
+    var actionOrderId: String by this
 
     /**
      * State of the order.
@@ -1152,7 +1154,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): Mutab
      * @param {Long=} nanos Partial time units.
      * @return {OrderUpdate} Returns current constructed OrderUpdate.
      */
-    fun setUpdateTime(seconds: Long, nanos: Long): OrderUpdate {
+    fun setUpdateTime(seconds: Long, nanos: Long = 0): OrderUpdate {
         if (seconds < 0) {
             error("Invalid seconds")
             return this
@@ -1304,7 +1306,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): Mutab
      *     any reason given in addLineitemPriceUpdate.
      * @return {OrderUpdate} Returns current constructed OrderUpdate.
      */
-    fun addLineItemStateUpdate(itemId: String, state: TransactionValues.OrderState, label: String, reason: String): OrderUpdate {
+    fun addLineItemStateUpdate(itemId: String, state: TransactionValues.OrderState, label: String, reason: String? = null): OrderUpdate {
         if (itemId.isEmpty()) {
             error("itemId cannot be empty")
             return this
@@ -1334,16 +1336,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): Mutab
      *     type, use the {@link ReceiptInfo} data type.
      * @return {OrderUpdate} Returns current constructed OrderUpdate.
      */
-    fun setInfo(type: String, data: Any): OrderUpdate {
-        if (type.isEmpty() || TransactionValues.OrderStateInfo.fromValue(type) == null) {
-            error("Invalid info type")
-            return this
-        }
-        if (data == null) {
-            error("Invalid data")
-            return this
-        }
-
+    fun setInfo(type: TransactionValues.OrderStateInfo, data: Any): OrderUpdate {
         TransactionValues.OrderStateInfo.values().forEach {
             remove(it.name)
         }
