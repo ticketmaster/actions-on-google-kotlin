@@ -111,10 +111,10 @@ data class RichResponse(
         if (items == null) {
             items = mutableListOf()
         }
-        if (items!!.get(0) != null && items!!.get(0).simpleResponse == null) {
-            items!!.add(0, simpleResponseObj)
+        if (items.size > 0 && items!!.get(0) != null && items!!.get(0).simpleResponse == null) {
+            items.add(0, simpleResponseObj)
         } else {
-            items!!.add(simpleResponseObj)
+            items.add(simpleResponseObj)
         }
         return this
     }

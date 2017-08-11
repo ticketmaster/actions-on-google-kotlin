@@ -42,7 +42,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
             sessionStarted()
         }
     }
-    
+
     /**
      * Verifies whether the request comes from API.AI.
      *
@@ -53,7 +53,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * @return {Boolean} True if the request comes from API.AI.
      * @apiai
      */
-    fun isRequestFromApiAi (key: String, value: String): Boolean {
+    fun isRequestFromApiAi(key: String, value: String): Boolean {
         debug("isRequestFromApiAi: key=$key, value=$value")
         if (key.isBlank()) {
             handleError("key must be specified.")
@@ -247,18 +247,15 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         debug("getIncomingRichResponse")
         val response = buildRichResponse()
         request.body.result.fulfillment?.messages?.forEach {
-            if (it != null && response.items == null) {
-                response.items = mutableListOf()
-            }
             when (it.type) {
                 SIMPLE_RESPONSE -> {
                     val item = SimpleResponse()
                     item.textToSpeech = it.textToSpeech
                     item.displayText = it.displayText
-                    if (response.items?.size == 0) {
-                        response.items?.add(RichResponseItem(item))
+                    if (response.items.size == 0) {
+                        response.items.add(RichResponseItem(item))
                     } else {
-                        response.items?.add(0, RichResponseItem(item))
+                        response.items.add(0, RichResponseItem(item))
                     }
                 }
                 BASIC_CARD -> {
@@ -270,11 +267,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
                     item.image = it.image
                     item.subtitle = it.subtitle
                     item.title = it.title ?: ""
-                    if (response.items?.size == 0) {
-                        response.items?.add(RichResponseItem(basicCard = item))
-                    } else {
-                        response.items?.add(0, RichResponseItem(basicCard = item))
-                    }
+                    response.items.add(RichResponseItem(basicCard = item))
                 }
                 SUGGESTIONS -> {
                     response.suggestions = it.suggestions
@@ -311,15 +304,15 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      *     List is returned.
      * @apiai
      */
-    fun getIncomingList (): List {
+    fun getIncomingList(): List {
         debug("getIncomingList")
         val list = buildList()
         request.body.result.fulfillment?.messages?.forEach {
-                if (it.type == LIST) {
-                    list.title = it.title
-                    list.items = it.items
-                }
+            if (it.type == LIST) {
+                list.title = it.title
+                list.items = it.items
             }
+        }
         return list
     }
 
@@ -350,13 +343,13 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      *     an empty Carousel is returned.
      * @apiai
      */
-    fun getIncomingCarousel (): Carousel {
+    fun getIncomingCarousel(): Carousel {
         debug("getIncomingCarousel")
         val carousel = buildCarousel()
         request.body.result.fulfillment?.messages?.forEach {
-                if (it.type == CAROUSEL) {
-                    carousel.items = it.items ?: mutableListOf()
-                }
+            if (it.type == CAROUSEL) {
+                carousel.items = it.items ?: mutableListOf()
+            }
         }
         return carousel
     }
@@ -811,15 +804,15 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * @param {Map<String, Any?>=} parameters Context JSON parameters.
      * @apiai
      */
-    fun setContext (name: String, lifespan: Int? = null, parameters: MutableMap<String, Any>? = null): Unit {
+    fun setContext(name: String, lifespan: Int? = null, parameters: MutableMap<String, Any>? = null): Unit {
         debug("setContext: context=$contexts, lifespan=$lifespan, parameters=$parameters")
         if (name.isEmpty()) {
             handleError("Invalid context name")
             return
         }
         val newContext = Context(
-            name = name,
-            lifespan = 1
+                name = name,
+                lifespan = 1
         )
         if (lifespan != null) {
             newContext.lifespan = lifespan
@@ -865,7 +858,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * @return {MutableList<Context>} Empty if no active contexts.
      * @apiai
      */
-    fun getContexts (): MutableList<Context> {
+    fun getContexts(): MutableList<Context> {
         debug("getContexts")
         if (request.body.result?.contexts?.isEmpty()) {
             handleError("No contexts included in request")
@@ -911,7 +904,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * @apiai
      */
 
-    fun getContext (name: String): Context? {
+    fun getContext(name: String): Context? {
         debug("getContext: name=$name")
         if (request.body.result.contexts == null) {
             handleError("No contexts included in request")
@@ -1156,7 +1149,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
                         systemIntent {
                             intent = STANDARD_INTENTS.SIGN_IN
                             data {
-                               `@type` = INPUT_VALUE_DATA_TYPES.SIGN_IN
+                                `@type` = INPUT_VALUE_DATA_TYPES.SIGN_IN
                             }
                         }
                     }
@@ -1165,7 +1158,6 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         }
         return doResponse(response, RESPONSE_CODE_OK)
     }
-
 
 
     /**
