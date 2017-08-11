@@ -103,6 +103,8 @@ class InputValueDataTypes {
     val CONFIRMATION = "type.googleapis.com/google.actions.v2.ConfirmationValueSpec"
     /** DateTime Value Spec. */
     val DATETIME = "type.googleapis.com/google.actions.v2.DateTimeValueSpec"
+    /** Sign in Value Spec. */
+    val SIGN_IN = "type.googleapis.com/google.actions.v2.SignInValueSpec"
 }
 
 /**
