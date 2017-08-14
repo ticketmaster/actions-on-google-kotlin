@@ -1,5 +1,6 @@
 package com.tmsdurham.actions
 
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.nhaarman.mockito_kotlin.mock
@@ -12,7 +13,11 @@ import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 
-val gson = GsonBuilder().serializeNulls().create()
+val gson = GsonBuilder()
+        .serializeNulls()
+        //needed for classes that extend map, such as OrderUpdate
+        .registerTypeAdapter(OrderUpdate::class.java, OrderUpdateTypeAdapter(Gson()))
+        .create()
 
 typealias MockHandler = Handler<ApiAiRequest, ApiAiResponse>
 

@@ -748,7 +748,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     /**
      * Constructs Cart with chainable property setters.
      *
-     * @param {String=} cartId Unique identifier for the cart.
+     * @param {String=} id Unique identifier for the cart.
      * @return {Cart} Constructed Cart.
      */
     fun buildCart (cartId: String? = null): Cart {

@@ -6,21 +6,6 @@ import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 
-
-val item = LineItem("","")
-fun order(json: String) = gson.fromJson(json, Order::class.java)
-fun cart(json: String) = gson.fromJson(json, Cart::class.java)
-fun lineItem(json: String) = gson.fromJson(json, LineItem::class.java)
-fun lineItems(json: String): Array<LineItem> {
-    val listType = object : TypeToken<Array<LineItem>>() {}.type
-
-    return gson.fromJson<Array<LineItem>>(json, listType)
-}
-fun lineItemUpdate(json: String) = gson.fromJson(json, OrderUpdate.LineItemUpdate::class.java)
-fun oUpdate(json: String) = gson.fromJson(json, OrderUpdate::class.java)
-fun location(json: String) = gson.fromJson(json, TestLocation::class.java)
-data class TestLocation(var type: TransactionValues.LocationType = TransactionValues.LocationType.UNKNOWN, var location: Order.Location)
-
 /**
  * Describes the behavior for Order interface.
  */
@@ -336,7 +321,7 @@ object TransactionsTest: Spek({
                     var cart = Cart("test_id")
                     expect(cart).to.equal(cart("""{
                     "id": "test_id",
-                    "lineItems: [],
+                    "lineItems": [],
                     "otherItems": []
                 }"""))
                 }
@@ -353,7 +338,7 @@ object TransactionsTest: Spek({
                     cart.setMerchant("merchant_id", "My Merchant")
                     expect(cart).to.equal(cart("""{
                     "id": "test_id",
-                    "lineItems: [],
+                    "lineItems": [],
                     "otherItems": [],
                     "merchant": {
                     "id": "merchant_id",
@@ -367,7 +352,7 @@ object TransactionsTest: Spek({
                     cart.setMerchant("merchant_id_2", "Your Merchant")
                     expect(cart).to.equal(cart("""{
                     "id": "test_id",
-                    "lineItems: [],
+                    "lineItems": [],
                     "otherItems": [],
                     "merchant": {
                     "id": "merchant_id_2",
@@ -388,7 +373,7 @@ object TransactionsTest: Spek({
                     cart.setNotes("order notes")
                     expect(cart).to.equal(cart("""{
                     "id": "test_id",
-                    "lineItems: [],
+                    "lineItems": [],
                     "otherItems": [],
                     notes: "order notes"
                 }"""))
@@ -399,7 +384,7 @@ object TransactionsTest: Spek({
                     cart.setNotes("order notes 2")
                     expect(cart).to.equal(cart("""{
                     "id": "test_id",
-                    "lineItems: [],
+                    "lineItems": [],
                     "otherItems": [],
                     notes: "order notes 2"
                 }"""))
@@ -419,7 +404,7 @@ object TransactionsTest: Spek({
                 }"""))
                     expect(cart).to.equal(cart("""{
                     "id": "test_id",
-                    "lineItems: [{
+                    "lineItems": [{
                     "new_item": "new_item"
                 }],
                     "otherItems": []
@@ -436,7 +421,7 @@ object TransactionsTest: Spek({
                 }]"""))
                     expect(cart).to.equal(cart("""{
                     "id": "test_id",
-                    "lineItems: [
+                    "lineItems": [
                     {
                         "new_item": "new_item"
                     },
@@ -461,7 +446,7 @@ object TransactionsTest: Spek({
                 }"""))
                     expect(cart).to.equal(cart("""{
                     "id": "test_id",
-                    "lineItems: [],
+                    "lineItems": [],
                     "otherItems": [{
                     "new_item": "new_item"
                 }]
@@ -478,7 +463,7 @@ object TransactionsTest: Spek({
                 }]"""))
                     expect(cart).to.equal(cart("""{
                     "id": "test_id",
-                    "lineItems: [],
+                    "lineItems": [],
                     "otherItems": [
                     {
                         "new_item": "new_item"
@@ -739,12 +724,15 @@ object TransactionsTest: Spek({
         describe("OrderUpdate") {
             describe("#constructor") {
                 it("should create valid object with Google order ID") {
+
                     var orderUpdate: OrderUpdate = OrderUpdate("order_id", true)
-                    expect(orderUpdate).to.equal(oUpdate("""{
+                    var expected = oUpdate("""{
                     "googleOrderId": "order_id",
                     "lineItemUpdates": {},
                     "orderManagementActions": []
-                }"""))
+                }""")
+                    var orderId = expected.googleOrderId
+                    expect(orderUpdate).to.equal(expected)
                 }
 
                 it("should create valid object with Action order ID") {
@@ -950,7 +938,7 @@ object TransactionsTest: Spek({
 
                 it("should set the order update info") {
                     orderUpdate.setInfo(TransactionValues.OrderStateInfo.RECEIPT,
-                            """{ "receipt_info": "value" }""")
+                            gson.fromJson("""{ "receipt_info": "value" }""", HashMap<String, Object>()::class.java))
                     expect(orderUpdate).to.equal(oUpdate("""{
                     "googleOrderId": "order_id",
                     "lineItemUpdates": {},
@@ -963,9 +951,9 @@ object TransactionsTest: Spek({
 
                 it("should override previously set order update info") {
                     orderUpdate.setInfo(TransactionValues.OrderStateInfo.RECEIPT,
-                            """{ "receipt_info": "value" }""")
+                            mapFromJson("""{ "receipt_info": "value" }"""))
                     orderUpdate.setInfo(TransactionValues.OrderStateInfo.REJECTION,
-                            """{ "reason": "value" }""")
+                            mapFromJson("""{ "reason": "value" }"""))
                     expect(orderUpdate).to.equal(oUpdate("""{
                     "googleOrderId": "order_id",
                     "lineItemUpdates": {},
@@ -1007,7 +995,7 @@ object TransactionsTest: Spek({
                 }
 
                 it("should fail for item update without reason") {
-                    orderUpdate.addLineItemPriceUpdate("item_id", TransactionValues.PriceType.ACTUAL, "USD", 30, 40)
+                    orderUpdate.addLineItemPriceUpdate("item_id", TransactionValues.PriceType.ACTUAL, "USD", 30, 40, "")
                     expect(orderUpdate).to.equal(oUpdate("""{
                     "googleOrderId": "order_id",
                     "lineItemUpdates": {},
@@ -1046,7 +1034,7 @@ object TransactionsTest: Spek({
                     orderUpdate.lineItemUpdates["item_id"] = lineItemUpdate("""{
                     order"state": "orderState"
                 }""")
-                    orderUpdate.addLineItemPriceUpdate("item_id", TransactionValues.PriceType.ACTUAL, "USD", 30, 40)
+                    orderUpdate.addLineItemPriceUpdate("item_id", TransactionValues.PriceType.ACTUAL, "USD", 30, 40, "")
                     expect(orderUpdate).to.equal(oUpdate("""{
                     "googleOrderId": "order_id",
                     "lineItemUpdates": {
@@ -1176,3 +1164,21 @@ object TransactionsTest: Spek({
         }
     }
 })
+
+
+/** Kotlin specific helper functions */
+val item = LineItem("","")
+fun order(json: String) = gson.fromJson(json, Order::class.java)
+fun cart(json: String) = gson.fromJson(json, Cart::class.java)
+fun lineItem(json: String) = gson.fromJson(json, LineItem::class.java)
+fun lineItems(json: String): Array<LineItem> {
+    val listType = object : TypeToken<Array<LineItem>>() {}.type
+
+    return gson.fromJson<Array<LineItem>>(json, listType)
+}
+fun lineItemUpdate(json: String) = gson.fromJson(json, OrderUpdate.LineItemUpdate::class.java)
+fun oUpdate(json: String) = gson.fromJson(json, OrderUpdate::class.java)
+fun location(json: String) = gson.fromJson(json, TestLocation::class.java)
+data class TestLocation(var type: TransactionValues.LocationType = TransactionValues.LocationType.UNKNOWN, var location: Order.Location)
+
+fun mapFromJson(json: String): Map<String, Object> = gson.fromJson(json, object: TypeToken<HashMap<String, Object>>(){}.type)

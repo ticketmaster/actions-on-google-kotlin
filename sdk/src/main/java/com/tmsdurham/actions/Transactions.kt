@@ -15,7 +15,7 @@ val GENERIC_EXTENSION_TYPE = "type.googleapis.com/google.actions.v2.orders.Gener
  * @property {string} type - One of Transaction.RejectionType.
  * @property {string} reason - Reason for the order rejection.
  */
-data class RejectionInfo(var type: String? = null, var reason: String?= null)
+data class RejectionInfo(var type: String? = null, var reason: String? = null)
 
 /**
  * Order receipt info.
@@ -40,6 +40,7 @@ data class CancellationInfo(var reason: String? = null)
  * @property {number=} updatedTime.nanos - Partial seconds since Unix epoch.
  */
 data class TransitInfo(var updatedTime: TimeStamp? = null)
+
 data class TimeStamp(var seconds: Long? = null, var nanos: Long? = null)
 
 /**
@@ -565,7 +566,7 @@ data class Order(val id: String) {
      * Total price for the order.
      * @type {Price}
      */
-    var totalPrice: GoogleData.TotalPrice? = null
+    internal var totalPrice: GoogleData.TotalPrice? = null
 
     /**
      * Extensions for this order. Used for vertical-specific order attributes,
@@ -581,10 +582,6 @@ data class Order(val id: String) {
      * @return {Order} Returns current constructed Order.
      */
     fun setCart(cart: Cart): Order {
-        if (cart == null) {
-            error("Invalid cart");
-            return this
-        }
         this.cart = cart
         return this
     }
@@ -596,12 +593,7 @@ data class Order(val id: String) {
      * @return {Order} Returns current constructed Order.
      */
     fun addOtherItems(vararg items: LineItem): Order {
-        if (items.isEmpty()) {
-            error("items cannot be empty")
-            return this
-        }
         otherItems.addAll(items)
-
         return this
     }
 
@@ -617,10 +609,6 @@ data class Order(val id: String) {
      * @return {Order} Returns current constructed Order.
      */
     fun setImage(url: String, accessibilityText: String, width: Int? = null, height: Int? = null): Order {
-        if (url.isEmpty()) {
-            error("url cannot be empty")
-            return this
-        }
         if (accessibilityText.isEmpty()) {
             error("accessibilityText cannot be empty")
             return this
@@ -646,7 +634,7 @@ data class Order(val id: String) {
             error("Invalid TOS url")
             return this
         }
-        this.termsOfServiceUrl = url
+        termsOfServiceUrl = url
         return this
     }
 
@@ -677,7 +665,8 @@ data class Order(val id: String) {
         return this
     }
 
-    data class Extension(val `@type`: String, var locations: MutableList<Location>? = null, var time: Time? = null)
+    data class Extension(val `@type`: String, var locations: MutableList<LocationInfo>? = null, var time: Time? = null)
+    data class LocationInfo(var type: String? = null, var location: Location)
     data class Location(val postalAddress: PostalAddress? = null)
 
 
@@ -715,9 +704,10 @@ data class Order(val id: String) {
                     " associated locations")
             return this
         }
-        extension?.locations?.add(location)
+        extension?.locations?.add(LocationInfo(type.name, location))
         return this
     }
+
 
     /**
      * Sets an associated time to the order.
@@ -747,11 +737,11 @@ data class Time(var type: TransactionValues.TimeType = TransactionValues.TimeTyp
  *
  * Constructor for Cart.
  *
- * @param {string=} cartId Optional unique identifier for the cart.
+ * @param {string=} id Optional unique identifier for the cart.
  * ID for the cart. Optional.
  * @type {string}
  */
-data class Cart(var cartId: String? = null) {
+data class Cart(var id: String? = null) {
 
     /**
      * Merchant providing the cart.
@@ -1037,69 +1027,63 @@ data class LineItem(var id: String, var name: String) {
  * @param {boolean} isGoogleOrderId True if the order ID is provided by
  *     Google. False if the order ID is app provided.
  */
-data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): MutableMap<String, Any?> by mutableMapOf() {
+class OrderUpdate(orderId: String? = null, val isGoogleOrderId: Boolean = false) : MutableMap<String, Any?> by mutableMapOf<String, Any?>() {
     /**
      * Google provided identifier of the order.
      * @type {string}
      */
-//    private var googleOrderId: String?
+    internal var googleOrderId: String? by this
 
     /**
      * App provided identifier of the order.
      * @type {string}
      */
-//    private var actionOrderId: String?
-
-
-    init {
-
-        this["googleOrderId"] = if (isGoogleOrderId) orderId else null
-        this["actionOrderId"] = if (!isGoogleOrderId) orderId else null
-        this["lineItemUpdates"] = mutableMapOf<String, LineItemUpdate>()
-        this["orderManagementActions"] = mutableListOf<OrderManagementAction>()
-    }
-
-    var lineItemUpdates: MutableMap<String, LineItemUpdate> by this
-    var actionOrderId: String by this
+    internal var actionOrderId: String? by this
 
     /**
      * State of the order.
      * @type {Object}
      */
-//    private var orderState: OrderState? = null
+    internal var orderState: OrderState? by this
 
     /**
      * Updates for items in the order. Mapped by item id to state or price.
      * @type {Object}
      */
-//    private var lineItemUpdates = mutableMapOf<String, LineItemUpdate>()
+    var lineItemUpdates: MutableMap<String, LineItemUpdate> by this
 
     /**
      * UTC timestamp of the order update.
      * @type {Object}
      */
-//    private var updateTime: UpdateTime? = null
+    var updateTime: UpdateTime? by this
+
     data class UpdateTime(var seconds: Long, var nanos: Long)
 
     /**
      * Actionable items presented to the user to manage the order.
      * @type {Object}
      */
-//    private var orderManagementActions: MutableList<OrderManagementAction>? = null
+    var orderManagementActions: MutableList<OrderManagementAction>? by this
 
     /**
      * Notification content to the user for the order update.
      * @type {Object}
      */
-//    private var userNotification: UserNotification? = null
+    var userNotification: UserNotification? by this
 
     /**
      * Updated total price of the order.
      * @type {TotalPrice}
      */
-//    private var totalPrice: GoogleData.TotalPrice? = null
+    var totalPrice: GoogleData.TotalPrice? by this
 
-//    var type: Any? = null
+    init {
+        googleOrderId = if (isGoogleOrderId) orderId else null
+        actionOrderId = if (!isGoogleOrderId) orderId else null
+        lineItemUpdates = mutableMapOf<String, LineItemUpdate>()
+        orderManagementActions = mutableListOf<OrderManagementAction>()
+    }
 
     /**
      * Set the Google provided order ID of the order.
@@ -1112,7 +1096,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): Mutab
             error("orderId cannot be empty")
             return this
         }
-        this["googleOrderId"] = orderId
+        googleOrderId = orderId
         return this
     }
 
@@ -1127,7 +1111,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): Mutab
             error("orderId cannot be empty")
             return this
         }
-        this["actionOrderId"] = orderId
+        actionOrderId = orderId
         return this
     }
 
@@ -1143,7 +1127,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): Mutab
             error("label cannot be empty")
             return this
         }
-        this["orderState"] = OrderState(state, label)
+        orderState = OrderState(state, label)
         return this
     }
 
@@ -1159,7 +1143,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): Mutab
             error("Invalid seconds")
             return this
         }
-        this["updateTime"] = UpdateTime(seconds, nanos)
+        updateTime = UpdateTime(seconds, nanos)
         return this
     }
 
@@ -1179,8 +1163,8 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): Mutab
             error("text cannot be empty")
             return this
         }
-        this["userNotification"] = UserNotification(title, text)
-        return this;
+        userNotification = UserNotification(title, text)
+        return this
     }
 
     data class UserNotification(var title: String, var text: String)
@@ -1199,7 +1183,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): Mutab
             error("currencyCode cannot be empty")
             return this
         }
-        this["totalPrice"] = totalPrice {
+        totalPrice = totalPrice {
             type = priceType
             amount {
                 this.currencyCode = currencyCode
@@ -1227,7 +1211,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): Mutab
             error("URL cannot be empty")
             return this
         }
-        (this["orderManagementActions"] as MutableList<OrderManagementAction>)?.add(OrderManagementAction(
+        (orderManagementActions as MutableList<OrderManagementAction>).add(OrderManagementAction(
                 type = type,
                 button = Button(
                         title = label,
@@ -1256,7 +1240,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): Mutab
      * @return {OrderUpdate} Returns current constructed OrderUpdate.
      */
     fun addLineItemPriceUpdate(itemId: String, priceType: TransactionValues.PriceType,
-                               currencyCode: String, units: Int, nanos: Int = 0, reason: String? = null): OrderUpdate {
+                               currencyCode: String, units: Int, nanos: Int = 0, reason: String): OrderUpdate {
         if (itemId.isEmpty()) {
             error("itemId cannot be empty")
             return this
@@ -1275,18 +1259,17 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): Mutab
             }
         }
 
-        var lineItemUpdates = this["lineItemUpdates"] as MutableMap<String, LineItemUpdate>
-        if (lineItemUpdates?.get(itemId)?.reason != null) {
-            lineItemUpdates!![itemId]?.price = newPrice
-            lineItemUpdates!![itemId]?.reason = if (reason != null) reason else
-                    lineItemUpdates!![itemId]?.reason
-        } else if (lineItemUpdates?.get(itemId) != null && reason != null) {
-            lineItemUpdates!![itemId]?.price = newPrice
-            lineItemUpdates!![itemId]?.reason = reason
-        } else if (lineItemUpdates?.get(itemId) != null && reason != null) {
-            lineItemUpdates!![itemId] = LineItemUpdate(
-                price = newPrice,
-                reason = reason)
+        if (lineItemUpdates.containsKey(itemId) && lineItemUpdates.get(itemId)?.reason?.isNotBlank() ?: false) {
+            lineItemUpdates[itemId]?.price = newPrice
+            lineItemUpdates[itemId]?.reason = if (reason.isNotBlank()) reason else
+                lineItemUpdates[itemId]?.reason
+        } else if (lineItemUpdates.get(itemId) != null && reason.isNotBlank()) {
+            lineItemUpdates[itemId]?.price = newPrice
+            lineItemUpdates[itemId]?.reason = reason
+        } else if (lineItemUpdates.get(itemId) == null && reason.isNotBlank()) {
+            lineItemUpdates[itemId] = LineItemUpdate(
+                    price = newPrice,
+                    reason = reason)
         } else {
             error("reason cannot be empty")
             return this
@@ -1296,6 +1279,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): Mutab
 
     data class LineItemUpdate(var price: GoogleData.Price? = null, var reason: String? = null,
                               var orderState: OrderState? = null)
+
     /**
      * Adds a single state update for a particular line item in the order.
      *
@@ -1316,7 +1300,7 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): Mutab
             return this
         }
 
-        var lineItemUpdates = this["lineItemUpdates"] as MutableMap<String, LineItemUpdate>
+        var lineItemUpdates = lineItemUpdates
 
         lineItemUpdates[itemId] = lineItemUpdates[itemId] ?: LineItemUpdate()
         lineItemUpdates[itemId]?.orderState = OrderState(state, label)
@@ -1338,13 +1322,35 @@ data class OrderUpdate(val orderId: String, val isGoogleOrderId: Boolean): Mutab
      */
     fun setInfo(type: TransactionValues.OrderStateInfo, data: Any): OrderUpdate {
         TransactionValues.OrderStateInfo.values().forEach {
-            remove(it.name)
+            remove(it.value)
         }
 
-        this["type"] = data
+        this[type.value] = data
         return this
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (other is OrderUpdate) {
+            var tmp = true
+            this.keys.forEach {
+                if (this[it] != other[it]) {
+                    tmp = false
+                }
+            }
+            return tmp
+        } else {
+            return super.equals(other)
+        }
+    }
+
+    /* overiden to give better logging and error in tests */
+    override fun toString(): String {
+        return this.toMutableMap().toString()
+    }
+
+    fun error(msg: String) = logger.warning(msg)
 }
+
 
 
 
