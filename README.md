@@ -64,7 +64,7 @@ This library is available on jCenter and mavenCentral.  If your using gradle sim
     }
     
     dependencies {
-        compile 'com.tmsdurham.actions:actions-on-google:0.6'
+        compile 'com.tmsdurham.actions:actions-on-google:1.2'
     }
 
 
