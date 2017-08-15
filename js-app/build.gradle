@@ -1,5 +1,8 @@
+import com.google.javascript.jscomp.CompilerOptions
+
 apply plugin: 'kotlin2js'
 apply plugin: 'kotlin-dce-js'
+apply plugin: "com.eriwen.gradle.js"
 
 repositories {
     jcenter()
@@ -19,3 +22,28 @@ project.afterEvaluate {
     unpackDependenciesKotlinJs.dependsOn(':js:assemble')
     unpackDependenciesTestKotlinJs.dependsOn(':js:assemble')
 }
+
+combineJs {
+    source = [
+            // The order is important. That's why the documented way with a reference to a source set using wildcards
+            // is not used.
+            "${buildDir}/classes/kotlin/main/min/kotlin.js", 
+            "${buildDir}/classes/kotlin/main/min/js_main.js", 
+            "${buildDir}/classes/kotlin/main/min/js-app_main.js"
+    ]
+    dest = file("${buildDir}/classes/kotlin/main/combined/${archivesBaseName}-combined.js")
+}
+
+minifyJs {
+    source = combineJs
+    dest = file("${buildDir}/classes/kotlin/main/minified/${archivesBaseName}-minified.js")
+    closure {
+        compilerOptions = new CompilerOptions().with {
+            setLanguage(CompilerOptions.LanguageMode.ECMASCRIPT5)
+            return it
+        }
+    }
+}
+
+combineJs.dependsOn runDceKotlinJs
+build.dependsOn minifyJs
