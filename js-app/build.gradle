@@ -1,4 +1,5 @@
 import com.google.javascript.jscomp.CompilerOptions
+import com.google.javascript.jscomp.SourceMap
 
 apply plugin: 'kotlin2js'
 apply plugin: 'kotlin-dce-js'
@@ -16,6 +17,11 @@ dependencies {
 
 [compileKotlin2Js, compileTestKotlin2Js]*.configure {
     kotlinOptions.moduleKind = "umd"
+}
+
+compileKotlin2Js {
+    kotlinOptions.sourceMap = true
+    kotlinOptions.sourceMapEmbedSources = "always"
 }
 
 project.afterEvaluate {
