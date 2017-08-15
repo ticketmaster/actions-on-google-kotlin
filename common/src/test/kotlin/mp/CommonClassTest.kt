@@ -10,7 +10,7 @@ import kotlin.test.assertTrue
 class CommonClassTest {
     @Test
     fun executeInvokesDoItOfGivenArgument() {
-        val instance = CommonClass();
+        val instance = CommonClass()
         
         var hasBeenInvoked = false
         instance.execute(object : CommonInterface {
@@ -24,7 +24,7 @@ class CommonClassTest {
     
     @Test
     fun stringRepresentationIsCorrect() {
-        val instance = CommonClass();
+        val instance = CommonClass()
 
         val stringRepresentation = instance.toString()
         
