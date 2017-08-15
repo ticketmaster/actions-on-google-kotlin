@@ -10,6 +10,10 @@ dependencies {
     compile libraries.kotlin_stdlib_js
 }
 
+[compileKotlin2Js, compileTestKotlin2Js]*.configure {
+    kotlinOptions.moduleKind = "umd"
+}
+
 task copyCompileLibrariesToBuildDir {
     inputs.files configurations.compile
     outputs.files file(temporaryDir)

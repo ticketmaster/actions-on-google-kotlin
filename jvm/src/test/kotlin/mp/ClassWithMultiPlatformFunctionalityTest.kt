@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
 class ClassWithMultiPlatformFunctionalityTest {
     @Test
     fun stringRepresentationIsCorrect() {
-        val instance = ClassWithMultiPlatformFunctionality();
+        val instance = ClassWithMultiPlatformFunctionality()
 
         val stringRepresentation = instance.toString()
 
