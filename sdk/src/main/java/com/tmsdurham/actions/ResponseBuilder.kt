@@ -83,7 +83,7 @@ data class RichResponse(
         var altLinkSuggestion: AltLinkSuggestion? = null,
         var linkOutSuggestion: LinkOutSuggestion? = null) {
 
-    fun isEmpty() = ((items == null || items!!.isEmpty()) &&
+    fun isEmpty() = (items.isEmpty() &&
             (suggestions == null || suggestions!!.isEmpty()) &&
             (altLinkSuggestion == null) &&
             (linkOutSuggestion == null))
@@ -102,16 +102,13 @@ data class RichResponse(
             return this
         }
         // Validate if RichResponse already contains two SimpleResponse objects
-        if (items?.count { it?.simpleResponse != null } ?: 0 >= 2) {
+        if (items.count { it.simpleResponse != null } >= 2) {
             error("Cannot include >2 SimpleResponses in RichResponse")
             return this
         }
-        val simpleResponseObj = RichResponseItem(simpleResponse = simpleResponse)
+        val simpleResponseObj = RichResponseItem(simpleResponse = buildSimpleResponseHelper(simpleResponse))
 
-        if (items == null) {
-            items = mutableListOf()
-        }
-        if (items.size > 0 && items!!.get(0) != null && items!!.get(0).simpleResponse == null) {
+        if (items.size > 0 && items.get(0).simpleResponse == null) {
             items.add(0, simpleResponseObj)
         } else {
             items.add(simpleResponseObj)
@@ -133,21 +130,15 @@ data class RichResponse(
      * @return {RichResponse} Returns current constructed RichResponse.
      */
     fun addBasicCard(basicCard: BasicCard): RichResponse {
-        if (basicCard == null) {
-            error("Invalid basicCard")
-            return this
-        }
         // Validate if basic card is already present
-        if (items?.count { it.basicCard != null } ?: 0 > 0) {
+        if (items.count { it.basicCard != null } > 0) {
             error("Cannot include >1 BasicCard in RichResponse")
             return this
         }
-        if (items == null) {
-            items = mutableListOf()
-        }
+
         val item = RichResponseItem()
         item.basicCard = basicCard
-        items?.add(item)
+        items.add(item)
 
         return this
     }
@@ -201,19 +192,15 @@ data class RichResponse(
      * @return {RichResponse} Returns current constructed RichResponse.
      */
     fun addOrderUpdate(orderUpdate: OrderUpdate): RichResponse {
-        if (orderUpdate == null) {
-            error("Invalid orderUpdate");
-            return this
-        }
         // Validate if RichResponse already contains StructuredResponse object
-        items?.forEach {
-            if (it?.structuredResponse != null) {
-                debug("Cannot include >1 StructuredResponses in RichResponse");
+        items.forEach {
+            if (it.structuredResponse != null) {
+                debug("Cannot include >1 StructuredResponses in RichResponse")
                 return this
             }
         }
 
-        items?.add(RichResponseItem(
+        items.add(RichResponseItem(
                 structuredResponse = StructuredResponse(
                         orderUpdate = orderUpdate
                 ))
@@ -221,6 +208,31 @@ data class RichResponse(
         return this
     }
 
+    /**
+     * Helper to build SimpleResponse from speech and display text.
+     *
+     * @param {SimpleResponse} response String to speak, or SimpleResponse.
+     *     SSML allowed.
+     * @param {String} response.speech If using SimpleResponse, speech to be spoken
+     *     to user.
+     * @param {String=} response.displayText If using SimpleResponse, text to be shown
+     *     to user.
+     * @return {Object} Appropriate SimpleResponse object.
+     * @private
+     */
+    fun buildSimpleResponseHelper(response: SimpleResponse): SimpleResponse? {
+        debug("buildSimpleResponseHelper: response=$response")
+        var simpleResponseObj: SimpleResponse
+        if (response.textToSpeech?.isNotBlank() ?: false) {
+            simpleResponseObj = if (ResponseBuilder.isSsml(response.textToSpeech!!))
+                SimpleResponse(ssml = response.textToSpeech) else SimpleResponse(textToSpeech = response.textToSpeech)
+            simpleResponseObj.displayText = response.displayText
+        } else {
+            error("SimpleResponse requires a speech parameter.")
+            return null
+        }
+        return simpleResponseObj
+    }
 }
 
 
@@ -244,7 +256,7 @@ data class RichResponse(
  * @type {Array<Button>}
  */
 data class BasicCard(var title: String = "",
-                     var formattedText: String? = null,
+                     var formattedText: String = "",
                      var subtitle: String? = null,
                      var image: Image? = null,
                      var buttons: MutableList<Button> = mutableListOf()) {
@@ -333,10 +345,8 @@ data class BasicCard(var title: String = "",
             error("url cannot be empty")
             return this
         }
-        if (buttons == null) {
-            buttons = mutableListOf()
-        }
-        this.buttons!!.add(Button(
+
+        this.buttons.add(Button(
                 title = text,
                 openUrlAction = OpenUrlAction(
                         url = url))
@@ -349,7 +359,7 @@ data class BasicCard(var title: String = "",
 /**
  * Class for initializing and constructing Lists with chainable interface.
  */
-data class List(var title: String? = null, var items: MutableList<OptionItem>? = null) {
+data class List(var title: String? = null, var items: MutableList<OptionItem> = mutableListOf()) {
 
     /**
      * Sets the title for this List.
@@ -377,13 +387,10 @@ data class List(var title: String? = null, var items: MutableList<OptionItem>? =
             error("optionItems cannot be empty")
             return this
         }
-        if (items == null) {
-            items = mutableListOf()
-        }
-        items?.addAll(optionItems)
+        items.addAll(optionItems)
 
-        if (items?.size ?: 0 > LIST_ITEM_LIMIT) {
-            items = items?.slice(0..LIST_ITEM_LIMIT)?.toMutableList()
+        if (items.size > LIST_ITEM_LIMIT) {
+            items = items.slice(0..LIST_ITEM_LIMIT - 1).toMutableList()
             error("Carousel can have no more than " + LIST_ITEM_LIMIT +
                     " items")
         }
@@ -417,7 +424,7 @@ data class Carousel(var items: MutableList<OptionItem> = mutableListOf()) {
         items.addAll(optionItems)
 
         if (items.size > CAROUSEL_ITEM_LIMIT) {
-            items = items.slice(0..CAROUSEL_ITEM_LIMIT).toMutableList()
+            items = items.slice(0..CAROUSEL_ITEM_LIMIT - 1).toMutableList()
             error("Carousel can have no more than $CAROUSEL_ITEM_LIMIT items")
         }
         return this
@@ -519,7 +526,7 @@ data class OptionItem(var optionInfo: OptionInfo = OptionInfo()) {
             error("key cannot be empty")
             return this
         }
-        this.optionInfo?.key = key
+        this.optionInfo.key = key
         return this
     }
 
@@ -531,7 +538,7 @@ data class OptionItem(var optionInfo: OptionInfo = OptionInfo()) {
      * @return {OptionItem} Returns current constructed OptionItem.
      */
     fun addSynonyms(vararg synonyms: String?): OptionItem {
-        if (synonyms == null || synonyms.isEmpty()) {
+        if (synonyms.isEmpty()) {
             error("Invalid synonyms")
             return this
         }

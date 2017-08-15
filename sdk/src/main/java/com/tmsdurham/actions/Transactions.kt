@@ -1032,19 +1032,19 @@ class OrderUpdate(orderId: String? = null, val isGoogleOrderId: Boolean = false)
      * Google provided identifier of the order.
      * @type {string}
      */
-    internal var googleOrderId: String? by this
+    var googleOrderId: String? by this
 
     /**
      * App provided identifier of the order.
      * @type {string}
      */
-    internal var actionOrderId: String? by this
+    var actionOrderId: String? by this
 
     /**
      * State of the order.
      * @type {Object}
      */
-    internal var orderState: OrderState? by this
+    var orderState: OrderState? by this
 
     /**
      * Updates for items in the order. Mapped by item id to state or price.

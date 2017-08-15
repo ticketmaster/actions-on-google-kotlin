@@ -1,21 +1,20 @@
 buildscript {
-
     repositories {
         jcenter()
-        maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
-        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.0-M4'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$project.ext.kotlinVersion"
     }
 }
+repositories {
+    mavenCentral()
+}
 
-
-apply plugin: 'org.junit.platform.gradle.plugin'
 apply plugin: 'idea'
 apply plugin: 'kotlin'
 apply plugin: 'java'
+apply plugin: 'war'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
 
@@ -31,7 +30,7 @@ bintray {
         vcsUrl = 'https://github.com/TicketmasterMobileStudio/actions-on-google-kotlin'
         version {
             name = project.ext.sdkVersion
-            desc = 'Actions on Google SDK - core'
+            desc = 'Actions on Google SDK for java - Servlet & Gson'
             vcsTag = project.ext.sdkVersion
             released = new Date()
         }
@@ -83,12 +82,12 @@ publishing {
             artifact sourcesJar
             artifact javadocJar
             groupId 'com.tmsdurham.actions'
-            artifactId 'actions-on-google-core'
+            artifactId 'actions-on-google'
             version project.ext.sdkVersion
             pom.withXml {
                 def root = asNode()
-                root.appendNode('description', 'Unofficial Actions on Google Client Library for Kolin/Java - core lib')
-                root.appendNode('name', 'Google Actions Kolin/Java SDK - core lib')
+                root.appendNode('description', 'Unofficial Actions on Google Client Library for Kolin/Java')
+                root.appendNode('name', 'Google Actions Kolin/Java SDK')
                 root.appendNode('url', 'https://github.com/TicketmasterMobileStudio/actions-on-google-kotlin')
                 root.children().last() + pomConfig
             }
@@ -96,28 +95,14 @@ publishing {
     }
 }
 
-
-junitPlatform {
-    filters {
-        engines {
-            include 'spek'
-        }
-    }
-}
-
 dependencies {
-    compile("org.jetbrains.kotlin:kotlin-stdlib-jre8:$project.ext.kotlinVersion")
-
-    testCompile('org.jetbrains.spek:spek-api:1.1.2',
-            "com.winterbe:expekt:0.5.0",
-            'com.nhaarman:mockito-kotlin:1.5.0')
-    testRuntime 'org.jetbrains.spek:spek-junit-platform-engine:1.1.2'
-    testRuntime "org.junit.platform:junit-platform-launcher:1.0.0-M4"
-
-    testCompile "com.google.code.gson:gson:$project.ext.gsonVersion"
-    testCompile project(':sdk-gson-servlet')
+    compile('javax.servlet:javax.servlet-api:3.1.0',
+            "com.google.code.gson:gson:$project.ext.gsonVersion",
+            "org.jetbrains.kotlin:kotlin-stdlib-jre8:$project.ext.kotlinVersion")
+    compile project(':sdk')
 }
 
-repositories {
-    mavenCentral()
-}
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
+

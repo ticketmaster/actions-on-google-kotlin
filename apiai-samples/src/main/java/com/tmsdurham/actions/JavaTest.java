@@ -1,4 +1,4 @@
-package com.tmsdurham.apiai.sample;
+package com.tmsdurham.actions;
 
 /**
  * Playground for how kotlin code is accessed in Java.
