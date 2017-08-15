@@ -14,3 +14,8 @@ dependencies {
 [compileKotlin2Js, compileTestKotlin2Js]*.configure {
     kotlinOptions.moduleKind = "umd"
 }
+
+project.afterEvaluate {
+    unpackDependenciesKotlinJs.dependsOn(':js:assemble')
+    unpackDependenciesTestKotlinJs.dependsOn(':js:assemble')
+}
