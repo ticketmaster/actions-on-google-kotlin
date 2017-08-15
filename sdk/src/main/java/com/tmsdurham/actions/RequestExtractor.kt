@@ -46,7 +46,6 @@ class RequestExtractor<T, S>(val app: AssistantApp<T, S>) {
             is ActionRequest -> {
                 return app.request.body.user
             }
-        //TODO Action SDK user
             else -> return null
         }
     }
@@ -84,7 +83,6 @@ class RequestExtractor<T, S>(val app: AssistantApp<T, S>) {
             return null
         }
         val deviceLocation = data.device?.location
-        //TODO look into address
         deviceLocation?.address = deviceLocation?.formattedAddress
         return deviceLocation
     }
@@ -255,7 +253,6 @@ class RequestExtractor<T, S>(val app: AssistantApp<T, S>) {
         debug("getDateTime")
         val argument = findArgument(app.BUILT_IN_ARG_NAMES.DATETIME)
         if (argument != null) {
-            //TODO lock at returning date object
             return argument.datetimeValue
         }
         debug("Failed to get date/time information")

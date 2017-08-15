@@ -117,8 +117,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
     fun getDialogState(): Any? {
         debug("getDialogState")
         if (this.request.body.conversation?.conversationToken?.isNotBlank() ?: false) {
-            //TODO revisit if converstationToken is String or object
-            var token = request.body?.conversation?.conversationToken
+            var token = request.body.conversation?.conversationToken
             var dialogState: MutableMap<String, Any?>? = null
             try {
                 dialogState = serializer.deserialize(token!!, mutableMapOf<String, Any?>()::class.java)
@@ -404,11 +403,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      */
     fun askWithList(inputPrompt: Any, list: List, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<ActionResponse>? {
         debug("askWithList: inputPrompt=$inputPrompt, list=$list, dialogState=$dialogState")
-        if (list == null) {
-            handleError("Invalid list")
-            return null
-        }
-        if (list.items?.size ?: 0 < 2) {
+        if (list.items.size < 2) {
             handleError("List requires at least 2 items")
             return null
         }
@@ -432,7 +427,10 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
             is String -> buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
             is SimpleResponse -> buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
             is RichResponse -> buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
-            else -> TODO()
+            else -> {
+                error("unknown inputPrompt type")
+                null
+            }
         }
     }
 
@@ -558,7 +556,10 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
             is String -> buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
             is SimpleResponse -> buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
             is RichResponse -> buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
-            else -> TODO()
+            else -> {
+                error("unknown inputPrompt type")
+                null
+            }
         }
     }
 
@@ -743,10 +744,6 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      */
     fun <T> maybeAddItemToArray(item: T, array: MutableList<T>): Unit {
         debug("maybeAddItemToArray_: item=$item, array=$array")
-        if (array == null) {
-            handleError("Invalid array")
-            return
-        }
         if (item == null) {
             // ignore add
             return
@@ -762,7 +759,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      */
     override fun extractData() {
         debug("extractData")
-        if (request.body?.conversation?.conversationToken != null) {
+        if (request.body.conversation?.conversationToken != null) {
             val json = request.body.conversation.conversationToken
               //TODO extract state from token
 //            data = json.data
@@ -971,52 +968,14 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
     /**
      * Builds the ask response to send back to Assistant.
      *
-     * @param {Object} inputPrompt Holding initial and no-input prompts.
+     * @param {InputPrompt} inputPrompt Holding initial and no-input prompts.
      * @param {Array} possibleIntents Array of ExpectedIntents.
-     * @param {Object} dialogState JSON object the app uses to hold dialog state that
+     * @param {DialogState} dialogState JSON object the app uses to hold dialog state that
      *     will be circulated back by Assistant.
      * @return The response that is sent to Assistant to ask user to provide input.
      * @private
      * @actionssdk
      */
-    fun buildAskHelper(inputPrompt: Input, possibleIntents: MutableList<ExpectedIntent>, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<ActionResponse>? {
-        debug("buildAskHelper_: inputPrompt=$inputPrompt, possibleIntents=$possibleIntents,  dialogState=$dialogState")
-        /*
-        if (inputPrompt == null) {
-            handleError("Invalid input prompt")
-            return null
-        }
-
-        var finalInputPrompt = inputPrompt.copy()
-        if (inputPrompt.speech != null) {
-            finalInputPrompt = InputPrompt(
-                    richInitialPrompt = buildRichResponse().addSimpleResponse(inputPrompt)
-
-        } else if (inputPrompt.items) {
-            finalInputPrompt = InputPrompt(richInitialPrompt = inputPrompt)
-        }
-        var outDialogState = dialogState?.copy()
-        if (dialogState == null) {
-            outDialogState = DialogState(
-                    state = this.state ?: "",
-            data = this.data
-        }
-
-        val expectedInputs = mutableListOf<ExpectedInput>(ExpectedInput(
-                inputPrompt = inputPrompt,
-                possibleIntents = possibleIntents
-        ))
-        val response = buildResponseHelper(
-                outDialogState,
-                true, // expectedUserResponse
-                expectedInputs,
-                null // finalResponse is null b/c dialog is active
-        )
-        */
-        return doResponse(response, RESPONSE_CODE_OK)
-    }
-
-
     private fun buildAskHelper(inputPrompt: InputPrompt?, possibleIntents: MutableList<ActionsSdkApp.ExpectedIntent>, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ActionResponse>? {
         debug("buildAskHelper_: inputPrompt=$inputPrompt, possibleIntents,  dialogState=$dialogState")
         if (inputPrompt == null) {
@@ -1060,7 +1019,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
             handleError("Invalid input prompt")
             return null
         }
-//        val inputPrompt = buildInputPrompt(isSsml(inputPrompt?.textToSpeech ?: ""), inputPrompt?.textToSpeech ?: "")
+//        val inputPrompt = buildInputPrompt(isSsml(simpleResponse.textToSpeech ?: ""), simpleResponse.textToSpeech ?: "")
         val inputPrompt = InputPrompt(richInitialPrompt = buildRichResponse().addSimpleResponse(simpleResponse))
         return buildAskHelper(inputPrompt, possibleIntents, dialogState)
     }

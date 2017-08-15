@@ -260,7 +260,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
                 }
                 BASIC_CARD -> {
                     val item = BasicCard()
-                    item.formattedText = it.formattedText
+                    item.formattedText = it.formattedText ?: ""
                     if (it.buttons != null) {
                         item.buttons = it.buttons!!
                     }
@@ -310,7 +310,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         request.body.result.fulfillment?.messages?.forEach {
             if (it.type == LIST) {
                 list.title = it.title
-                list.items = it.items
+                list.items = it.items ?: mutableListOf()
             }
         }
         return list
@@ -503,7 +503,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      */
 
     fun askWithList(richResponse: RichResponse, list: List): ResponseWrapper<ApiAiResponse>? {
-        if (list.items?.size ?: 0 < 2) {
+        if (list.items.size < 2) {
             this.handleError("List requires at least 2 items")
             return null
         }
@@ -513,11 +513,11 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
     fun askWithList(inputPrompt: String?, list: List): ResponseWrapper<ApiAiResponse>? {
         debug("askWithList: inputPrompt=$inputPrompt, list=$list")
         if (inputPrompt.isNullOrBlank()) {
-            this.handleError("Invalid input prompt");
+            this.handleError("Invalid input prompt")
             return null
         }
 
-        if (list.items?.size ?: 0 < 2) {
+        if (list.items.size < 2) {
             this.handleError("List requires at least 2 items")
             return null
         }
@@ -589,13 +589,10 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
     fun askWithCarousel(inputPrompt: String, carousel: Carousel): ResponseWrapper<ApiAiResponse>? {
         debug("askWithCarousel: inputPrompt=$inputPrompt, carousel=$carousel")
         if (inputPrompt.isNullOrBlank()) {
-            handleError("Invalid input prompt");
+            handleError("Invalid input prompt")
             return null
         }
-        if (carousel == null) {
-            handleError("Invalid carousel")
-            return null
-        }
+
         if (carousel.items.size < 2) {
             handleError("Carousel requires at least 2 items")
             return null

@@ -153,7 +153,7 @@ class SurfaceCapabilities {
  * @actionssdk
  * @apiai
  */
-class InputTypes(val isNotApiVersionOne: Boolean){
+class InputTypes(val isNotApiVersionOne: Boolean) {
     /**
      * Unspecified.
      */
@@ -219,8 +219,8 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
 
     var responded = false
     var apiVersion_: String = ""
+    // Unique to Kotlin sdk - state is a json String that is serialized/deserialized
     var state: String? = null
-    //TODO is it DialogState?
     var data: MutableMap<String, Any> = mutableMapOf()
     var contexts = mutableMapOf<String, Context>()
     val requestExtractor: RequestExtractor<T, S>
@@ -351,13 +351,6 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
                 return null
             }
         }
-        if (dialogState != null) {
-            //TODO support dialogState
-//            dialogState = {
-//                "state": (this.state instanceof State ? this.state.getName() : this.state),
-//                "data": this.data
-//            };
-        }
         return fulfillPermissionsRequest(GoogleData.PermissionsRequest(
                 optContext = context,
                 permissions = permissions.toMutableList()), dialogState)
@@ -396,12 +389,12 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @actionssdk
      * @apiai
      */
-    fun askForConfirmation (prompt: String = "", dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
+    fun askForConfirmation(prompt: String = "", dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
         debug("askForConfirmation: prompt=$prompt, dialogState=$dialogState")
         val confirmationValueSpec = ConfirmationValueSpec()
         if (prompt.isNotBlank()) {
             confirmationValueSpec.dialogSpec = DialogSpec(
-                requestConfirmationText = prompt)
+                    requestConfirmationText = prompt)
         }
         return fulfillConfirmationRequest(confirmationValueSpec, dialogState)
     }
@@ -449,14 +442,14 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @actionssdk
      * @apiai
      */
-    fun askForDateTime (initialPrompt: String? = null, datePrompt: String? =null, timePrompt: String? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
+    fun askForDateTime(initialPrompt: String? = null, datePrompt: String? = null, timePrompt: String? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
         debug("askForConfirmation: initialPrompt=$initialPrompt, datePrompt=$datePrompt, timePrompt=$timePrompt, dialogState=$dialogState")
         val confirmationValueSpec = ConfirmationValueSpec()
         if (initialPrompt != null || datePrompt != null || timePrompt != null) {
             confirmationValueSpec.dialogSpec = DialogSpec(
-                requestDatetimeText = initialPrompt,
-                requestDateText = datePrompt,
-                requestTimeText = timePrompt)
+                    requestDatetimeText = initialPrompt,
+                    requestDateText = datePrompt,
+                    requestTimeText = timePrompt)
         }
         return fulfillDateTimeRequest(confirmationValueSpec, dialogState)
     }
@@ -500,7 +493,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @actionssdk
      * @apiai
      */
-    fun askForSignIn (dialogState: MutableMap<String, Any?>?= null): ResponseWrapper<S>? {
+    fun askForSignIn(dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
         debug("askForSignIn: dialogState=$dialogState")
         return fulfillSignInRequest(dialogState)
     }
@@ -557,13 +550,13 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @actionssdk
      * @apiai
      */
-    fun askForTransactionRequirements (transactionConfig: TransactionConfig?= null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
+    fun askForTransactionRequirements(transactionConfig: TransactionConfig? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
         debug("checkForTransactionRequirements: transactionConfig=$transactionConfig," +
                 " dialogState=$dialogState")
         val transactionRequirementsCheckSpec = TransactionRequirementsCheckSpec()
         if (transactionConfig?.deliveryAddressRequired ?: false) {
             transactionRequirementsCheckSpec.orderOptions = GoogleData.OrderOptions(
-                requestDeliveryAddress = transactionConfig?.deliveryAddressRequired ?: false)
+                    requestDeliveryAddress = transactionConfig?.deliveryAddressRequired ?: false)
         }
         if (transactionConfig?.type != null ||
                 transactionConfig?.cardNetworks != null) {
@@ -613,12 +606,8 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
      * @apiai
      */
-    fun askForTransactionDecision (order: Order, transactionConfig: TransactionConfig? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
+    fun askForTransactionDecision(order: Order, transactionConfig: TransactionConfig? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
         debug("askForTransactionDecision: order=$order, transactionConfig=$transactionConfig, dialogState=$dialogState")
-        if (order == null) {
-            this.handleError("Invalid order")
-            return null
-        }
         if (transactionConfig?.type != null &&
                 transactionConfig.cardNetworks?.isNotEmpty() ?: false) {
             handleError("Invalid transaction configuration. Must be of type" +
@@ -626,11 +615,11 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
             return null
         }
         val transactionDecisionValueSpec = TransactionDecisionValueSpec(
-            proposedOrder = order)
+                proposedOrder = order)
 
         if (transactionConfig?.deliveryAddressRequired ?: false) {
             transactionDecisionValueSpec.orderOptions = GoogleData.OrderOptions(
-                requestDeliveryAddress = transactionConfig?.deliveryAddressRequired ?: false
+                    requestDeliveryAddress = transactionConfig?.deliveryAddressRequired ?: false
             )
         }
         if (transactionConfig?.type != null ||
@@ -654,8 +643,8 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     data class TransactionRequirementsCheckSpec(var orderOptions: GoogleData.OrderOptions? = null,
                                                 var paymentOptions: GoogleData.PaymentOptions? = null)
 
-    abstract fun  fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: TransactionRequirementsCheckSpec, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>?
-    abstract fun  fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>?
+    abstract fun fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: TransactionRequirementsCheckSpec, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>?
+    abstract fun fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>?
 
 
     fun doResponse(response: ResponseWrapper<S>?, responseCode: Int = 0): ResponseWrapper<S>? {
@@ -741,7 +730,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @param {String} orderId Unique identifier for the order.
      * @return {Order} Constructed Order.
      */
-    fun buildOrder (orderId: String): Order {
+    fun buildOrder(orderId: String): Order {
         return Order(orderId)
     }
 
@@ -751,7 +740,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @param {String=} id Unique identifier for the cart.
      * @return {Cart} Constructed Cart.
      */
-    fun buildCart (cartId: String? = null): Cart {
+    fun buildCart(cartId: String? = null): Cart {
         return Cart(cartId)
     }
 
@@ -762,7 +751,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @param {String} id Unique identifier for the item.
      * @return {LineItem} Constructed LineItem.
      */
-    fun buildLineItem (name: String, id: String): LineItem {
+    fun buildLineItem(name: String, id: String): LineItem {
         return LineItem(name, id)
     }
 
@@ -774,7 +763,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      *     Google. False if the order ID is app provided.
      * @return {OrderUpdate} Constructed OrderUpdate.
      */
-    fun buildOrderUpdate (orderId: String, isGoogleOrderId: Boolean): OrderUpdate {
+    fun buildOrderUpdate(orderId: String, isGoogleOrderId: Boolean): OrderUpdate {
         return OrderUpdate(orderId, isGoogleOrderId)
     }
 
@@ -989,7 +978,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @apiai
      * @actionssdk
      */
-    fun hasSurfaceCapability (requestedCapability: String): Boolean {
+    fun hasSurfaceCapability(requestedCapability: String): Boolean {
         debug("hasSurfaceCapability: requestedCapability=$requestedCapability")
         val capabilities = getSurfaceCapabilities()
         if (capabilities?.isEmpty() ?: false) {
@@ -1026,23 +1015,23 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @return {PaymentOptions} paymentOptions
      * @private
      */
-    fun buildPaymentOptions (transactionConfig: TransactionConfig? = null): GoogleData.PaymentOptions {
+    fun buildPaymentOptions(transactionConfig: TransactionConfig? = null): GoogleData.PaymentOptions {
         debug("buildPromptsFromPlainTextHelper_: transactionConfig=${transactionConfig}")
         var paymentOptions = GoogleData.PaymentOptions()
         if (transactionConfig?.type != null) { // Action payment
             paymentOptions.actionProvidedOptions = GoogleData.ActionProvidedOptions(
-                paymentType = transactionConfig.type,
-                displayName = transactionConfig.displayName
+                    paymentType = transactionConfig.type,
+                    displayName = transactionConfig.displayName
             )
         } else { // Google payment
             paymentOptions.googleProvidedOptions = GoogleData.GoogleProvidedOptions(
-                supportedCardNetworks = transactionConfig?.cardNetworks ?: mutableListOf(),
-                prepaidCardDisallowed = transactionConfig?.prepaidCardDisallowed ?: false
+                    supportedCardNetworks = transactionConfig?.cardNetworks ?: mutableListOf(),
+                    prepaidCardDisallowed = transactionConfig?.prepaidCardDisallowed ?: false
             )
             if (transactionConfig?.tokenizationParameters != null) {
                 paymentOptions.googleProvidedOptions?.tokenizationParameters = GoogleData.TokenizationParameters(
-                    tokenizationType = "PAYMENT_GATEWAY",
-                    parameters = transactionConfig.tokenizationParameters
+                        tokenizationType = "PAYMENT_GATEWAY",
+                        parameters = transactionConfig.tokenizationParameters
                 )
             }
         }
@@ -1060,12 +1049,16 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     fun getDateTime() = requestExtractor.getDateTime()
     fun getSignInStatus() = requestExtractor.getSignInStatus()
     fun isInSandbox() = requestExtractor.isInSandbox()
-    fun getSurfaceCapabilities () = requestExtractor.getSurfaceCapabilities()
+    fun getSurfaceCapabilities() = requestExtractor.getSurfaceCapabilities()
     fun getInputType() = requestExtractor.getInputType()
     fun isPermissionGranted() = requestExtractor.isPermissionGranted()
 }
 
 fun debug(msg: String) {
     logger.info(msg)
+}
+
+fun error(msg: String) {
+    logger.warning(msg)
 }
 

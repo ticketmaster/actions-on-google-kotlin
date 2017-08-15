@@ -188,7 +188,7 @@ object ActionsTest : Spek({
             val headers = HashMap(headerV1)
             headers["Google-Actions-API-Version"] = "2"
 
-            val mockRequest = RequestWrapper<ApiAiRequest>(headers, ApiAiRequest())
+            val mockRequest = RequestWrapper(headers, ApiAiRequest())
             val mockResponse = ResponseWrapper<ApiAiResponse>()
 
             val app = ApiAiApp(request = mockRequest, response = mockResponse)
