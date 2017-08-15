@@ -1,6 +1,6 @@
-package com.tmsdurham.apiai.sample
+package com.tmsdurham.actions
 
-import com.tmsdurham.actions.*
+import main.java.com.tmsdurham.apiai.sample.ApiAiAction
 import javax.servlet.annotation.WebServlet
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
@@ -20,7 +20,7 @@ val TRANSACTION_DECISION_COMPLETE = "transaction.decision.complete"
 class TransactionSample : HttpServlet() {
 
     override fun doPost(req: HttpServletRequest, resp: HttpServletResponse) {
-        GAction(req, resp).handleRequest(transactionMap)
+        ApiAiAction(req, resp).handleRequest(transactionMap)
     }
 
 }
@@ -146,7 +146,7 @@ fun transactionDecisionComplete(app: ApiAiApp) {
         app.tell(app.buildRichResponse().addOrderUpdate(
                 app.buildOrderUpdate(googleOrderId!!, true)
                         .setOrderState(TransactionValues.OrderState.CONFIRMED, "Order created")
-                        .setInfo(TransactionValues.OrderStateInfo.RECEIPT.value,
+                        .setInfo(TransactionValues.OrderStateInfo.RECEIPT,
                             ReceiptInfo(confirmedActionOrderId = "<UNIQUE_ORDER_ID>")
                         ))
                 .addSimpleResponse("Transaction completed! You're all set!"))

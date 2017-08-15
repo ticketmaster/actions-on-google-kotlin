@@ -1,10 +1,6 @@
-package com.tmsdurham.apiai.sample
+package com.tmsdurham.actions
 
-import com.google.gson.Gson
-import com.ticketmaster.apiai.ApiAiRequest
-import com.tmsdurham.actions.ApiAiApp
-import com.tmsdurham.actions.RequestWrapper
-import com.tmsdurham.actions.ResponseWrapper
+import main.java.com.tmsdurham.apiai.sample.ApiAiAction
 import java.util.logging.Logger
 import javax.servlet.annotation.WebServlet
 import javax.servlet.http.HttpServlet
@@ -214,37 +210,7 @@ val actionMap = mapOf(
 class WebHook : HttpServlet() {
 
     override fun doPost(req: HttpServletRequest, resp: HttpServletResponse) {
-        GAction(req, resp).handleRequest(actionMap)
+        ApiAiAction(req, resp).handleRequest(actionMap)
     }
 }
 
-/**
- * Gson & Servlet Action - possibly move this into separate module for users of gson & servlet.
- * Intentionally not in sdk module so gson & servlet are not a dependency of the SDK.
- */
-class GAction(req: HttpServletRequest, resp: HttpServletResponse, val gson: Gson = Gson()) {
-    val action: ApiAiApp
-
-    init {
-        val jsonStr = convertStreamToString(req.inputStream)
-        Logger.getAnonymousLogger().info(jsonStr)
-        val request = gson.fromJson<ApiAiRequest>(jsonStr, ApiAiRequest::class.java)
-        action = ApiAiApp(RequestWrapper(body = request), ResponseWrapper(sendAction = {
-            val bodyStr = gson.toJson(body)
-            headers.forEach {
-                resp.addHeader(it.key, it.value)
-            }
-            Logger.getAnonymousLogger().info(bodyStr)
-            resp.writer.write(bodyStr)
-        }))
-    }
-
-    fun convertStreamToString(input: java.io.InputStream): String {
-        val s = java.util.Scanner(input).useDelimiter("\\A")
-        return if (s.hasNext()) s.next() else ""
-    }
-
-    fun handleRequest(handler: Map<*, *>) {
-        action.handleRequest(handler)
-    }
-}

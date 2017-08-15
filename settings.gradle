@@ -1,1 +1,1 @@
-include ':sdk', ':apiai-samples'
+include ':sdk', ':sdk-gson-servlet', ':apiai-samples', ':action-sdk-samples'

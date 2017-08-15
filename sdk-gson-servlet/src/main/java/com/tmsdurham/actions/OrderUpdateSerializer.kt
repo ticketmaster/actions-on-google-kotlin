@@ -7,8 +7,7 @@ import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
 import com.ticketmaster.apiai.google.GoogleData
 
-
-class OrderUpdateTypeAdapter(gson: Gson) : TypeAdapter<OrderUpdate>() {
+class OrderUpdateTypeAdapter(val gson: Gson) : TypeAdapter<OrderUpdate>() {
     override fun write(out: JsonWriter?, value: OrderUpdate?) {
     }
 
