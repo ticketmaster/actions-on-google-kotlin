@@ -1,5 +1,4 @@
 import com.google.javascript.jscomp.CompilerOptions
-import com.google.javascript.jscomp.SourceMap
 
 apply plugin: 'kotlin2js'
 apply plugin: 'kotlin-dce-js'
