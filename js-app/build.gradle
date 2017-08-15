@@ -1,4 +1,5 @@
 apply plugin: 'kotlin2js'
+apply plugin: 'kotlin-dce-js'
 
 repositories {
     jcenter()
@@ -13,25 +14,3 @@ dependencies {
 [compileKotlin2Js, compileTestKotlin2Js]*.configure {
     kotlinOptions.moduleKind = "umd"
 }
-
-task copyCompileLibrariesToBuildDir {
-    inputs.files configurations.compile
-    outputs.files file(temporaryDir)
-
-    doLast {
-        configurations.compile.each { File file ->
-            copy {
-                includeEmptyDirs = false
-
-                from zipTree(file.absolutePath)
-                into temporaryDir
-                include { fileTreeElement ->
-                    def path = fileTreeElement.path
-                    path.endsWith(".js") && (path.startsWith("META-INF/resources/") || !path.startsWith("META-INF/"))
-                }
-            }
-        }
-    }
-}
-
-compileKotlin2Js.dependsOn copyCompileLibrariesToBuildDir
