@@ -34,6 +34,7 @@ task populateNodeModules(type: Copy, dependsOn: compileKotlin2Js) {
 }
 
 node {
+    version = nodeVersion
     download = true
 }
 
