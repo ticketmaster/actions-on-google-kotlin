@@ -52,3 +52,12 @@ minifyJs {
 
 combineJs.dependsOn runDceKotlinJs
 build.dependsOn minifyJs
+
+task minifiedJar(type: Jar) {
+    classifier = 'minified'
+    from minifyJs
+}
+
+artifacts {
+    archives minifiedJar
+}
