@@ -38,7 +38,10 @@ node {
 }
 
 task installQunit(type: NpmTask) {
-    args = ['install', 'qunitjs']
+    inputs.property('qunitjsVersion', qunitjsVersion)
+    outputs.dir file('node_modules/qunitjs')
+
+    args = ['install', "qunitjs@${qunitjsVersion}"]
 }
 
 task runQunit(type: NodeTask, dependsOn: [compileTestKotlin2Js, populateNodeModules, installQunit]) {
