@@ -1,3 +1,4 @@
 .idea/
 gradle.properties
 js/node_modules
+js/npm-debug.log
