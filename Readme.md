@@ -23,6 +23,10 @@ Not everything is working as it should as multi-platform support is still being 
 
         Or to run the JavaScript app:
   
-            ./gradlew :js-app:compileKotlin2Js
+            ./gradlew :js-app:compileKotlin2js :js-app:unpackDependenciesKotlinJs
 
-        And open `js-app/JsApp.html`.
+        And open `js-app/JsApp.html`. The JavaScript has been mapped to the sources of the Kotlin standard library and module `js`, so you can set breakpoints in Kotlin code. If you want to use the minified JavaScript run:
+  
+            ./gradlew :js-app:minifyJs
+
+        And open `js-app/JsApp-minified.html`.
