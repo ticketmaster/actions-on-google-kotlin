@@ -2,6 +2,8 @@
 
 This project is a testbed for multi-platform Kotlin modules. It shows how you could implement modules that have code that is common for all platforms, and that may need platform-specific code for (some of) its types and functions.
 
+Note that you have to change settings in IntelliJ IDEA to be able to build the project and run the examples from your IDE. See the item about IntelliJ IDEA under *current issues* below.
+
 Recipes for unit tests for common and platform-specific code are available. Execute the following command to run the Java tests. The test output can be found in `jvm/build/reports/tests/test/index.html`:
 
     ./gradlew :jvm:test
