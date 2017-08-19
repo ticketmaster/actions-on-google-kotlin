@@ -31,7 +31,7 @@ public class ConversationComponentsSampleJava extends HttpServlet {
     }
 
     Function1<ApiAiApp, Object> welcome = app -> {
-        app.ask(app.buildRichResponse(null)
+        app.ask(app.buildRichResponse()
                 .addSimpleResponse("Hi there from Java!", "Hello there from Java!")
                 .addSimpleResponse(
                         "I can show you basic cards, lists and carousels as well as suggestions on your phone",
@@ -44,13 +44,11 @@ public class ConversationComponentsSampleJava extends HttpServlet {
             app.ask("Ask me to show you a list, carousel, or basic card");
 
     Function1<ApiAiApp, Object> suggestions = app ->
-            app.ask(app
-                            .buildRichResponse(null)
-                            .addSimpleResponse("This is a simple response for suggestions", null)
-                            .addSuggestions("Suggestion Chips")
-                            .addSuggestions("Basic Card", "List", "Carousel")
-                            .addSuggestionLink("Suggestion Link", "https://assistant.google.com/"),
-                    null);
+            app.ask(app.buildRichResponse(null)
+                    .addSimpleResponse("This is a simple response for suggestions", null)
+                    .addSuggestions("Suggestion Chips")
+                    .addSuggestions("Basic Card", "List", "Carousel")
+                    .addSuggestionLink("Suggestion Link", "https://assistant.google.com/"));
 
     Function1<ApiAiApp, Object> basicCard = app ->
             app.ask(app.buildRichResponse()
@@ -76,7 +74,7 @@ public class ConversationComponentsSampleJava extends HttpServlet {
 
     Function1<ApiAiApp, Object> list = app ->
             app.askWithList(app.buildRichResponse()
-                            .addSimpleResponse("This is a simple response for a list", null)
+                            .addSimpleResponse("This is a simple response for a list")
                             .addSuggestions("Basic Card", "List", "Carousel", "Suggestions"),
                     // Build a list
                     app.buildList("List Title")
@@ -175,43 +173,43 @@ public class ConversationComponentsSampleJava extends HttpServlet {
         return Unit.INSTANCE;
     };
 
-        // Receive a rich response from API.AI and modify it
-        Function1<ApiAiApp, Object> cardBuilder = app ->
-                app.ask(app.getIncomingRichResponse()
-                        .addBasicCard(app.buildBasicCard("Actions on Google let you build for"
-                                + "the Google Assistant.Reach users right when they need you.Users don’t"
-                                + "need to pre-enable skills or install new apps.  \n  \nThis was written in the fulfillment webhook!")
-                                .setSubtitle("Engage users through the Google Assistant")
-                                .setTitle("Actions on Google")
-                                .addButton("Developer Site", "https://developers.google.com/actions/")
-                                .setImage("https://lh3.googleusercontent.com/Z7LtU6hhrhA-5iiO1foAfGB"
-                                        + "75OsO2O7phVesY81gH0rgQFI79sjx9aRmraUnyDUF_p5_bnBdWcXaRxVm2D1Rub92"
-                                        + "L6uxdLBl=s1376", "Actions on Google")));
+    // Receive a rich response from API.AI and modify it
+    Function1<ApiAiApp, Object> cardBuilder = app ->
+            app.ask(app.getIncomingRichResponse()
+                    .addBasicCard(app.buildBasicCard("Actions on Google let you build for"
+                            + "the Google Assistant.Reach users right when they need you.Users don’t"
+                            + "need to pre-enable skills or install new apps.  \n  \nThis was written in the fulfillment webhook!")
+                            .setSubtitle("Engage users through the Google Assistant")
+                            .setTitle("Actions on Google")
+                            .addButton("Developer Site", "https://developers.google.com/actions/")
+                            .setImage("https://lh3.googleusercontent.com/Z7LtU6hhrhA-5iiO1foAfGB"
+                                    + "75OsO2O7phVesY81gH0rgQFI79sjx9aRmraUnyDUF_p5_bnBdWcXaRxVm2D1Rub92"
+                                    + "L6uxdLBl=s1376", "Actions on Google")));
 
-        // Leave conversation with card
-        Function1<ApiAiApp, Object> byeCard = app ->
-                app.tell(app.buildRichResponse()
-                        .addSimpleResponse("Goodbye, World!")
-                        .addBasicCard(app.buildBasicCard("This is a goodbye card.")));
+    // Leave conversation with card
+    Function1<ApiAiApp, Object> byeCard = app ->
+            app.tell(app.buildRichResponse()
+                    .addSimpleResponse("Goodbye, World!")
+                    .addBasicCard(app.buildBasicCard("This is a goodbye card.")));
 
-        Function1<ApiAiApp, Object> byeResponse = app ->
-                app.tell("Okay see you later", "OK see you later!");
+    Function1<ApiAiApp, Object> byeResponse = app ->
+            app.tell("Okay see you later", "OK see you later!");
 
-        Function1<ApiAiApp, Object> normalBye = app -> app.tell("Okay see you later!");
+    Function1<ApiAiApp, Object> normalBye = app -> app.tell("Okay see you later!");
 
-        private Map<String, Function1<String, Object>> intentMap = new HashMap() {{
-            put(ConversationComponentsSampleKt.WELCOME, welcome);
-            put(ConversationComponentsSampleKt.NORMAL_ASK, normalAsk);
-            put(ConversationComponentsSampleKt.BASIC_CARD, basicCard);
-            put(ConversationComponentsSampleKt.LIST, list);
-            put(ConversationComponentsSampleKt.ITEM_SELECTED, itemSelected);
-            put(ConversationComponentsSampleKt.CAROUSEL, carousel);
-            put(ConversationComponentsSampleKt.SUGGESTIONS, suggestions);
-            put(ConversationComponentsSampleKt.BYE_CARD, byeCard);
-            put(ConversationComponentsSampleKt.NORMAL_BYE, normalBye);
-            put(ConversationComponentsSampleKt.BYE_RESPONSE, byeResponse);
-            put(ConversationComponentsSampleKt.CARD_BUILDER, cardBuilder);
-        }};
+    private Map<String, Function1<String, Object>> intentMap = new HashMap() {{
+        put(ConversationComponentsSampleKt.WELCOME, welcome);
+        put(ConversationComponentsSampleKt.NORMAL_ASK, normalAsk);
+        put(ConversationComponentsSampleKt.BASIC_CARD, basicCard);
+        put(ConversationComponentsSampleKt.LIST, list);
+        put(ConversationComponentsSampleKt.ITEM_SELECTED, itemSelected);
+        put(ConversationComponentsSampleKt.CAROUSEL, carousel);
+        put(ConversationComponentsSampleKt.SUGGESTIONS, suggestions);
+        put(ConversationComponentsSampleKt.BYE_CARD, byeCard);
+        put(ConversationComponentsSampleKt.NORMAL_BYE, normalBye);
+        put(ConversationComponentsSampleKt.BYE_RESPONSE, byeResponse);
+        put(ConversationComponentsSampleKt.CARD_BUILDER, cardBuilder);
+    }};
 
-    }
+}
 
