@@ -16,6 +16,9 @@ import javax.servlet.http.HttpServletResponse
 class ApiAiAction(req: HttpServletRequest, resp: HttpServletResponse, val gson: Gson = Gson()) {
     val action: ApiAiApp
 
+    //needed for 2 arg constructor from Java
+    constructor(req: HttpServletRequest, resp: HttpServletResponse) : this(req, resp, Gson() )
+
     init {
         val jsonStr = convertStreamToString(req.inputStream)
         Logger.getAnonymousLogger().info(jsonStr)

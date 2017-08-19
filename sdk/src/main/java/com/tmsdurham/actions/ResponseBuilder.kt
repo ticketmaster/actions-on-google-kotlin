@@ -116,11 +116,15 @@ data class RichResponse(
         return this
     }
 
-    fun addSimpleResponse(simpleResponse: SimpleResponse): RichResponse {
-        return addSimpleResponse(
+    /**
+     * One arg function for convenience when calling from Java
+     */
+    fun addSimpleResponse(speech: String) = addSimpleResponse(speech, null)
+
+    fun addSimpleResponse(simpleResponse: SimpleResponse) =
+        addSimpleResponse(
                 speech = simpleResponse.textToSpeech ?: "",
                 displayText = simpleResponse.displayText ?: "")
-    }
 
 
     /**
@@ -255,11 +259,11 @@ data class RichResponse(
  * Ordered list of buttons to show below card. Optional.
  * @type {Array<Button>}
  */
-data class BasicCard(var title: String = "",
-                     var formattedText: String = "",
-                     var subtitle: String? = null,
-                     var image: Image? = null,
-                     var buttons: MutableList<Button> = mutableListOf()) {
+data class BasicCard(internal var title: String = "",
+                     internal var formattedText: String = "",
+                     internal var subtitle: String? = null,
+                     internal var image: Image? = null,
+                     internal var buttons: MutableList<Button> = mutableListOf()) {
 
     /**
      * Sets the title for this Basic Card.
@@ -329,6 +333,10 @@ data class BasicCard(var title: String = "",
         return this
     }
 
+    /**
+     * Two arg function for convenience when calling from Java
+     */
+    fun setImage(url: String, accessibilityText: String) = setImage(url, accessibilityText, null, null)
     /**
      * Adds a button below card.
      *
@@ -451,9 +459,9 @@ data class OptionInfo(var key: String = "", var synonyms: MutableList<String> = 
  */
 data class OptionItem(var optionInfo: OptionInfo = OptionInfo()) {
 
-    var title: String? = null
-    var description: String? = null
-    var image: Image? = null
+    private var title: String? = null
+    private var description: String? = null
+    private var image: Image? = null
 
     /**
      * Sets the title for this Option Item.
@@ -512,6 +520,13 @@ data class OptionItem(var optionInfo: OptionInfo = OptionInfo()) {
             image?.height = height
         }
         return this
+    }
+
+    /**
+     * Two arg function for convenience when calling from Java
+     */
+    fun setImage(url: String, accessibilityText: String): OptionItem {
+        return setImage(url, accessibilityText, null, null)
     }
 
     /**

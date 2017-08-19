@@ -94,7 +94,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      */
     override fun getIntent(): String? {
         debug("getIntent")
-        if (request.body.result?.action == null) {
+        if (request.body.result.action == null) {
             handleError("Missing result from request body")
             return null
         }
@@ -460,6 +460,24 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         return doResponse(response, RESPONSE_CODE_OK)
     }
 
+    /**
+     * One arg function for convenience when calling from Java
+     */
+    fun ask(speech: String): ResponseWrapper<ApiAiResponse>? {
+        debug("ask: speech:$speech")
+        if (speech.isBlank()) {
+            handleError("Invalid input prompt")
+            return null
+        }
+        val response = buildResponse(speech, true, noInputs = mutableListOf())
+        if (response == null) {
+            error("Error in building response")
+            return null
+        }
+        return doResponse(response, RESPONSE_CODE_OK)
+    }
+
+    fun ask(richResponse: RichResponse) = ask(richResponse, null)
 
     /**
      * Asks to collect the user"s input with a list.
@@ -617,7 +635,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
                     )
             )
         }
-        return doResponse(response, RESPONSE_CODE_OK);
+        return doResponse(response, RESPONSE_CODE_OK)
     }
 
 
@@ -627,7 +645,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
     fun askWithCarousel(inputPrompt: RichResponse, carousel: Carousel): ResponseWrapper<ApiAiResponse>? {
         debug("askWithCarousel: inputPrompt=$inputPrompt, carousel=$carousel")
         if (inputPrompt.isEmpty()) {
-            handleError("Invalid input prompt");
+            handleError("Invalid input prompt")
             return null
         }
         if (carousel == null) {
@@ -658,7 +676,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
                     )
             )
         }
-        return doResponse(response, RESPONSE_CODE_OK);
+        return doResponse(response, RESPONSE_CODE_OK)
     }
 
     /**
@@ -763,12 +781,30 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         return doResponse(response, RESPONSE_CODE_OK)
     }
 
-    override fun tell(speech: String, displayText: String): ResponseWrapper<ApiAiResponse>? {
-        debug("tell: speechResponse=$speech")
-        if (speech.isEmpty()) {
+    override fun tell(speech: String, displayText: String?): ResponseWrapper<ApiAiResponse>? {
+        debug("tell: speechResponse=$speech displayText=$displayText")
+        if (speech.isNullOrBlank()) {
             handleError("Invalid speech response")
             return null
         }
+        val simpleResponse = SimpleResponse()
+        if (isSsml(speech)) {
+            simpleResponse.ssml = speech
+        } else {
+            simpleResponse.textToSpeech = speech
+        }
+        simpleResponse.displayText = displayText
+        val response = buildResponse(simpleResponse, false)
+        return this.doResponse(response, RESPONSE_CODE_OK)
+    }
+
+    override fun tell(speech: String): ResponseWrapper<ApiAiResponse>? {
+        debug("tell: speechResponse=$speech")
+        if (speech.isBlank()) {
+            handleError("Invalid speech response")
+            return null
+        }
+
         val response = buildResponse(speech, false)
         return this.doResponse(response, RESPONSE_CODE_OK)
     }
@@ -857,11 +893,11 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      */
     fun getContexts(): MutableList<Context> {
         debug("getContexts")
-        if (request.body.result?.contexts?.isEmpty()) {
+        if (request.body.result.contexts.isEmpty()) {
             handleError("No contexts included in request")
             return mutableListOf()
         }
-        return request.body.result?.contexts?.filter { it.name != ACTIONS_API_AI_CONTEXT }?.filterNotNull().toMutableList()
+        return request.body.result.contexts.filter { it.name != ACTIONS_API_AI_CONTEXT }.filterNotNull().toMutableList()
     }
 
     /**
@@ -1194,12 +1230,12 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
             handleError("Invalid text to speech")
             return null
         }
-        if (richResponse.items?.first()?.simpleResponse == null || richResponse.items?.first()?.simpleResponse?.textToSpeech.isNullOrBlank()) {
+        if (richResponse.items.first().simpleResponse == null || richResponse.items.first().simpleResponse?.textToSpeech.isNullOrBlank()) {
             handleError("Invalid RichResponse. First item must be SimpleResponse")
             return null
         }
 
-        val speech = richResponse.items?.first()?.simpleResponse?.textToSpeech!!
+        val speech = richResponse.items.first().simpleResponse?.textToSpeech!!
         var noInputsFinal = mutableListOf<GoogleData.NoInputPrompts>()
         val dialogState = mutableMapOf<String, Any?>(
                 "state" to state, //TODO (this.state instanceof State ? this.state.getName() : this.state),
@@ -1239,9 +1275,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
     /**
      * Builds a response for API.AI to send back to the Assistant.
      *
-     * @param {string|RichResponse|SimpleResponse} textToSpeech TTS/response
+     * @param {String} textToSpeech TTS/response
      *     spoken/shown to end user.
-     * @param {boolean} expectUserResponse true if the user response is expected.
+     * @param {Boolean} expectUserResponse true if the user response is expected.
      * @param {Array<string>=} noInputs Array of re-prompts when the user does not respond (max 3).
      * @return {Object} The final response returned to Assistant.
      * @private
@@ -1255,7 +1291,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         }
 
         var noInputsFinal = mutableListOf<GoogleData.NoInputPrompts>()
-        val dialogState = mutableMapOf<String, Any?>(
+        val dialogState = mutableMapOf(
                 "state" to state, //TODO (this.state instanceof State ? this.state.getName() : this.state),
                 "data" to data)
         if (noInputs != null) {

@@ -771,7 +771,11 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     internal abstract fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest, dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
 
     abstract fun getIntent(): String?
-    abstract fun tell(speech: String, displayText: String = ""): ResponseWrapper<S>?
+    abstract fun tell(speech: String, displayText: String? = null): ResponseWrapper<S>?
+    /**
+     * One arg function for Convenience from Java
+     */
+    abstract fun tell(speech: String): ResponseWrapper<S>?
     abstract fun tell(richResponse: RichResponse?): ResponseWrapper<S>?
     abstract fun tell(simpleResponse: SimpleResponse): ResponseWrapper<S>?
 
@@ -828,7 +832,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @return {boolean} true if request is not Action API Version 1.
      * @private
      */
-    internal fun isNotApiVersionOne(): Boolean {
+    fun isNotApiVersionOne(): Boolean {
         debug("isNotApiVersionOne_")
         return actionsApiVersion.isNotEmpty() &&
                 (actionsApiVersion.toInt() >= ACTIONS_CONVERSATION_API_VERSION_TWO)
@@ -853,6 +857,12 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
             return RichResponse()
         }
     }
+
+    /**
+     * Zero arg function for convenience when calling from Java
+     */
+    fun buildRichResponse() = buildRichResponse(null)
+
 
     /**
      * Constructs BasicCard with chainable property setters.

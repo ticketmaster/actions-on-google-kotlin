@@ -599,27 +599,27 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @return The HTTP response that is sent back to Assistant.
      * @actionssdk
      */
-    fun tell(textToSpeech: String): ResponseWrapper<ActionResponse>? {
-        debug("tell: textToSpeech=$textToSpeech")
-        if (textToSpeech.isBlank()) {
-            handleError("Invalid speech response")
-            return null
-        }
+    override fun tell(speech: String, displayText: String?): ResponseWrapper<ActionResponse>? {
+        debug("tell: speech=$speech displayText=$displayText")
+        val simpleResponse = SimpleResponse()
         val finalResponse = FinalResponse()
-        if (isSsml(textToSpeech)) {
-            finalResponse.speechResponse = SimpleResponse(
-                    ssml = textToSpeech)
+        if (isSsml(speech)) {
+            simpleResponse.ssml = speech
         } else {
-            finalResponse.speechResponse = SimpleResponse(
-                    textToSpeech = textToSpeech)
+            simpleResponse.textToSpeech = speech
         }
+        simpleResponse.displayText = displayText
+        if (displayText.isNullOrBlank()) {
+            finalResponse.speechResponse = simpleResponse
+        } else {
+            finalResponse.richResponse = buildRichResponse().addSimpleResponse(simpleResponse)
+        }
+
         val response = buildResponseHelper(null, false, null, finalResponse)
         return this.doResponse(response, RESPONSE_CODE_OK)
     }
 
-
-    override fun tell(speech: String, displayText: String) = tell(SimpleResponse(textToSpeech = speech, displayText = displayText))
-
+    override fun tell(speech: String): ResponseWrapper<ActionResponse>? = tell(speech, null)
 
     override fun tell(simpleResponse: SimpleResponse): ResponseWrapper<ActionResponse>? {
         debug("tell: simpleResponse=$simpleResponse")
@@ -679,12 +679,12 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         if (isSsml) {
             return InputPrompt(
                     initialPrompts = buildPromptsFromSsmlHelper(initials),
-                    noInputPrompts = buildPromptsFromSsmlHelper(noInputs.map { it }.filterNotNull().toMutableList())
+                    noInputPrompts = buildPromptsFromSsmlHelper(noInputs.map { it }.toMutableList())
             )
         } else {
             return InputPrompt(
                     initialPrompts = buildPromptsFromPlainTextHelper(initials),
-                    noInputPrompts = buildPromptsFromPlainTextHelper(noInputs.map { it }.filterNotNull().toMutableList()))
+                    noInputPrompts = buildPromptsFromPlainTextHelper(noInputs.map { it }.toMutableList()))
         }
     }
 
