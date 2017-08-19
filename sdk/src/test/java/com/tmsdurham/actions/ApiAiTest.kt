@@ -340,20 +340,20 @@ object ActionsTest : Spek({
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should return the valid simple response JSON in the response object for the success case.") {
             app.tell(speech = "hello",
-                    displayText = "Hi")
+                    displayText = "hi")
 
             // Validating the response object
             var expectedResponse = """{
                 "speech": "hello",
                 "data": {
                 "google": {
-                "expect_user_response": false,
-                "rich_response": {
+                "expectUserResponse": false,
+                "richResponse": {
                 "items": [
                 {
-                    "simple_response": {
-                    "text_to_speech": "hello",
-                    "display_text": "hi"
+                    "simpleResponse": {
+                    "textToSpeech": "hello",
+                    "displayText": "hi"
                 }
                 }
                 ],
@@ -382,7 +382,7 @@ object ActionsTest : Spek({
             "speech": "hello",
             "data": {
             "google": {
-            "expect_user_response": false,
+            "expectUserResponse": false,
             "richResponse": {
             "items": [
             {

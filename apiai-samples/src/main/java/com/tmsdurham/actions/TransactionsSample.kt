@@ -16,7 +16,7 @@ val DELIVERY_ADDRESS_COMPLETE = "delivery.address.complete"
 val TRANSACTION_DECISION_ACTION_PAYMENT = "transaction.decision.action"
 val TRANSACTION_DECISION_COMPLETE = "transaction.decision.complete"
 
-@WebServlet(name = "TransactionWebhook", value = "/transaction")
+@WebServlet("/transaction")
 class TransactionSample : HttpServlet() {
 
     override fun doPost(req: HttpServletRequest, resp: HttpServletResponse) {

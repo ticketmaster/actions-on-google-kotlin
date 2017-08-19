@@ -37,7 +37,6 @@ const val IMG_URL_GOOGLE_HOME = "https://lh3.googleusercontent.com" +
 const val IMG_URL_GOOGLE_PIXEL = "https://storage.googleapis.com/madebygoog/v1" +
         "/Pixel/Pixel_ColorPicker/Pixel_Device_Angled_Black-720w.png"
 const val IMG_URL_GOOGLE_ALLO = "https://allo.google.com/images/allo-logo.png"
-
 fun welcome(app: ApiAiApp) =
         app.ask(app.buildRichResponse()
                 .addSimpleResponse(speech = "Hi there!", displayText = "Hello there!")
@@ -206,7 +205,7 @@ val actionMap = mapOf(
         BYE_RESPONSE to ::byeResponse,
         CARD_BUILDER to ::cardBuilder)
 
-@WebServlet(name = "ActionsWebhook", value = "/conversation")
+@WebServlet("/conversation")
 class WebHook : HttpServlet() {
 
     override fun doPost(req: HttpServletRequest, resp: HttpServletResponse) {
