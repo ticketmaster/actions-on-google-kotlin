@@ -1,22 +1,41 @@
 # Actions On Google Client Library
 
 
-Unofficial Kotlin SDK for building Actions on Google on the JVM.  This is a port of the [official nodejs SDK](https://github.com/actions-on-google/actions-on-google-nodejs) to Kotlin.  This can also be used from Java.
+This is a port of the [official Node.js SDK](https://github.com/actions-on-google/actions-on-google-nodejs) to Kotlin.  This can also be used from Java and any JVM language.
 
-__Goals of this project__:
+__Quick Facts__
 
  * Port the actions-on-google SDK to Kotlin so Kotlin and Java developers can quickly start building Actions for Google Assistant.
- * match nodejs API
- * match implementation of nodejs closely so code can be maintained easily as features are added
- * pass all tests from nodejs SDK (using Spek framework)
- * support Api.Ai and Actions SDK (Api.Ai is top priority)
- * port several, if not all samples
+ * Closely matches nodejs API
+ * Closely matches implementation of nodejs sdk so code can be maintained easily as features are added
+ * All tests ported from nodejs SDK (using Spek framework) & 100% passing
+ * Api.Ai and Actions SDK support
+ * Conversation Components & Transaction Sample ported
+ * Supports v2 of Actions on Google API (if v1 is needed, make an issue please)
 
-Currently the Multimodal API, Transaction API, conversation-components sample, and transaction are 100% ported for ApiAi platform.  Actions SDK (direct request from Actions on Google w/o API.ai will be coming)
+## Setup Instructions
 
-You are welcome to use, make contributions, and report issues on this project.
+This library is available on jCenter and Maven Central.  If your using gradle simply add the dependency as follows:
 
-Sample of what actions-on-google-koltin looks like:
+__Gradle:__
+
+    repositories {
+            jCenter()
+        }
+    }
+    
+    dependencies {
+        compile 'com.tmsdurham.actions:actions-on-google:1.2'
+    }
+
+The above artifact should fit the needs of most developers, however, if you are not using ```java.servlet.http.HttpServlet```, or do not want to use [Gson](https://github.com/google/gson) for deserialization, you can use the ```actions-on-google-core lib```.  For example how to use the core library, reading through the sdk-gson-servlet module.    
+
+   	compile 'com.tmsdurham.actions:actions-on-google-core:1.2'. //only if not using Servlets
+
+
+
+
+### Using Kotlin
 
     fun welcome(app: ApiAiApp) =
         app.ask(app.buildRichResponse()
@@ -41,36 +60,56 @@ Sample of what actions-on-google-koltin looks like:
     
     val actionMap = mapOf(
         WELCOME to ::welcome,
+        NORMAL_ASK to ::normalAsk,
         SUGGESTIONS to ::suggestions)
       
     
-    @WebServlet(name = "ActionsWebhook", value = "/test")
+    @WebServlet("/conversation")
     class WebHook : HttpServlet() {
 
-    override fun doPost(req: HttpServletRequest, resp: HttpServletResponse) {
-            GAction(req, resp).handleRequest(actionMap)
-        }
+    	override fun doPost(req: HttpServletRequest, resp: HttpServletResponse) {
+        	ApiAiAction(req, resp).handleRequest(actionMap)
+       }
     }
 
+### Using Java
 
+	@WebServlet("/conversation/java")
+	public class ConversationComponentsSampleJava extends HttpServlet {
+    	private static final Logger logger = Logger.getAnonymousLogger();
 
-## Setup Instructions
+		Function1<ApiAiApp, Object> welcome = app -> {
+        	app.ask(app.buildRichResponse()
+                .addSimpleResponse("Hi there from Java!", "Hello there from Java!")
+                .addSimpleResponse(
+                        "I can show you basic cards, lists and carousels as well as suggestions on your phone",
+                        "I can show you basic cards, lists and carousels as well as suggestions")
+                .addSuggestions("Basic Card", "List", "Carousel", "Suggestions"), null);
+        	return Unit.INSTANCE;
+    	};
 
-This library is available on jCenter and mavenCentral.  If your using gradle simply add the dependency as follows:
+    	Function1<ApiAiApp, Object> normalAsk = app ->
+       	     app.ask("Ask me to show you a list, carousel, or basic card");
 
-    repositories {
-            jCenter()
-        }
+    	Function1<ApiAiApp, Object> suggestions = app ->
+       	     app.ask(app.buildRichResponse(null)
+                    .addSimpleResponse("This is a simple response for suggestions", null)
+                    .addSuggestions("Suggestion Chips")
+                    .addSuggestions("Basic Card", "List", "Carousel")
+                    .addSuggestionLink("Suggestion Link", "https://assistant.google.com/"));
+
+		private Map<String, Function1<String, Object>> intentMap = new HashMap() {{
+        	put(ConversationComponentsSampleKt.WELCOME, welcome);
+        	put(ConversationComponentsSampleKt.NORMAL_ASK, normalAsk);
+        	put(ConversationComponentsSampleKt.SUGGESTIONS, suggestions);
+    	}};
+
+    	@Override
+    	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+         	 ApiAiAction action = new ApiAiAction(req, resp);
+       	 	 action.handleRequest(intentMap);
+    	}
     }
-    
-    dependencies {
-        compile 'com.tmsdurham.actions:actions-on-google:1.2'
-    }
-
-
-Looking at Webhook.kt is a contains an example of how to make a basic webhook using Google App Engine Standard Environment.
-
-MORE COMING
 
 ## License
-See LICENSE.md.
+See [LICENSE.md.](https://github.com/TicketmasterMobileStudio/actions-on-google-kotlin/blob/master/LICENSE)
