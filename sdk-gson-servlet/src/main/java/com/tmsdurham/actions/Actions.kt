@@ -1,6 +1,7 @@
 package main.java.com.tmsdurham.apiai.sample
 
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.ticketmaster.apiai.ApiAiRequest
 import com.tmsdurham.actions.*
 import com.tmsdurham.actions.actions.ActionRequest
@@ -14,16 +15,17 @@ import javax.servlet.http.HttpServletResponse
  * Intentionally not in sdk module so gson & servlet are not a dependency of the SDK.
  */
 class ApiAiAction(req: HttpServletRequest, resp: HttpServletResponse, val gson: Gson = Gson()) {
-    val action: ApiAiApp
+    val app: ApiAiApp
 
     //needed for 2 arg constructor from Java
-    constructor(req: HttpServletRequest, resp: HttpServletResponse) : this(req, resp, Gson() )
+    constructor(req: HttpServletRequest, resp: HttpServletResponse) : this(req, resp, Gson())
 
     init {
         val jsonStr = convertStreamToString(req.inputStream)
         Logger.getAnonymousLogger().info(jsonStr)
         val request = gson.fromJson<ApiAiRequest>(jsonStr, ApiAiRequest::class.java)
-        action = ApiAiApp(RequestWrapper(body = request), ResponseWrapper(sendAction = {
+        val headers = resp.headerNames.associate { it to resp.getHeader(it) }
+        app = ApiAiApp(RequestWrapper(body = request, headers = headers), ResponseWrapper(sendAction = {
             val bodyStr = gson.toJson(body)
             headers.forEach {
                 resp.addHeader(it.key, it.value)
@@ -39,7 +41,7 @@ class ApiAiAction(req: HttpServletRequest, resp: HttpServletResponse, val gson: 
     }
 
     fun handleRequest(handler: Map<*, *>) {
-        action.handleRequest(handler)
+        app.handleRequest(handler)
     }
 }
 
@@ -47,28 +49,30 @@ class ApiAiAction(req: HttpServletRequest, resp: HttpServletResponse, val gson: 
  * Gson & Servlet Action for Actions SDK (direct integration)
  * Intentionally not in sdk module so gson & servlet are not a dependency of the SDK.
  */
-class ActionsSdkAction(req: HttpServletRequest, resp: HttpServletResponse, val gson: Gson = Gson()) {
-    val action: ActionsSdkApp
+class ActionsSdkAction(req: HttpServletRequest,
+                       resp: HttpServletResponse,
+                       val gson: Gson = GsonBuilder()
+                               .registerTypeAdapter(OrderUpdate::class.java, OrderUpdateTypeAdapter(Gson()))
+                               .create()) {
+    val app: ActionsSdkApp
 
     init {
         val jsonStr = convertStreamToString(req.inputStream)
         Logger.getAnonymousLogger().info(jsonStr)
         val request = gson.fromJson<ActionRequest>(jsonStr, ActionRequest::class.java)
-        action = ActionsSdkApp(RequestWrapper(body = request), ResponseWrapper(sendAction = {
+        val headers = resp.headerNames.associate { it to resp.getHeader(it) }
+
+        app = ActionsSdkApp(RequestWrapper(body = request, headers = headers), ResponseWrapper(sendAction = {
             val bodyStr = gson.toJson(body)
             headers.forEach {
                 resp.addHeader(it.key, it.value)
             }
             Logger.getAnonymousLogger().info(bodyStr)
             resp.writer.write(bodyStr)
-        }), serializer = object: Serializer {
-            override fun <T> serialize(obj: T): String {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
+        }), serializer = object : Serializer {
+            override fun <T> serialize(obj: T) = gson.toJson(obj)
 
-            override fun <T> deserialize(str: String, clazz: Class<T>): T {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
+            override fun <T> deserialize(str: String, clazz: Class<T>) = gson.fromJson(str, clazz)
 
         })
     }
@@ -79,6 +83,6 @@ class ActionsSdkAction(req: HttpServletRequest, resp: HttpServletResponse, val g
     }
 
     fun handleRequest(handler: Map<*, *>) {
-        action.handleRequest(handler)
+        app.handleRequest(handler)
     }
 }

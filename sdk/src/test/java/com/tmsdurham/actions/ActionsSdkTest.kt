@@ -10,8 +10,6 @@ import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 
-typealias MockActionHandler = Handler<ActionRequest, ActionResponse>
-
 //Serializer to handle serialization of conversation token
 val serializer: Serializer = object : Serializer {
     override fun <T> serialize(obj: T) = gson.toJson(obj)

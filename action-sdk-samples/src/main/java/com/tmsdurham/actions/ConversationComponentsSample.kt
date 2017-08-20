@@ -1,7 +1,9 @@
 package com.tmsdurham.actions
 
 import com.tmsdurham.actions.ActionsSdkApp
+import main.java.com.tmsdurham.apiai.sample.ActionsSdkAction
 import java.util.logging.Logger
+import javax.servlet.annotation.WebServlet
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -224,14 +226,16 @@ fun actionsText(app: ActionsSdkApp) {
     }
 }
 
+@WebServlet("/conversation")
 class ConversationComponentsSample : HttpServlet() {
-    override fun doPost(req: HttpServletRequest?, resp: HttpServletResponse?) {
+    override fun doPost(req: HttpServletRequest, resp: HttpServletResponse) {
 
-//        val actionMap = mutableMapOf(
-//                app.STANDARD_INTENTS.MAIN to ::welcome,
-//                app.STANDARD_INTENTS.TEXT to ::actionsText,
-//                app.STANDARD_INTENTS.OPTION to ::itemSelected)
-//        app.handleRequest(actionMap)
+        val app = ActionsSdkAction(req, resp)
+        val actionMap = mutableMapOf(
+                app.app.STANDARD_INTENTS.MAIN to ::welcome,
+                app.app.STANDARD_INTENTS.TEXT to ::actionsText,
+                app.app.STANDARD_INTENTS.OPTION to ::itemSelected)
+        app.handleRequest(actionMap)
     }
 }
 

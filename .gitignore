@@ -74,4 +74,6 @@ captures/
 
 banjo-local.csr
 
+# creds for gactions tool
+creds.data
 
