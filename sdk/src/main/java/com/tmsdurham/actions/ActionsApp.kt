@@ -12,6 +12,9 @@ val INPUTS_MAX = 3
 //                   Actions SDK support
 // ---------------------------------------------------------------------------
 
+/**
+ * Completes serialization/deserialization of response, request, dialogState
+ */
 interface Serializer {
     fun <T> serialize(obj: T): String
     fun <T> deserialize(str: String, clazz: Class<T>): T
@@ -40,7 +43,10 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @param {fun=} options.sessionStarted fun callback when session starts.
      * @actionssdk
      */
-    constructor(request: RequestWrapper<ActionRequest>, response: ResponseWrapper<ActionResponse>, sessionStarted: (() -> Unit)? = null, serializer: Serializer) :
+    constructor(request: RequestWrapper<ActionRequest>,
+                response: ResponseWrapper<ActionResponse>,
+                sessionStarted: (() -> Unit)? = null,
+                serializer: Serializer) :
             super(request, response, sessionStarted) {
         debug("ActionsSdkApp constructor")
         this.serializer = serializer
@@ -699,7 +705,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @private
      * @actionssdk
      */
-    fun getTopInput(): Input? {
+    private fun getTopInput(): Input? {
         debug("getTopInput")
         if (request.body.inputs?.size == 0) {
             this.handleError("Missing inputs from request body")
@@ -742,7 +748,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @private
      * @actionssdk
      */
-    fun <T> maybeAddItemToArray(item: T, array: MutableList<T>): Unit {
+    private fun <T> maybeAddItemToArray(item: T, array: MutableList<T>): Unit {
         debug("maybeAddItemToArray_: item=$item, array=$array")
         if (item == null) {
             // ignore add
