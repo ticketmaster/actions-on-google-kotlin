@@ -5,10 +5,10 @@ This is a port of the [official Node.js SDK](https://github.com/actions-on-googl
 
 __Quick Facts__
 
- * Port the actions-on-google SDK to Kotlin so Kotlin and Java developers can quickly start building Actions for Google Assistant.
- * Closely matches nodejs API
- * Closely matches implementation of nodejs sdk so code can be maintained easily as features are added
- * All tests ported from nodejs SDK (using Spek framework) & 100% passing
+ * Port of the actions-on-google SDK to Kotlin.  Kotlin and Java developers can quickly start building Actions for Google Assistant.
+ * Closely matches Node.js Client Library API
+ * Closely matches implementation of Node.js sdk so code can be maintained easily as features are added
+ * All tests ported from nodejs SDK (using [Spek framework](http://spekframework.org/)) & 100% passing
  * Api.Ai and Actions SDK support
  * Conversation Components & Transaction Sample ported
  * Supports v2 of Actions on Google API (if v1 is needed, make an issue please)
