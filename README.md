@@ -25,14 +25,31 @@ __Gradle:__
     }
     
     dependencies {
-        compile 'com.tmsdurham.actions:actions-on-google:1.2'
+        compile 'com.tmsdurham.actions:actions-on-google:1.2.1'
     }
+__Maven:__
+
+    <dependency>
+  		<groupId>com.tmsdurham.actions</groupId>
+  		<artifactId>actions-on-google</artifactId>
+  		<version>1.2.1</version>
+  		<type>pom</type>
+    </dependency>
 
 The above artifact should fit the needs of most developers, however, if you are not using ```java.servlet.http.HttpServlet```, or do not want to use [Gson](https://github.com/google/gson) for deserialization, you can use the ```actions-on-google-core lib```.  For example how to use the core library, reading through the sdk-gson-servlet module.    
 
-   	compile 'com.tmsdurham.actions:actions-on-google-core:1.2'. //only if not using Servlets
+__Gradle:__
 
+   	compile 'com.tmsdurham.actions:actions-on-google-core:1.2.1'. //only if not using Servlets
 
+__Maven:__
+
+    <dependency>
+  		<groupId>com.tmsdurham.actions</groupId>
+  		<artifactId>actions-on-google-core</artifactId>		//only if not using Servlets
+  		<version>1.2.1</version>
+  		<type>pom</type>
+    </dependency>
 
 
 ### Using Kotlin
