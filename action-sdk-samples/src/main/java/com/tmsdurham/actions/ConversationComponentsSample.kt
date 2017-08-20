@@ -1,6 +1,5 @@
 package com.tmsdurham.actions
 
-import com.tmsdurham.actions.ActionsSdkApp
 import main.java.com.tmsdurham.apiai.sample.ActionsSdkAction
 import java.util.logging.Logger
 import javax.servlet.annotation.WebServlet
@@ -22,7 +21,7 @@ import javax.servlet.http.HttpServletResponse
 // limitations under the License.
 
 // Constants for list and carousel selection
-val logger = Logger.getAnonymousLogger();
+val logger = Logger.getAnonymousLogger()
 
 val SELECTION_KEY_ONE = "title"
 val SELECTION_KEY_GOOGLE_HOME = "googleHome"
@@ -75,7 +74,7 @@ fun basicCard(app: ActionsSdkApp) {
                     including emoji 📱.  Basic cards also support some markdown
                     formatting like * emphasis * or _italics_, ** strong * * or __bold__,
             and * * * bold itallic * * * or ___strong emphasis___ as well as other things
-                    like line  \ nbreaks """) // Note the two spaces before "\n" required for a
+                    like line  \nbreaks """) // Note the two spaces before "\n" required for a
                     // line break to be rendered in the card
                     .setSubtitle("This is a subtitle")
                     .setTitle("Title: this is a title")
@@ -204,25 +203,19 @@ fun normalBye(app: ActionsSdkApp) {
 fun actionsText(app: ActionsSdkApp) {
     val rawInput = app.getRawInput()
     logger.info("USER SAID " + rawInput)
-    if (rawInput == "Basic Card" || rawInput == "basic card") {
-        basicCard(app)
-    } else if (rawInput == "List" || rawInput == "list") {
-        list(app)
-    } else if (rawInput == "Carousel" || rawInput == "carousel") {
-        carousel(app)
-    } else if (rawInput == "normal ask") {
-        normalAsk(app)
-    } else if (rawInput == "normal bye") {
-        normalBye(app)
-    } else if (rawInput == "bye card") {
-        byeCard(app)
-    } else if (rawInput == "bye response") {
-        byeResponse(app)
-    } else if (rawInput == "Suggestions" || rawInput == "Suggestion Chips" ||
-            rawInput == "suggestions" || rawInput == "suggestions chips") {
-        suggestions(app)
-    } else {
-        normalAsk(app)
+    when (rawInput) {
+        "Basic Card", "basic card" -> basicCard(app)
+        "List", "list" -> list(app)
+        "Carousel", "carousel" -> carousel(app)
+        "normal ask" -> normalAsk(app)
+        "normal bye" -> normalBye(app)
+        "bye card" -> byeCard(app)
+        "bye response" -> byeResponse(app)
+        "Suggestions", "Suggestion Chips",
+        "suggestions", "suggestions chips" ->
+            suggestions(app)
+        else ->
+            normalAsk(app)
     }
 }
 
@@ -235,6 +228,7 @@ class ConversationComponentsSample : HttpServlet() {
                 app.app.STANDARD_INTENTS.MAIN to ::welcome,
                 app.app.STANDARD_INTENTS.TEXT to ::actionsText,
                 app.app.STANDARD_INTENTS.OPTION to ::itemSelected)
+        logger.info("app.STANDARD_INTENTS.MAIN: ${app.app.STANDARD_INTENTS.MAIN}")
         app.handleRequest(actionMap)
     }
 }
