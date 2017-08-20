@@ -228,7 +228,6 @@ class ConversationComponentsSample : HttpServlet() {
                 app.app.STANDARD_INTENTS.MAIN to ::welcome,
                 app.app.STANDARD_INTENTS.TEXT to ::actionsText,
                 app.app.STANDARD_INTENTS.OPTION to ::itemSelected)
-        logger.info("app.STANDARD_INTENTS.MAIN: ${app.app.STANDARD_INTENTS.MAIN}")
         app.handleRequest(actionMap)
     }
 }
