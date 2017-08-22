@@ -1098,9 +1098,10 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
             var carouselSelect: Carousel? = null,
             var optContext: String? = null,
             var permissions: MutableList<String>? = null,
-            var expectUserResponse: Boolean = false)
+            var expectUserResponse: Boolean? = null)
 
 }
 
-data class ExpectedInput(var inputPrompt: InputPrompt? = null, var possibleIntents: MutableList<ActionsSdkApp.ExpectedIntent>? = null)
+data class ExpectedInput(var inputPrompt: InputPrompt? = null,
+                         var possibleIntents: MutableList<ActionsSdkApp.ExpectedIntent>? = null)
 

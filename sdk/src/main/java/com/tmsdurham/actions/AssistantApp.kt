@@ -206,7 +206,7 @@ class SignInStatus {
 
 
 open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val response: ResponseWrapper<S>, val sessionStarted: (() -> Unit)? = null) {
-    var actionsApiVersion: String = "1"
+    var actionsApiVersion: String = "2"
     var STANDARD_INTENTS: StandardIntents
     val SUPPORTED_INTENT = SupportedIntent()
     var BUILT_IN_ARG_NAMES: BuiltInArgNames
@@ -218,7 +218,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     val SIGN_IN_STATUS = SignInStatus()
 
     var responded = false
-    var apiVersion_: String = ""
+    var apiVersion_: String = "2"
     // Unique to Kotlin sdk - state is a json String that is serialized/deserialized
     var state: String? = null
     var data: MutableMap<String, Any> = mutableMapOf()
@@ -240,7 +240,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
             handleError("Response can NOT be empty.")
         } else {
             if (request.headers[ACTIONS_CONVERSATION_API_VERSION_HEADER] != null) {
-                actionsApiVersion = request.headers[ACTIONS_CONVERSATION_API_VERSION_HEADER]!!
+                actionsApiVersion = request.headers[ACTIONS_CONVERSATION_API_VERSION_HEADER] ?: "2"
                 debug("Actions API version from header: " + this.actionsApiVersion)
             }
             if (request.body is ApiAiRequest) {
@@ -776,6 +776,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * One arg function for Convenience from Java
      */
     abstract fun tell(speech: String): ResponseWrapper<S>?
+
     abstract fun tell(richResponse: RichResponse?): ResponseWrapper<S>?
     abstract fun tell(simpleResponse: SimpleResponse): ResponseWrapper<S>?
 
@@ -834,8 +835,11 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      */
     fun isNotApiVersionOne(): Boolean {
         debug("isNotApiVersionOne_")
-        return actionsApiVersion.isNotEmpty() &&
-                (actionsApiVersion.toInt() >= ACTIONS_CONVERSATION_API_VERSION_TWO)
+        return if (actionsApiVersion.isEmpty()) {
+            true
+        } else {
+            (actionsApiVersion.toInt() >= ACTIONS_CONVERSATION_API_VERSION_TWO)
+        }
     }
 
     internal abstract fun extractData()
