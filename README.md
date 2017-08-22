@@ -1,5 +1,6 @@
 # Actions On Google Client Library
 
+![](https://storage.googleapis.com/kotlin-actions-sdk.appspot.com/actions-kotlin-java.png)
 
 This is a port of the [official Node.js SDK](https://github.com/actions-on-google/actions-on-google-nodejs) to Kotlin.  This can also be used from Java and any JVM language.
 
