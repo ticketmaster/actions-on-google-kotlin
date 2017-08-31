@@ -2184,5 +2184,28 @@ object ActionsTest : Spek({
         }
     }
 
+    it("Should allow extending with custom data") {
+        val body = createLiveSessionApiAppBody()
+        val mockRequest = RequestWrapper(headerV2, body)
+        val mockResponse = ResponseWrapper<ApiAiResponse>()
+        val app = ApiAiApp(
+                request = mockRequest,
+                response = mockResponse
+        )
+
+        app.data {
+            this["customData"] = CustomData("test")
+        }
+        app.ask("Welcome to action snippets! Say a number.",
+                "Say any number", "Pick a number", "What is the number?")
+
+
+        val expectedResponse = """{"speech":"Welcome to action snippets! Say a number.","displayText":"","secondDisplayText":"","data":{"google":{"isSsml":false,"noInputPrompts":[{"ssml":null,"textToSpeech":"Say any number"},{"ssml":null,"textToSpeech":"Pick a number"},{"ssml":null,"textToSpeech":"What is the number?"}],"permissionsRequest":null,"systemIntent":null,"expectUserResponse":true,"possibleIntents":null,"richResponse":null},"customData":{"testString":"test"}},"contextOut":[{"name":"_actions_on_google_","parameters":{},"lifespan":100}],"source":""}"""
+        //json must remain unformatted to match gson output.
+        // data class equals() will not match in this case because Data overrides MutableMap
+        expect(gson.toJson(mockResponse.body)).to.equal(expectedResponse)
+    }
 
 })
+
+data class CustomData(val testString: String? = null)

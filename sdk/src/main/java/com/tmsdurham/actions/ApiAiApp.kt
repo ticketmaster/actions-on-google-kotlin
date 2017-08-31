@@ -1334,4 +1334,17 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         data = request.body.result.contexts.find { it.name == ACTIONS_API_AI_CONTEXT }?.parameters ?: mutableMapOf()
     }
 
+    /**
+     * SPECIFIC TO KOTLIN SDK
+     * Allows adding data for other platforms, such as Facebook messenger, Slack, etc.
+     */
+    fun data(init: Data.() -> Unit) {
+        if (response.body == null) {
+            response.body = ApiAiResponse()
+        }
+        if (response.body?.data == null) {
+            response.body?.data = Data()
+        }
+        response.body?.data?.init()
+    }
 }

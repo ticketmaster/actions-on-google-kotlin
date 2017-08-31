@@ -19,10 +19,9 @@ allprojects {
         jcenter()
     }
     project.ext {
-        projectVersion = "0.14" //Version used in deployed artifact
         kotlinVersion = '1.1.4'
         gsonVersion = '2.8.1'
-        sdkVersion = '1.2.1'
+        sdkVersion = '1.2.2' //version of deployed artifacts
     }
 }
 

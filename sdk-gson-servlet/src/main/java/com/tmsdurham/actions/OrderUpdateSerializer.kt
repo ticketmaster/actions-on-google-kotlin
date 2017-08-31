@@ -5,7 +5,40 @@ import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
+import com.ticketmaster.apiai.Data
 import com.ticketmaster.apiai.google.GoogleData
+
+class DataTypeAdapter(val gson: Gson) : TypeAdapter<Data>() {
+    override fun write(out: JsonWriter, value: Data) {
+        value.forEach {
+            out.beginObject()
+            out.name(it.key)
+            if (it.value is GoogleData) {
+                out.jsonValue(gson.toJson(it.value))
+            }
+        }
+
+    }
+
+    override fun read(reader: JsonReader): Data {
+        var token = reader.peek()
+        val data = Data()
+        if (token == JsonToken.BEGIN_OBJECT) {
+            reader.beginObject()
+            while (!reader.peek().equals(JsonToken.END_OBJECT)) {
+                if (reader.nextName() == "google") {
+                    data.google = gson.fromJson(reader, GoogleData::class.java)
+                } else {
+                    reader.skipValue()
+                }
+
+            }
+            reader.endObject()
+        }
+        return data
+    }
+
+}
 
 class OrderUpdateTypeAdapter(val gson: Gson) : TypeAdapter<OrderUpdate>() {
     override fun write(out: JsonWriter?, value: OrderUpdate?) {
