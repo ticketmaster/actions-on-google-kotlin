@@ -63,8 +63,12 @@ data class Fulfillment(
         var messages: MutableList<Messages>? = null,
         val data: Data? = null)
 
-data class Data(
-        var google: GoogleData? = null) {
+/**
+ * Holds data for original platform.  Extends MutableMap so this is extendable
+ * to other platforms by adding a field
+ */
+data class Data(val nothing: Nothing? = null) : MutableMap<String, Any?> by mutableMapOf() {
+    var google: GoogleData? by this
 
     inline fun google(init: GoogleData.() -> Unit) {
         if (google == null) {
