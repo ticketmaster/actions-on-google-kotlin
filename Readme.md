@@ -16,6 +16,7 @@ Execute the following command to run the JavaScript tests. The test output can b
 
 Not everything is working as it should as multi-platform support is still being developed. This is the list of known issues:
 
+* For module `common` warnings are emitted about duplicate source roots.
 * For module `common` warnings are emitted about the use of deprecated type alias for `org.junit.Test`. The warning indicates `kotlin.test.Test` should be used instead, but this type is not available in `kotlin-test-common-*.jar`.
 * IntelliJ IDEA support using stable plug-ins is broken. The experience should be better with an [EAP](https://discuss.kotlinlang.org/c/eap) or [development](https://github.com/jetbrains/kotlin#-installing-the-latest-kotlin-plugin) build, and using the associated Gradle plug-in and standard library from the [Kotlin development repository](https://bintray.com/kotlin/kotlin-dev/kotlin):
     * Lots of errors in the source files of modules depending on a multi-platform module.
