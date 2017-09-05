@@ -11,7 +11,7 @@ internal val logger = Logger.getAnonymousLogger()
 // Constants
 val ERROR_MESSAGE = "Sorry, I am unable to process your request."
 val API_ERROR_MESSAGE_PREFIX = "Action Error: "
-val CONVERSATION_API_VERSION_HEADER = "Google-Assistant-API-Version"
+val CONVERSATION_API_VERSION_HEADER = "google-assistant-api-version"
 val ACTIONS_CONVERSATION_API_VERSION_HEADER = "Google-Actions-API-Version"
 val ACTIONS_CONVERSATION_API_VERSION_TWO = 2
 val RESPONSE_CODE_OK = 200
@@ -242,6 +242,8 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
             if (request.headers[ACTIONS_CONVERSATION_API_VERSION_HEADER] != null) {
                 actionsApiVersion = request.headers[ACTIONS_CONVERSATION_API_VERSION_HEADER] ?: "2"
                 debug("Actions API version from header: " + this.actionsApiVersion)
+            } else if (request.headers[CONVERSATION_API_VERSION_HEADER] != null){
+                actionsApiVersion = if (request.headers[CONVERSATION_API_VERSION_HEADER] == "v1") "1" else "2"
             }
             if (request.body is ApiAiRequest) {
                 if (request.body.originalRequest != null) {

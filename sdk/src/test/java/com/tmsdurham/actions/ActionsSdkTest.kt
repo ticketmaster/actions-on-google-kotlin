@@ -32,7 +32,7 @@ object ActionsSdkTest : Spek({
     },
         "inputs": [
         {
-            "intent": "assistant.intent.action.MAIN",
+            "intent": "actions.intent.MAIN",
             "rawInputs": [
             {
                 "inputType": 2,
@@ -98,7 +98,7 @@ object ActionsSdkTest : Spek({
             },
                 "inputs": [
                 {
-                    "intent": "assistant.intent.action.MAIN",
+                    "intent": "actions.intent.MAIN",
                     "rawInputs": [
                     {
                         "inputType": 2,
@@ -118,24 +118,24 @@ object ActionsSdkTest : Spek({
 */
         // Test a change made for backwards compatibility with legacy sample code
         it("Does initialize StandardIntents without an options object") {
-            val app = ActionsSdkApp(RequestWrapper(headerV1, createLiveSessionActionsSdkAppBody()), mockResponse, serializer = serializer)
+            val app = ActionsSdkApp(RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody()), mockResponse, serializer = serializer)
 
-            expect(app.STANDARD_INTENTS.MAIN).to.equal("assistant.intent.action.MAIN")
-            expect(app.STANDARD_INTENTS.TEXT).to.equal("assistant.intent.action.TEXT")
+            expect(app.STANDARD_INTENTS.MAIN).to.equal("actions.intent.MAIN")
+            expect(app.STANDARD_INTENTS.TEXT).to.equal("actions.intent.TEXT")
             expect(app.STANDARD_INTENTS.PERMISSION).to
-                    .equal("assistant.intent.action.PERMISSION")
+                    .equal("actions.intent.PERMISSION")
         }
     }
     /**
      * Describes the behavior for ActionsSdkApp ask method.
      */
     describe("ActionsSdkApp#ask") {
-        var mockRequest = RequestWrapper(headerV1, createLiveSessionActionsSdkAppBody())
+        var mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
         var mockResponse = ResponseWrapper<ActionResponse>()
         var app = ActionsSdkApp(mockRequest, mockResponse, serializer = serializer)
 
         beforeEachTest {
-            mockRequest = RequestWrapper(headerV1, createLiveSessionActionsSdkAppBody())
+            mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
             mockResponse = ResponseWrapper<ActionResponse>()
             debug("before test: ${mockResponse}")
             app = ActionsSdkApp(
@@ -178,7 +178,7 @@ object ActionsSdkTest : Spek({
                 },
                     "possibleIntents": [
                     {
-                        "intent": "assistant.intent.action.TEXT"
+                        "intent": "actions.intent.TEXT"
                     }
                     ]
                 }
@@ -206,7 +206,7 @@ object ActionsSdkTest : Spek({
                 },
                     "possibleIntents": [
                     {
-                        "intent": "assistant.intent.action.TEXT"
+                        "intent": "actions.intent.TEXT"
                     }
                     ]
                 }
@@ -235,7 +235,7 @@ object ActionsSdkTest : Spek({
                 },
                     "possibleIntents": [
                     {
-                        "intent": "assistant.intent.action.TEXT"
+                        "intent": "actions.intent.TEXT"
                     }
                     ]
                 }
@@ -274,7 +274,7 @@ object ActionsSdkTest : Spek({
             },
                 "possibleIntents": [
                 {
-                    "intent": "assistant.intent.action.TEXT"
+                    "intent": "actions.intent.TEXT"
                 }
                 ]
             }
@@ -309,7 +309,7 @@ object ActionsSdkTest : Spek({
                 },
                     "possibleIntents": [
                     {
-                        "intent": "assistant.intent.action.TEXT"
+                        "intent": "actions.intent.TEXT"
                     }
                     ]
                 }
@@ -352,7 +352,7 @@ object ActionsSdkTest : Spek({
                 },
                     "possibleIntents": [
                     {
-                        "intent": "assistant.intent.action.TEXT"
+                        "intent": "actions.intent.TEXT"
                     }
                     ]
                 }
@@ -367,12 +367,12 @@ object ActionsSdkTest : Spek({
      * Describes the behavior for ActionsSdkApp tell method.
      */
     describe("ActionsSdkApp#tell") {
-        var mockRequest = RequestWrapper(headerV1, createLiveSessionActionsSdkAppBody())
+        var mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
         var mockResponse = ResponseWrapper<ActionResponse>()
         var app = ActionsSdkApp(mockRequest, mockResponse, serializer = serializer)
 
         beforeEachTest {
-            mockRequest = RequestWrapper(headerV1, createLiveSessionActionsSdkAppBody())
+            mockRequest = RequestWrapper(headerV2, createLiveSessionActionsSdkAppBody())
             mockResponse = ResponseWrapper<ActionResponse>()
             debug("before test: ${mockResponse}")
             app = ActionsSdkApp(
@@ -478,7 +478,7 @@ object ActionsSdkTest : Spek({
                 "query": "bye"
             }
             """, RawInput::class.java))
-            val mockRequest = RequestWrapper(headerV1, body)
+            val mockRequest = RequestWrapper(headerV2, body)
             val mockResponse = ResponseWrapper<ActionResponse>()
             val app = ActionsSdkApp(
                     request = mockRequest,
@@ -1326,7 +1326,7 @@ object ActionsSdkTest : Spek({
         var body = ActionRequest()
 
         fun initMockApp() {
-            mockRequest = RequestWrapper(headerV1, body)
+            mockRequest = RequestWrapper(headerV2, body)
             mockResponse = ResponseWrapper<ActionResponse>()
             app = ActionsSdkApp(
                     request = mockRequest,
@@ -1365,7 +1365,7 @@ object ActionsSdkTest : Spek({
         var app: ActionsSdkApp? = null
         var body = ActionRequest()
         fun initMockApp() {
-            mockRequest = RequestWrapper(headerV1, body)
+            mockRequest = RequestWrapper(headerV2, body)
             mockResponse = ResponseWrapper<ActionResponse>()
             app = ActionsSdkApp(
                     request = mockRequest,
@@ -1455,7 +1455,7 @@ object ActionsSdkTest : Spek({
 
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should validate assistant request delivery address") {
-            val mockRequest = RequestWrapper<ActionRequest>(headerV1, body)
+            val mockRequest = RequestWrapper<ActionRequest>(headerV2, body)
             val mockResponse = ResponseWrapper<ActionResponse>()
             val app = ActionsSdkApp(
                     request = mockRequest,
@@ -1483,7 +1483,7 @@ object ActionsSdkTest : Spek({
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should validate assistant request delivery address for txn decision") {
             body.inputs!![0].arguments!![0].name = "DELIVERY_ADDRESS_VALUE"
-            val mockRequest = RequestWrapper<ActionRequest>(headerV1, body)
+            val mockRequest = RequestWrapper<ActionRequest>(headerV2, body)
             val mockResponse = ResponseWrapper<ActionResponse>()
             val app = ActionsSdkApp(
                     request = mockRequest,
@@ -1511,7 +1511,7 @@ object ActionsSdkTest : Spek({
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should return null when user rejects") {
             body.inputs!![0].arguments!![0].extension?.userDecision = "REJECTED"
-            val mockRequest = RequestWrapper(headerV1, body)
+            val mockRequest = RequestWrapper(headerV2, body)
             val mockResponse = ResponseWrapper<ActionResponse>()
             val app = ActionsSdkApp(
                     request = mockRequest,
@@ -1753,7 +1753,7 @@ object ActionsSdkTest : Spek({
                 "city": "Anytown"
             }
             }""", Device::class.java)
-            val mockRequest = RequestWrapper(headerV1, body)
+            val mockRequest = RequestWrapper(headerV2, body)
             val mockResponse = ResponseWrapper<ActionResponse>()
             val app = ActionsSdkApp(
                     request = mockRequest,
@@ -1774,7 +1774,7 @@ object ActionsSdkTest : Spek({
             // Test the false case
             val body = createLiveSessionActionsSdkAppBody()
             body.device = null
-            val mockRequest = RequestWrapper(headerV1, body)
+            val mockRequest = RequestWrapper(headerV2, body)
             val mockResponse = ResponseWrapper<ActionResponse>()
             val app = ActionsSdkApp(
                     request = mockRequest,
@@ -1818,7 +1818,7 @@ object ActionsSdkTest : Spek({
             "name": "permission_granted",
             "text_value": "false"
         }""", Arguments::class.java))
-            val mockRequest = RequestWrapper(headerV1, body)
+            val mockRequest = RequestWrapper(headerV2, body)
             val mockResponse = ResponseWrapper<ActionResponse>()
             val app = ActionsSdkApp(
                     request = mockRequest,
@@ -1877,7 +1877,7 @@ object ActionsSdkTest : Spek({
             }
             ]
         }""", Surface::class.java)
-            val mockRequest = RequestWrapper(headerV1, body)
+            val mockRequest = RequestWrapper(headerV2, body)
             val mockResponse = ResponseWrapper<ActionResponse>()
 
             val app = ActionsSdkApp(
@@ -1912,7 +1912,7 @@ object ActionsSdkTest : Spek({
                 ]
             }""", Surface::class.java)
 
-            val mockRequest = RequestWrapper(headerV1, body)
+            val mockRequest = RequestWrapper(headerV2, body)
             val mockResponse = ResponseWrapper<ActionResponse>()
             val app = ActionsSdkApp(
                     request = mockRequest,
@@ -1933,7 +1933,7 @@ object ActionsSdkTest : Spek({
     describe("ActionsSdkApp#getInputType") {
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should return valid input type from incoming JSON for the success case.") {
-            val KEYBOARD = 3
+            val KEYBOARD = "KEYBOARD"
             val body = createLiveSessionActionsSdkAppBody()
             body.inputs!![0].rawInputs = mutableListOf(gson.fromJson("""
             {
@@ -1941,7 +1941,7 @@ object ActionsSdkTest : Spek({
                 "query": "talk to action snippets"
             }""", RawInput::class.java))
 
-            val mockRequest = RequestWrapper(headerV1, body)
+            val mockRequest = RequestWrapper(headerV2, body)
             val mockResponse = ResponseWrapper<ActionResponse>()
 
             val app = ActionsSdkApp(
@@ -1970,7 +1970,7 @@ object ActionsSdkTest : Spek({
                     request = mockRequest,
                     response = mockResponse,
                     serializer = serializer)
-            expect(app.getApiVersion()).to.equal("v1")
+            expect(app.getApiVersion()).to.equal("1")
         }
     }
 
@@ -1982,7 +1982,7 @@ object ActionsSdkTest : Spek({
         it("Should validate assistant dialog state info.") {
             val body = createLiveSessionActionsSdkAppBody()
             body.conversation?.conversationToken = gson.toJson(mutableMapOf("started" to true))
-            val mockRequest = RequestWrapper(headerV1, body)
+            val mockRequest = RequestWrapper(headerV2, body)
             val mockResponse = ResponseWrapper<ActionResponse>()
             val app = ActionsSdkApp(
                     request = mockRequest,
@@ -2019,7 +2019,7 @@ object ActionsSdkTest : Spek({
         it("Should validate assistant conversation ID.") {
             val body = createLiveSessionActionsSdkAppBody()
             body.conversation?.conversationId = fakeConversationId
-            val mockRequest = RequestWrapper(headerV1, body)
+            val mockRequest = RequestWrapper(headerV2, body)
             val mockResponse = ResponseWrapper<ActionResponse>()
             val app = ActionsSdkApp(
                     request = mockRequest,
@@ -2052,7 +2052,7 @@ object ActionsSdkTest : Spek({
             }
             }]
             """, type)
-            val mockRequest = RequestWrapper(headerV1, body)
+            val mockRequest = RequestWrapper(headerV2, body)
             val mockResponse = ResponseWrapper<ActionResponse>()
             val app = ActionsSdkApp(
                     request = mockRequest,
@@ -2104,7 +2104,7 @@ object ActionsSdkTest : Spek({
             "text_value": "first_item"
         }""", Arguments::class.java))
 
-            val mockRequest = RequestWrapper(headerV1, body)
+            val mockRequest = RequestWrapper(headerV2, body)
             val mockResponse = ResponseWrapper<ActionResponse>()
             val app = ActionsSdkApp(
                     request = mockRequest,
@@ -2128,7 +2128,7 @@ object ActionsSdkTest : Spek({
             "query": "45"
         }""", RawInput::class.java))
 
-                val mockRequest = RequestWrapper(headerV1, body)
+                val mockRequest = RequestWrapper(headerV2, body)
                 val mockResponse = ResponseWrapper<ActionResponse>()
                 val app = ActionsSdkApp(
                         request = mockRequest,
