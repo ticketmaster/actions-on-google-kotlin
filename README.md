@@ -33,7 +33,7 @@ __Maven:__
     <dependency>
   		<groupId>com.tmsdurham.actions</groupId>
   		<artifactId>actions-on-google</artifactId>
-  		<version>1.2.1</version>
+  		<version>1.2.7</version>
   		<type>pom</type>
     </dependency>
 
@@ -128,6 +128,20 @@ __Maven:__
        	 	 action.handleRequest(intentMap);
     	}
     }
+
+
+## Extending to other Platforms
+API.AI can be integrated with other platforms, such as Facebook Messenger, Slack, etc.  Actions-on-Goolge-kotlin can be extended and data for those platforms returned from your webhook.  To do this, simply add to the data for your platform using the app.data function.  This must be done before calling the ask function.
+
+
+    val app = ApiAiAction(resp, req, gson)
+    val facebookResponse = //build response with your choice of method
+    app.data {
+    	this["facebook"] = facebookMessages
+    }
+    app.ask("Hello facebook users!")
+    
+The objects in the data object will be passed to the original platform.  It may also be used to send custom data back in the response to the /query rest endpoint.  More info on this is in the API.AI docs.
 
 ## License
 See [LICENSE.md.](https://github.com/TicketmasterMobileStudio/actions-on-google-kotlin/blob/master/LICENSE)
