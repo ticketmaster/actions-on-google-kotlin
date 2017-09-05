@@ -36,6 +36,7 @@ bintray {
             released = new Date()
         }
     }
+    override = true
 
 }
 

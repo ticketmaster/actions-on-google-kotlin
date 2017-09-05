@@ -7,7 +7,8 @@ data class ActionRequest(val conversation: Conversation? = null,
                          var user: User? = null,
                          var device: Device? = null,
                          var isInSandbox: Boolean? = null,
-                         var surface: Surface? = null)
+                         var surface: Surface? = null,
+                         val sender: Sender? = null)
 
 data class Conversation(var type: String? = null,
                         var conversationToken: String? = null,
@@ -18,3 +19,5 @@ data class Input(var textValue: String? = null,
                  var intent: String? = null,
                  var arguments: MutableList<Arguments>? = null,
                  var rawInputs: MutableList<RawInput>? = null)
+
+data class Sender(val id: String? = null)

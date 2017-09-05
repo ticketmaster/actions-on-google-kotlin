@@ -3,8 +3,7 @@ package com.ticketmaster.apiai
 import com.ticketmaster.apiai.google.GoogleData
 import com.tmsdurham.actions.*
 import com.tmsdurham.actions.actions.ActionRequest
-import com.tmsdurham.actions.actions.Conversation
-import com.tmsdurham.actions.actions.Input
+import com.tmsdurham.actions.actions.Sender
 
 fun apiAiRequest(init: ApiAiRequest.() -> Unit): ApiAiRequest {
     val request = ApiAiRequest()
@@ -29,8 +28,6 @@ data class ApiAiRequest(
         originalRequest!!.init()
     }
 }
-
-fun request(f: ApiAiRequest.() -> Unit): ApiAiRequest.() -> Unit = f
 
 data class Metadata(
         val intentId: String? = null,
@@ -119,15 +116,6 @@ data class OriginalRequest(
         var sender: Sender? = null,
         var version: String? = null)
 
-data class OriginalRequestData(
-        var conversation: Conversation? = null,
-        var user: User? = null,
-        var device: Device? = null,
-        var surface: Surface? = null,
-        var sender: Sender? = null,
-        var inputs: MutableList<Input>? = null,
-        var isInSandbox: Boolean? = null)
-
 data class Device(val location: DeviceLocation? = null)
 
 data class DeviceLocation(var coordinates: Coordinates? = null, var formattedAddress: String? = null,
@@ -136,8 +124,6 @@ data class DeviceLocation(var coordinates: Coordinates? = null, var formattedAdd
 
 data class Coordinates(val latitude: Double? = null, val longitude: Double? = null)
 
-
-data class Sender(val id: String? = null)
 
 data class User(
         var userId: String = "",
@@ -189,12 +175,4 @@ data class TransactionRequirementsCheckResult(
         var location: Location? = null,
         val order: FinalOrderHolder? = null)
 
-
 data class RawInput(val query: String? = null, val inputType: String? = null)
-
-//data class Inputs(
-//        var arguments: List<Arguments>? = null,
-//        val intent: String? = null,
-//        var speech: String? = null,
-//        val rawInputs: List<RawInput>? = null)
-
