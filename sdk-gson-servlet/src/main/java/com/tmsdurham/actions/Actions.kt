@@ -37,6 +37,8 @@ class ApiAiAction(req: HttpServletRequest,
             }
             beforeSending?.invoke(this.body ?: ApiAiResponse())
             debug(bodyStr)
+            resp.contentType = "application/json"
+            resp.characterEncoding = "UTF-8"
             resp.writer.write(bodyStr)
         }))
     }
@@ -60,7 +62,7 @@ class ActionsSdkAction(req: HttpServletRequest,
                        val gson: Gson = GsonBuilder()
                                .registerTypeAdapter(OrderUpdate::class.java, OrderUpdateTypeAdapter(Gson()))
                                .create(),
-                       val beforeSending: ((ActionResponse) -> Unit)?) {
+                       val beforeSending: ((ActionResponse) -> Unit)? = null) {
     val app: ActionsSdkApp
 
     init {
@@ -76,6 +78,8 @@ class ActionsSdkAction(req: HttpServletRequest,
             }
             beforeSending?.invoke(this.body ?: ActionResponse())
             debug(bodyStr)
+            resp.contentType = "application/json"
+            resp.characterEncoding = "UTF-8"
             resp.writer.write(bodyStr)
         }), serializer = object : Serializer {
             override fun <T> serialize(obj: T) = gson.toJson(obj)
