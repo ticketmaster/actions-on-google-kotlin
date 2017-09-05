@@ -11,7 +11,7 @@ internal val logger = Logger.getAnonymousLogger()
 // Constants
 val ERROR_MESSAGE = "Sorry, I am unable to process your request."
 val API_ERROR_MESSAGE_PREFIX = "Action Error: "
-val CONVERSATION_API_VERSION_HEADER = "Google-Assistant-API-Version"
+val CONVERSATION_API_VERSION_HEADER = "google-assistant-api-version"
 val ACTIONS_CONVERSATION_API_VERSION_HEADER = "Google-Actions-API-Version"
 val ACTIONS_CONVERSATION_API_VERSION_TWO = 2
 val RESPONSE_CODE_OK = 200
@@ -242,6 +242,8 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
             if (request.headers[ACTIONS_CONVERSATION_API_VERSION_HEADER] != null) {
                 actionsApiVersion = request.headers[ACTIONS_CONVERSATION_API_VERSION_HEADER] ?: "2"
                 debug("Actions API version from header: " + this.actionsApiVersion)
+            } else if (request.headers[CONVERSATION_API_VERSION_HEADER] != null){
+                actionsApiVersion = if (request.headers[CONVERSATION_API_VERSION_HEADER] == "v1") "1" else "2"
             }
             if (request.body is ApiAiRequest) {
                 if (request.body.originalRequest != null) {
@@ -499,9 +501,9 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     }
 
 
-    abstract fun fulfillSignInRequest(dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
-    abstract fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
-    abstract fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
+    internal abstract fun fulfillSignInRequest(dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
+    internal abstract fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
+    internal abstract fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
 
     data class ConfirmationValueSpec(var dialogSpec: DialogSpec? = null)
 
@@ -643,8 +645,8 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     data class TransactionRequirementsCheckSpec(var orderOptions: GoogleData.OrderOptions? = null,
                                                 var paymentOptions: GoogleData.PaymentOptions? = null)
 
-    abstract fun fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: TransactionRequirementsCheckSpec, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>?
-    abstract fun fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>?
+    internal abstract fun fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: TransactionRequirementsCheckSpec, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>?
+    internal abstract fun fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>?
 
 
     fun doResponse(response: ResponseWrapper<S>?, responseCode: Int = 0): ResponseWrapper<S>? {
@@ -1068,8 +1070,12 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     fun isPermissionGranted() = requestExtractor.isPermissionGranted()
 }
 
+var debugFunction: ((String) -> Unit) = {
+    logger.info(it)
+}
+
 fun debug(msg: String) {
-    logger.info(msg)
+    debugFunction(msg)
 }
 
 fun error(msg: String) {

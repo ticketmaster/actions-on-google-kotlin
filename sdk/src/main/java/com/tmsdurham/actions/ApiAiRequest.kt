@@ -116,6 +116,7 @@ data class Context(
 data class OriginalRequest(
         var source: String? = null,
         var data: ActionRequest? = null,
+        var sender: Sender? = null,
         var version: String? = null)
 
 data class OriginalRequestData(

@@ -386,12 +386,12 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * *
      * @apiai
      */
-    fun getSelectedOption(): Any? {
+    fun getSelectedOption(): String? {
         debug("getSelectedOption")
         if (getContextArgument(SELECT_EVENT, BUILT_IN_ARG_NAMES.OPTION)?.value != null) {
-            return getContextArgument(SELECT_EVENT, BUILT_IN_ARG_NAMES.OPTION)?.value
+            return getContextArgument(SELECT_EVENT, BUILT_IN_ARG_NAMES.OPTION)?.value as String?
         } else if (getArgument(BUILT_IN_ARG_NAMES.OPTION) != null) {
-            return getArgument(BUILT_IN_ARG_NAMES.OPTION)
+            return getArgument(BUILT_IN_ARG_NAMES.OPTION) as String?
         }
         debug("Failed to get selected option")
         return null

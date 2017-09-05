@@ -1098,7 +1098,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
             var carouselSelect: Carousel? = null,
             var optContext: String? = null,
             var permissions: MutableList<String>? = null,
-            var expectUserResponse: Boolean? = null)
+            var expectUserResponse: Boolean = false)
 
 }
 
