@@ -3,8 +3,10 @@ package main.java.com.tmsdurham.apiai.sample
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.ticketmaster.apiai.ApiAiRequest
+import com.ticketmaster.apiai.ApiAiResponse
 import com.tmsdurham.actions.*
 import com.tmsdurham.actions.actions.ActionRequest
+import com.tmsdurham.actions.actions.ActionResponse
 import java.util.logging.Logger
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -14,7 +16,10 @@ import javax.servlet.http.HttpServletResponse
  * Gson & Servlet Action for Api.Ai
  * Intentionally not in sdk module so gson & servlet are not a dependency of the SDK.
  */
-class ApiAiAction(req: HttpServletRequest, resp: HttpServletResponse, val gson: Gson = Gson()) {
+class ApiAiAction(req: HttpServletRequest,
+                  resp: HttpServletResponse,
+                  val gson: Gson,
+                  val beforeSending: ((ApiAiResponse) -> Unit)? = null) {
     val app: ApiAiApp
 
     //needed for 2 arg constructor from Java
@@ -30,7 +35,8 @@ class ApiAiAction(req: HttpServletRequest, resp: HttpServletResponse, val gson: 
             headers.forEach {
                 resp.addHeader(it.key, it.value)
             }
-            Logger.getAnonymousLogger().info(bodyStr)
+            beforeSending?.invoke(this.body ?: ApiAiResponse())
+            debug(bodyStr)
             resp.writer.write(bodyStr)
         }))
     }
@@ -53,7 +59,8 @@ class ActionsSdkAction(req: HttpServletRequest,
                        resp: HttpServletResponse,
                        val gson: Gson = GsonBuilder()
                                .registerTypeAdapter(OrderUpdate::class.java, OrderUpdateTypeAdapter(Gson()))
-                               .create()) {
+                               .create(),
+                       val beforeSending: ((ActionResponse) -> Unit)?) {
     val app: ActionsSdkApp
 
     init {
@@ -67,7 +74,8 @@ class ActionsSdkAction(req: HttpServletRequest,
             headers.forEach {
                 resp.addHeader(it.key, it.value)
             }
-            Logger.getAnonymousLogger().info(bodyStr)
+            beforeSending?.invoke(this.body ?: ActionResponse())
+            debug(bodyStr)
             resp.writer.write(bodyStr)
         }), serializer = object : Serializer {
             override fun <T> serialize(obj: T) = gson.toJson(obj)

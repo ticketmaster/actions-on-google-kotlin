@@ -499,9 +499,9 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     }
 
 
-    abstract fun fulfillSignInRequest(dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
-    abstract fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
-    abstract fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
+    internal abstract fun fulfillSignInRequest(dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
+    internal abstract fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
+    internal abstract fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
 
     data class ConfirmationValueSpec(var dialogSpec: DialogSpec? = null)
 
@@ -643,8 +643,8 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     data class TransactionRequirementsCheckSpec(var orderOptions: GoogleData.OrderOptions? = null,
                                                 var paymentOptions: GoogleData.PaymentOptions? = null)
 
-    abstract fun fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: TransactionRequirementsCheckSpec, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>?
-    abstract fun fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>?
+    internal abstract fun fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: TransactionRequirementsCheckSpec, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>?
+    internal abstract fun fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>?
 
 
     fun doResponse(response: ResponseWrapper<S>?, responseCode: Int = 0): ResponseWrapper<S>? {
@@ -1068,8 +1068,12 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     fun isPermissionGranted() = requestExtractor.isPermissionGranted()
 }
 
+var debugFunction: ((String) -> Unit) = {
+    logger.info(it)
+}
+
 fun debug(msg: String) {
-    logger.info(msg)
+    debugFunction(msg)
 }
 
 fun error(msg: String) {

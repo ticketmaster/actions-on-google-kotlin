@@ -667,7 +667,8 @@ data class Order(val id: String) {
 
     data class Extension(val `@type`: String, var locations: MutableList<LocationInfo>? = null, var time: Time? = null)
     data class LocationInfo(var type: String? = null, var location: Location)
-    data class Location(val postalAddress: PostalAddress? = null)
+    data class Location(val name: String? = null,
+            val postalAddress: PostalAddress? = null)
 
 
     data class PostalAddress(var regionCode: String? = null,
