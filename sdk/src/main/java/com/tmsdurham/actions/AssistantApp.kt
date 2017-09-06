@@ -1070,15 +1070,20 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     fun isPermissionGranted() = requestExtractor.isPermissionGranted()
 }
 
-var debugFunction: ((String) -> Unit) = {
+/**
+ * reference to Functions that will be called for logging and errors.
+ */
+val defaultLogFunction: ((String) -> Unit)? = {
     logger.info(it)
 }
+var debugFunction: ((String) -> Unit)? = null
+var errorFunction: ((String) -> Unit)? = defaultLogFunction
 
 fun debug(msg: String) {
-    debugFunction(msg)
+    debugFunction?.invoke(msg)
 }
 
 fun error(msg: String) {
-    logger.warning(msg)
+    errorFunction?.invoke(msg)
 }
 
