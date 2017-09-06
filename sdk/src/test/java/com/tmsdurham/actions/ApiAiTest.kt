@@ -19,7 +19,6 @@ val gson = GsonBuilder()
         .registerTypeAdapter(OrderUpdate::class.java, OrderUpdateTypeAdapter(Gson()))
         .create()
 
-typealias MockHandler = Handler<ApiAiRequest, ApiAiResponse>
 
 val headerV1 = mapOf(
         "Content-Type" to "application/json",
@@ -40,6 +39,8 @@ const val fakeConversationId = "0123456789"
 
 object ActionsTest : Spek({
 
+    debugFunction = defaultLogFunction
+    
     fun requestFromJson(body: String) = gson.fromJson<ApiAiRequest>(body, ApiAiRequest::class.java)
 
     fun responseFromJson(body: String) = gson.fromJson<ApiAiResponse>(body, ApiAiResponse::class.java)
