@@ -1230,12 +1230,19 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
             handleError("Invalid text to speech")
             return null
         }
-        if (richResponse.items.first().simpleResponse == null || richResponse.items.first().simpleResponse?.textToSpeech.isNullOrBlank()) {
+        if (richResponse.items.first().simpleResponse == null) {
             handleError("Invalid RichResponse. First item must be SimpleResponse")
             return null
         }
 
-        val speech = richResponse.items.first().simpleResponse?.textToSpeech!!
+        var speech: String = ""
+        with(richResponse.items.first().simpleResponse) {
+            if (this?.displayText == null && this?.ssml == null) {
+                handleError("Invalid RichResponse.  Speech must be non null when adding SimpleResponse.")
+                return null
+            }
+            speech = this.textToSpeech ?: this.ssml!!
+        }
         var noInputsFinal = mutableListOf<GoogleData.NoInputPrompts>()
         val dialogState = mutableMapOf<String, Any?>(
                 "state" to state, //TODO (this.state instanceof State ? this.state.getName() : this.state),
