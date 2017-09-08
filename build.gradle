@@ -24,7 +24,7 @@ buildscript {
 }
 
 ext {
-    nodeVersion = '6.11.2'
+    nodeVersion = '6.11.3'
     qunitjsVersion = '2.4.0'
     libraries = [
             junit: "junit:junit:4.12",
