@@ -530,7 +530,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * }
      *
      * fun txnReqCheck (app) {
-     *   if (app.getTransactionRequirementsResult() === app.Transactions.ResultType.OK) {
+     *   if (app.getTransactionRequirementsResult() == app.Transactions.ResultType.OK) {
      *     // continue cart building flow
      *   } else {
      *     // don"t continue cart building
