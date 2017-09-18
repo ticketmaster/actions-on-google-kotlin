@@ -171,7 +171,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      *
      * function numberIntent (app) {
      *   const number = app.getContextArgument(OUT_CONTEXT, NUMBER_ARG);
-     *   // number === { value: 42 }
+     *   // number == { value: 42 }
      *   app.tell("Your number is  " + number.value);
      * }
      *
@@ -201,7 +201,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
             return null
         }
         request.body.result.contexts.forEach {
-            if (it.name === contextName) {
+            if (it.name == contextName) {
                 if (it.parameters != null) {
                     val argument = ContextArgument(value = it.parameters!![argName])
                     if (it.parameters!![argName + ORIGINAL_SUFFIX] != null) {
@@ -501,7 +501,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * }
      *
      * function optionIntent (app) {
-     *   if (app.getSelectedOption() === SELECTION_KEY_ONE) {
+     *   if (app.getSelectedOption() == SELECTION_KEY_ONE) {
      *     app.tell("Number one is a great choice!");
      *   } else {
      *     app.tell("Number two is a great choice!");
@@ -585,7 +585,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * }
      *
      * function optionIntent (app) {
-     *   if (app.getSelectedOption() === SELECTION_KEY_ONE) {
+     *   if (app.getSelectedOption() == SELECTION_KEY_ONE) {
      *     app.tell("Number one is a great choice!");
      *   } else {
      *     app.tell("Number two is a great choice!");
@@ -871,7 +871,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      *
      * fun numberIntent (app: ApiAiApp) {
      *   val contexts = app.getContexts()
-     *   // contexts === [{
+     *   // contexts == [{
      *   //   name: "number",
      *   //   lifespan: 0,
      *   //   parameters: {
@@ -915,7 +915,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      *
      * fun numberIntent (app: ApiAiApp) {
      *   val context = app.getContext(CONTEXT_NUMBER)
-     *   // context === {
+     *   // context == {
      *   //   name: "number",
      *   //   lifespan: 0,
      *   //   parameters: {

@@ -285,7 +285,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * }
      *
      * fun rawInput (app: ActionSdkApp) {
-     *   if (app.getRawInput() === "bye") {
+     *   if (app.getRawInput() == "bye") {
      *     app.tell("Goodbye!")
      *   } else {
      *     val inputPrompt = app.buildInputPrompt(true, "<speak>You said, <say-as interpret-as="ordinal">" +
@@ -387,7 +387,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * }
      *
      * fun optionIntent (app: ActionSDKApp) {
-     *   if (app.getSelectedOption() === SELECTION_KEY_ONE) {
+     *   if (app.getSelectedOption() == SELECTION_KEY_ONE) {
      *     app.tell("Number one is a great choice!")
      *   } else {
      *     app.tell("Number two is a great choice!")
@@ -513,7 +513,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * }
      *
      * fun optionIntent (app: ActionSdk) {
-     *   if (app.getSelectedOption() === SELECTION_KEY_ONE) {
+     *   if (app.getSelectedOption() == SELECTION_KEY_ONE) {
      *     app.tell("Number one is a great choice!")
      *   } else {
      *     app.tell("Number two is a great choice!")
@@ -584,7 +584,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * }
      *
      * fun rawInput (app) {
-     *   if (app.getRawInput() === "bye") {
+     *   if (app.getRawInput() == "bye") {
      *     app.tell("Goodbye!")
      *   } else {
      *     val inputPrompt = app.buildInputPrompt(true, "<speak>You said, <say-as interpret-as="ordinal">" +
