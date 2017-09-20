@@ -1018,8 +1018,9 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
             return
         }
         // Don"t call other methods; just do directly
-        this.response.status(RESPONSE_CODE_BAD_REQUEST).send(API_ERROR_MESSAGE_PREFIX + text)
-        this.responded = true
+        //TODO revist if response should be sent on all errors - issue with context not set when from other platforms
+//        this.response.status(RESPONSE_CODE_BAD_REQUEST).send(API_ERROR_MESSAGE_PREFIX + text)
+//        this.responded = true
     }
 
     /**

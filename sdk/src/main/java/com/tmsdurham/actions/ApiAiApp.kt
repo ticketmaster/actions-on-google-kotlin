@@ -1237,7 +1237,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
 
         var speech: String = ""
         with(richResponse.items.first().simpleResponse) {
-            if (this?.displayText == null && this?.ssml == null) {
+            if (this?.textToSpeech == null && this?.ssml == null) {
                 handleError("Invalid RichResponse.  Speech must be non null when adding SimpleResponse.")
                 return null
             }
