@@ -33,8 +33,8 @@ combineJs {
             // The order is important. That's why the documented way with a reference to a source set using wildcards
             // is not used.
             "${buildDir}/classes/kotlin/main/min/kotlin.js", 
-            "${buildDir}/classes/kotlin/main/min/js_main.js", 
-            "${buildDir}/classes/kotlin/main/min/js-app_main.js"
+            "${buildDir}/classes/kotlin/main/min/kotlin-multiplatform-recipes-js.js", 
+            "${buildDir}/classes/kotlin/main/min/js-app.js"
     ]
     dest = file("${buildDir}/classes/kotlin/main/combined/${archivesBaseName}-combined.js")
 }
