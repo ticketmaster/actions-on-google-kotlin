@@ -362,7 +362,11 @@ open class TransactionValues {
         /**
          * Review.
          */
-        REVIEW
+        REVIEW,
+        /**
+         * Customer Service.
+         */
+        CUSTOMER_SERVICE
     }
 
     /**
