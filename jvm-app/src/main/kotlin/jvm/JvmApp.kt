@@ -13,23 +13,23 @@ import mp.printThis
 import mp.SubClassHeaderDelegatedTo
 
 fun main(arguments: Array<String>) {
-    expect("Common function")
+    header("Common function")
     println(commonFunction())
     
-    expect("Multi-platform function")
+    header("Multi-platform function")
     println(multiPlatformFunction())
 
     val canBeClosed = CanBeClosed()
 
-    expect("Common extension function on expected interface")
+    header("Common extension function on expected interface")
     canBeClosed.printThis()
     
-    expect("Common generic extension function on expected interface")
+    header("Common generic extension function on expected interface")
     canBeClosed.mpUse {
         println("Using it through 'mpUse': $it")
     }
 
-    expect("Extension function from the standard library on a type-aliased expected interface")
+    header("Extension function from the standard library on a type-aliased expected interface")
     canBeClosed.use {
         println("Using it through 'use': $it")
     }
@@ -37,10 +37,10 @@ fun main(arguments: Array<String>) {
     // Instantiation of a common class
     val commonClass = CommonClass()
 
-    expect("Common extension function on an instance of a common class")
+    header("Common extension function on an instance of a common class")
     commonClass.printThis()
 
-    expect("Common generic extension function on an instance of a common class")
+    header("Common generic extension function on an instance of a common class")
     commonClass.mpUse { cc ->
         // Instantiation of a common interface, and passing it to a function
         cc.execute(object : CommonInterface {
@@ -54,10 +54,10 @@ fun main(arguments: Array<String>) {
         })
     }
 
-    expect("Use of a common object, and common extension function on a common object")
+    header("Use of a common object, and common extension function on a common object")
     CommonObject.printThis()
 
-    expect("Common generic extension function on a common object")
+    header("Common generic extension function on a common object")
     CommonObject.mpUse { co ->
         co.execute(object : CommonInterface {
             override fun doIt() {
@@ -74,19 +74,19 @@ fun main(arguments: Array<String>) {
 
     val classWithMultiPlatformFunctionality = ClassWithMultiPlatformFunctionality()
 
-    expect("Invocation of a function defined by the expected class")
+    header("Invocation of a function defined by the expected class")
     classWithMultiPlatformFunctionality.commonFunctionality()
 
-    expect("Invocation of a function defined by the Java class implementation")
+    header("Invocation of a function defined by the Java class implementation")
     classWithMultiPlatformFunctionality.javaFunctionality()
 
-    expect("Invocation of a function on an instance of a common class that delegates to a multi-platform internal class")
+    header("Invocation of a function on an instance of a common class that delegates to a multi-platform internal class")
     CommonClassDelegatingToInternalClassHeader().execute()
 
     // Instantiation of a multi-platform sub class, that has a base class containing common code
     val subClassDelegatedTo = SubClassHeaderDelegatedTo()
 
-    expect("Invocation of a base class function that delegates to a multi-platform member function")
+    header("Invocation of a base class function that delegates to a multi-platform member function")
     subClassDelegatedTo.execute()
 }
 
@@ -98,7 +98,7 @@ class CanBeClosed : MpCloseable {
     override fun toString() = "I can be closed"
 }
 
-private fun expect(text: String) {
+private fun header(text: String) {
     println()
     println("##### $text #####")
 }
