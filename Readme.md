@@ -1,5 +1,7 @@
 # Recipes for Multi-Platform Kotlin Modules
 
+**IMPORTANT**: The code in this repository contains recipes for the latest stable version of Kotlin. Kotlin 1.2 has backwards incompatible syntax changes. Instead of using `header` and `impl`, you have to use [`expect` and `actual`](http://kotlinlang.org/docs/reference/multiplatform.html). Branch `syntax-1.2` contains these recipes using the new syntax. Aafter the release of 1.2, you will have to migrate any multi-platform code you write now.
+
 This project is a testbed for multi-platform Kotlin modules. It shows how you could implement modules that have code that is common for all platforms, and that may need platform-specific code for (some of) its types and functions.
 
 Note that you have to change settings in IntelliJ IDEA to be able to build the project and run the examples from your IDE. See the item about IntelliJ IDEA under *current issues* below.
