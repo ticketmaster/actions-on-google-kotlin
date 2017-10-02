@@ -1,5 +1,5 @@
 package mp
 
-impl interface MpCloseable {
-    impl fun close()
+actual interface MpCloseable {
+    actual fun close()
 }

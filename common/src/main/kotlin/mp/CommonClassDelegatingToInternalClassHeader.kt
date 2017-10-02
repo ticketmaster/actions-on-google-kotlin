@@ -1,7 +1,7 @@
 package mp
 
 /**
- * Shows the multi-platform implementation of a class by delegating to an instance of a header class. Properties:
+ * Shows the multi-platform implementation of a class by delegating to an instance of an expected class. Properties:
  *
  * * Keeps the class hierarchy shallow.
  * * Needs a platform-specific sub class for platform-specific members.
@@ -16,5 +16,5 @@ class CommonClassDelegatingToInternalClassHeader {
         multiPlatformCode.doIt()
     }
 
-    override fun toString() = "An instance of the common class delegating to an internal class header"
+    override fun toString() = "An instance of the common class delegating to an internal expected class"
 }

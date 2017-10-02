@@ -1,7 +1,7 @@
 package mp
 
-impl internal class InternalClassHeaderDelegatedTo impl constructor(private val owner: CommonClassDelegatingToInternalClassHeader) {
-    impl fun doIt() {
-        println("Internal class impl in JavaScript for: $owner")
+actual internal class InternalClassHeaderDelegatedTo actual constructor(private val owner: CommonClassDelegatingToInternalClassHeader) {
+    actual fun doIt() {
+        println("Internal actual class in JavaScript for: $owner")
     }
 }

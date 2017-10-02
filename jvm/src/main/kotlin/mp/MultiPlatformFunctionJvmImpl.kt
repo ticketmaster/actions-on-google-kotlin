@@ -1,3 +1,3 @@
 package mp
 
-impl fun multiPlatformFunction() = "This is the Java-specific implementation"
+actual fun multiPlatformFunction() = "This is the Java-specific implementation"

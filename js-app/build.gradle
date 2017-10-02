@@ -7,6 +7,9 @@ apply plugin: "com.eriwen.gradle.js"
 repositories {
     jcenter()
     mavenCentral()
+    maven {
+        url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2'
+    }
 }
 
 dependencies {

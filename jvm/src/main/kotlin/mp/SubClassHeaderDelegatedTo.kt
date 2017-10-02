@@ -1,7 +1,7 @@
 package mp
 
-impl class SubClassHeaderDelegatedTo : CommonClassDelegatingToSubClassHeader() {
-    impl override fun doIt() {
+actual class SubClassHeaderDelegatedTo : CommonClassDelegatingToSubClassHeader() {
+    actual override fun doIt() {
         println("Delegated to a Java sub class")
     }
 }
