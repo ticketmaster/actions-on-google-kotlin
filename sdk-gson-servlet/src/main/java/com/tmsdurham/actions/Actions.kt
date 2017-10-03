@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletResponse
 class ApiAiAction(req: HttpServletRequest,
                   resp: HttpServletResponse,
                   val gson: Gson,
-                  val beforeSending: ((ApiAiResponse) -> Unit)? = null) {
+                  val beforeSending: ((ApiAiResponse, String) -> Unit)? = null) {
     val app: ApiAiApp
 
     //needed for 2 arg constructor from Java
@@ -35,7 +35,7 @@ class ApiAiAction(req: HttpServletRequest,
             headers.forEach {
                 resp.addHeader(it.key, it.value)
             }
-            beforeSending?.invoke(this.body ?: ApiAiResponse())
+            beforeSending?.invoke(this.body ?: ApiAiResponse(), bodyStr)
             debug(bodyStr)
             resp.contentType = "application/json"
             resp.characterEncoding = "UTF-8"
@@ -62,7 +62,7 @@ class ActionsSdkAction(req: HttpServletRequest,
                        val gson: Gson = GsonBuilder()
                                .registerTypeAdapter(OrderUpdate::class.java, OrderUpdateTypeAdapter(Gson()))
                                .create(),
-                       val beforeSending: ((ActionResponse) -> Unit)? = null) {
+                       val beforeSending: ((ActionResponse, String) -> Unit)? = null) {
     val app: ActionsSdkApp
 
     init {
@@ -76,7 +76,7 @@ class ActionsSdkAction(req: HttpServletRequest,
             headers.forEach {
                 resp.addHeader(it.key, it.value)
             }
-            beforeSending?.invoke(this.body ?: ActionResponse())
+            beforeSending?.invoke(this.body ?: ActionResponse(), bodyStr)
             debug(bodyStr)
             resp.contentType = "application/json"
             resp.characterEncoding = "UTF-8"
