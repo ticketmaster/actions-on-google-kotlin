@@ -11,10 +11,9 @@ repositories {
 }
 
 dependencies {
-    implement project(':common')
+    expectedBy project(':common')
     compile libraries.kotlin_stdlib
-    testCompile libraries.junit
-    testCompile libraries.kotlin_test
+    testCompile libraries.kotlin_test_junit
 }
 
 task sourcesJar(type: Jar) {

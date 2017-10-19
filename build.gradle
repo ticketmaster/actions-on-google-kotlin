@@ -4,12 +4,12 @@ allprojects {
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '4.2'
+  gradleVersion = '4.2.1'
   distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
 }
 
 buildscript {
-    ext.kotlinVersion = '1.2.0-beta-31'
+    ext.kotlinVersion = '1.2.0-beta-88'
 
     repositories {
         jcenter()
@@ -34,8 +34,9 @@ ext {
             kotlin_stdlib: "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion",
             kotlin_stdlib_common: "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlinVersion",
             kotlin_stdlib_js: "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlinVersion",
-            kotlin_test: "org.jetbrains.kotlin:kotlin-test:$kotlinVersion",
+            kotlin_test_annotations_common: "org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlinVersion",
             kotlin_test_common: "org.jetbrains.kotlin:kotlin-test-common:$kotlinVersion",
             kotlin_test_js: "org.jetbrains.kotlin:kotlin-test-js:$kotlinVersion",
+            kotlin_test_junit: "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion",
     ]
 }

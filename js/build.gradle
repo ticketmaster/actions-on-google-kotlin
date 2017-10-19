@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    implement project(':common')
+    expectedBy project(':common')
     compile libraries.kotlin_stdlib_js
     testCompile libraries.kotlin_test_js
 }
