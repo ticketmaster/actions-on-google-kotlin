@@ -1,6 +1,6 @@
 # Recipes for Multi-Platform Kotlin Modules
 
-**IMPORTANT**: The code in this repository contains recipes for the latest stable version of Kotlin. Kotlin 1.2 has backwards incompatible syntax changes. Instead of using `header` and `impl`, you have to use [`expect` and `actual`](http://kotlinlang.org/docs/reference/multiplatform.html). Branch `syntax-1.2` contains these recipes using the new syntax. Aafter the release of 1.2, you will have to migrate any multi-platform code you write now.
+**IMPORTANT**: The code in this repository contains recipes for the latest stable version of Kotlin. Kotlin 1.2 has backwards incompatible syntax changes. Instead of using `header` and `impl`, you have to use [`expect` and `actual`](http://kotlinlang.org/docs/reference/multiplatform.html), and instead of `implement` for declaring dependencies on common projects in Gradle, you have to use [`expectedBy`](https://blog.jetbrains.com/kotlin/2017/10/kotlin-1-2-beta2-is-out/). Branch `syntax-1.2` contains these recipes using the new syntax. After the release of 1.2, you will have to migrate any multi-platform code you write now.
 
 This project is a testbed for multi-platform Kotlin modules. It shows how you could implement modules that have code that is common for all platforms, and that may need platform-specific code for (some of) its types and functions.
 
@@ -28,7 +28,7 @@ Not everything is working as it should as multi-platform support is still being 
 
         Or to run the JavaScript app:
   
-            ./gradlew :js-app:compileKotlin2js :js-app:unpackDependenciesKotlinJs
+            ./gradlew :js-app:runDceKotlinJs
 
         And open `js-app/JsApp.html`. The JavaScript has been mapped to the sources of the Kotlin standard library and module `js`, so you can set breakpoints in Kotlin code. If you want to use the minified JavaScript run:
   
