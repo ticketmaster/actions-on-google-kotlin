@@ -1,9 +1,9 @@
-package main.java.com.tmsdurham.apiai.sample
+package main.java.com.tmsdurham.dialogflow.sample
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.tmsdurham.apiai.ApiAiRequest
-import com.tmsdurham.apiai.ApiAiResponse
+import com.tmsdurham.dialogflow.DialogflowRequest
+import com.tmsdurham.dialogflow.DialogflowResponse
 import com.tmsdurham.actions.*
 import com.tmsdurham.actions.actions.ActionRequest
 import com.tmsdurham.actions.actions.ActionResponse
@@ -13,14 +13,14 @@ import javax.servlet.http.HttpServletResponse
 
 
 /**
- * Gson & Servlet Action for Api.Ai
+ * Gson & Servlet Action for Dialogflow
  * Intentionally not in sdk module so gson & servlet are not a dependency of the SDK.
  */
-class ApiAiAction(req: HttpServletRequest,
-                  resp: HttpServletResponse,
-                  val gson: Gson,
-                  val beforeSending: ((ApiAiResponse, String) -> Unit)? = null) {
-    val app: ApiAiApp
+class DialogflowAction(req: HttpServletRequest,
+                       resp: HttpServletResponse,
+                       val gson: Gson,
+                       val beforeSending: ((DialogflowResponse, String) -> Unit)? = null) {
+    val app: DialogflowApp
 
     //needed for 2 arg constructor from Java
     constructor(req: HttpServletRequest, resp: HttpServletResponse) : this(req, resp, Gson())
@@ -28,14 +28,14 @@ class ApiAiAction(req: HttpServletRequest,
     init {
         val jsonStr = convertStreamToString(req.inputStream)
         Logger.getAnonymousLogger().info(jsonStr)
-        val request = gson.fromJson<ApiAiRequest>(jsonStr, ApiAiRequest::class.java)
+        val request = gson.fromJson<DialogflowRequest>(jsonStr, DialogflowRequest::class.java)
         val headers = resp.headerNames.associate { it to resp.getHeader(it) }
-        app = ApiAiApp(RequestWrapper(body = request, headers = headers), ResponseWrapper(sendAction = {
+        app = DialogflowApp(RequestWrapper(body = request, headers = headers), ResponseWrapper(sendAction = {
             val bodyStr = gson.toJson(body)
             headers.forEach {
                 resp.addHeader(it.key, it.value)
             }
-            beforeSending?.invoke(this.body ?: ApiAiResponse(), bodyStr)
+            beforeSending?.invoke(this.body ?: DialogflowResponse(), bodyStr)
             debug(bodyStr)
             resp.contentType = "application/json"
             resp.characterEncoding = "UTF-8"

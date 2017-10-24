@@ -2,7 +2,7 @@ package com.tmsdurham.actions;
 
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
-import main.java.com.tmsdurham.apiai.sample.ApiAiAction;
+import main.java.com.tmsdurham.dialogflow.sample.DialogflowAction;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -26,11 +26,11 @@ public class ConversationComponentsSampleJava extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        ApiAiAction action = new ApiAiAction(req, resp);
+        DialogflowAction action = new DialogflowAction(req, resp);
         action.handleRequest(intentMap);
     }
 
-    Function1<ApiAiApp, Object> welcome = app -> {
+    Function1<DialogflowApp, Object> welcome = app -> {
         app.ask(app.buildRichResponse()
                 .addSimpleResponse("Hi there from Java!", "Hello there from Java!")
                 .addSimpleResponse(
@@ -40,17 +40,17 @@ public class ConversationComponentsSampleJava extends HttpServlet {
         return Unit.INSTANCE;
     };
 
-    Function1<ApiAiApp, Object> normalAsk = app ->
+    Function1<DialogflowApp, Object> normalAsk = app ->
             app.ask("Ask me to show you a list, carousel, or basic card");
 
-    Function1<ApiAiApp, Object> suggestions = app ->
+    Function1<DialogflowApp, Object> suggestions = app ->
             app.ask(app.buildRichResponse(null)
                     .addSimpleResponse("This is a simple response for suggestions", null)
                     .addSuggestions("Suggestion Chips")
                     .addSuggestions("Basic Card", "List", "Carousel")
                     .addSuggestionLink("Suggestion Link", "https://assistant.google.com/"));
 
-    Function1<ApiAiApp, Object> basicCard = app ->
+    Function1<DialogflowApp, Object> basicCard = app ->
             app.ask(app.buildRichResponse()
                     .addSimpleResponse("This is the first simple response for a basic card")
                     .addSuggestions(
@@ -72,7 +72,7 @@ public class ConversationComponentsSampleJava extends HttpServlet {
             );
 
 
-    Function1<ApiAiApp, Object> list = app ->
+    Function1<DialogflowApp, Object> list = app ->
             app.askWithList(app.buildRichResponse()
                             .addSimpleResponse("This is a simple response for a list")
                             .addSuggestions("Basic Card", "List", "Carousel", "Suggestions"),
@@ -109,7 +109,7 @@ public class ConversationComponentsSampleJava extends HttpServlet {
             );
 
     // Carousel
-    Function1<ApiAiApp, Object> carousel = app ->
+    Function1<DialogflowApp, Object> carousel = app ->
             app.askWithCarousel(app.buildRichResponse()
                             .addSimpleResponse("This is a simple response for a carousel")
                             .addSuggestions("Basic Card", "List", "Carousel", "Suggestions"),
@@ -146,7 +146,7 @@ public class ConversationComponentsSampleJava extends HttpServlet {
             );
 
     // React to list or carousel selection
-    Function1<ApiAiApp, Object> itemSelected = app -> {
+    Function1<DialogflowApp, Object> itemSelected = app -> {
         app.getIntent();
         Object param = app.getSelectedOption();
         logger.info("USER SELECTED: $param");
@@ -173,8 +173,8 @@ public class ConversationComponentsSampleJava extends HttpServlet {
         return Unit.INSTANCE;
     };
 
-    // Receive a rich response from API.AI and modify it
-    Function1<ApiAiApp, Object> cardBuilder = app ->
+    // Receive a rich response from Dialogflow and modify it
+    Function1<DialogflowApp, Object> cardBuilder = app ->
             app.ask(app.getIncomingRichResponse()
                     .addBasicCard(app.buildBasicCard("Actions on Google let you build for"
                             + "the Google Assistant.Reach users right when they need you.Users don’t"
@@ -187,15 +187,15 @@ public class ConversationComponentsSampleJava extends HttpServlet {
                                     + "L6uxdLBl=s1376", "Actions on Google")));
 
     // Leave conversation with card
-    Function1<ApiAiApp, Object> byeCard = app ->
+    Function1<DialogflowApp, Object> byeCard = app ->
             app.tell(app.buildRichResponse()
                     .addSimpleResponse("Goodbye, World!")
                     .addBasicCard(app.buildBasicCard("This is a goodbye card.")));
 
-    Function1<ApiAiApp, Object> byeResponse = app ->
+    Function1<DialogflowApp, Object> byeResponse = app ->
             app.tell("Okay see you later", "OK see you later!");
 
-    Function1<ApiAiApp, Object> normalBye = app -> app.tell("Okay see you later!");
+    Function1<DialogflowApp, Object> normalBye = app -> app.tell("Okay see you later!");
 
     private Map<String, Function1<String, Object>> intentMap = new HashMap() {{
         put(ConversationComponentsSampleKt.WELCOME, welcome);

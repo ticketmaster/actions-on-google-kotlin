@@ -1,6 +1,6 @@
 package com.tmsdurham.actions
 
-import com.tmsdurham.apiai.google.GoogleData
+import com.tmsdurham.dialogflow.google.GoogleData
 import com.tmsdurham.actions.actions.*
 
 
@@ -470,7 +470,7 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
      * @param {Object=} dialogState JSON object the app uses to hold dialog state that
      *     will be circulated back by Assistant.
      * @return {Object} HTTP response.
-     * @apiai
+     * @dialogflow
      */
     fun askForDeliveryAddress(reason: String, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<ActionResponse>? {
         debug("askForDeliveryAddress: reason=$reason")

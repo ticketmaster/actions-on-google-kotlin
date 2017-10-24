@@ -1,17 +1,17 @@
-package com.tmsdurham.apiai
+package com.tmsdurham.dialogflow
 
-import com.tmsdurham.apiai.google.GoogleData
+import com.tmsdurham.dialogflow.google.GoogleData
 import com.tmsdurham.actions.*
 import com.tmsdurham.actions.actions.ActionRequest
 import com.tmsdurham.actions.actions.Sender
 
-fun apiAiRequest(init: ApiAiRequest.() -> Unit): ApiAiRequest {
-    val request = ApiAiRequest()
+fun dialogflowRequest(init: DialogflowRequest.() -> Unit): DialogflowRequest {
+    val request = DialogflowRequest()
     request.init()
     return request
 }
 
-data class ApiAiRequest(
+data class DialogflowRequest(
         var id: String? = null,
         val timestamp: String? = null,
         val lang: String? = null,
@@ -36,7 +36,7 @@ data class Metadata(
         val intentName: String? = null)
 
 /**
- * Messages from ApiAi, such as Cards, simple response, etc, that are added in the console.
+ * Messages from Dialogflow, such as Cards, simple response, etc, that are added in the console.
  */
 data class Messages(
         var type: String = "",

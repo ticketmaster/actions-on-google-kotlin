@@ -6,7 +6,7 @@ import com.google.gson.reflect.TypeToken
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
-import com.tmsdurham.apiai.*
+import com.tmsdurham.dialogflow.*
 import com.tmsdurham.actions.actions.Input
 import com.winterbe.expekt.expect
 import org.jetbrains.spek.api.Spek
@@ -32,7 +32,7 @@ val headerV2 = mapOf(
 const val fakeTimeStamp = "2017-01-01T12:00:00"
 const val fakeSessionId = "0123456789101112"
 const val fakeIntentId = "1a2b3c4d-5e6f-7g8h-9i10-11j12k13l14m15n16o"
-const val fakeApiAiBodyRequestId = "1a2b3c4d-5e6f-7g8h-9i10-11j12k13l14m15n16o"
+const val fakeDialogflowBodyRequestId = "1a2b3c4d-5e6f-7g8h-9i10-11j12k13l14m15n16o"
 const val fakeUserId = "user123"
 const val fakeConversationId = "0123456789"
 
@@ -41,14 +41,14 @@ object ActionsTest : Spek({
 
     debugFunction = defaultLogFunction
     
-    fun requestFromJson(body: String) = gson.fromJson<ApiAiRequest>(body, ApiAiRequest::class.java)
+    fun requestFromJson(body: String) = gson.fromJson<DialogflowRequest>(body, DialogflowRequest::class.java)
 
-    fun responseFromJson(body: String) = gson.fromJson<ApiAiResponse>(body, ApiAiResponse::class.java)
+    fun responseFromJson(body: String) = gson.fromJson<DialogflowResponse>(body, DialogflowResponse::class.java)
 
 
-    // Body of the ApiAi request that starts a new session
+    // Body of the Dialogflow request that starts a new session
 // new session is originalRequest.data.conversation.type == 1
-    fun apiAiAppRequestBodyNewSession(): ApiAiRequest {
+    fun dialogflowAppRequestBodyNewSession(): DialogflowRequest {
 
         return requestFromJson("""{
         "lang": "en",
@@ -88,7 +88,7 @@ object ActionsTest : Spek({
         "webhookUsed": "true"
     }
     },
-        "id": fakeApiAiBodyRequestId,
+        "id": fakeDialogflowBodyRequestId,
         "originalRequest": {
         "source": "google",
         "data": {
@@ -124,8 +124,8 @@ object ActionsTest : Spek({
     }""")
     }
 
-    fun createLiveSessionApiAppBody(): ApiAiRequest {
-        var tmp = apiAiAppRequestBodyNewSession()
+    fun createLiveSessionApiAppBody(): DialogflowRequest {
+        var tmp = dialogflowAppRequestBodyNewSession()
         tmp.originalRequest?.data?.conversation?.type = "2"
         return tmp
     }
@@ -136,8 +136,8 @@ object ActionsTest : Spek({
     /**
      * Describes the behavior for Assistant isNotApiVersionOne_ method.
      */
-    describe("ApiAiApp#isNotApiVersionOne") {
-        var mockResponse = ResponseWrapper<ApiAiResponse>()
+    describe("DialogflowApp#isNotApiVersionOne") {
+        var mockResponse = ResponseWrapper<DialogflowResponse>()
 
         val invalidHeader = mapOf(
                 "Content-Type" to "application/json",
@@ -155,22 +155,22 @@ object ActionsTest : Spek({
 
 
         it("Should detect Proto2 when header is not present") {
-            val mockRequest = RequestWrapper(headerV1, ApiAiRequest())
+            val mockRequest = RequestWrapper(headerV1, DialogflowRequest())
 
-            val app = ApiAiApp(mockRequest, mockResponse)
+            val app = DialogflowApp(mockRequest, mockResponse)
 
             expect(app.isNotApiVersionOne()).to.equal(false)
         }
 
         it("Should detect v1 when header is present") {
-            val mockRequest = RequestWrapper(invalidHeader, ApiAiRequest())
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
-            val app = ApiAiApp(request = mockRequest, response = mockResponse)
+            val mockRequest = RequestWrapper(invalidHeader, DialogflowRequest())
+            val mockResponse = ResponseWrapper<DialogflowResponse>()
+            val app = DialogflowApp(request = mockRequest, response = mockResponse)
             expect(app.isNotApiVersionOne()).to.equal(false)
         }
 
-        it("Should detect v2 when version is present in APIAI req") {
-            val mockRequest = RequestWrapper(headerV1, apiAiRequest {
+        it("Should detect v2 when version is present in Dialogflow req") {
+            val mockRequest = RequestWrapper(headerV1, dialogflowRequest {
                 result {
                     originalRequest {
                         version = "1"
@@ -178,9 +178,9 @@ object ActionsTest : Spek({
                 }
             })
 
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
+            val mockResponse = ResponseWrapper<DialogflowResponse>()
 
-            val app = ApiAiApp(request = mockRequest, response = mockResponse)
+            val app = DialogflowApp(request = mockRequest, response = mockResponse)
 
             expect(app.isNotApiVersionOne()).to.equal(false)
         }
@@ -189,23 +189,23 @@ object ActionsTest : Spek({
             val headers = HashMap(headerV1)
             headers["Google-Actions-API-Version"] = "2"
 
-            val mockRequest = RequestWrapper(headers, ApiAiRequest())
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
+            val mockRequest = RequestWrapper(headers, DialogflowRequest())
+            val mockResponse = ResponseWrapper<DialogflowResponse>()
 
-            val app = ApiAiApp(request = mockRequest, response = mockResponse)
+            val app = DialogflowApp(request = mockRequest, response = mockResponse)
 
             expect(app.isNotApiVersionOne()).to.equal(true)
         }
 
-        it("Should detect v2 when version is present in APIAI req") {
-            val mockRequest = RequestWrapper(headerV1, apiAiRequest {
+        it("Should detect v2 when version is present in Dialogflow req") {
+            val mockRequest = RequestWrapper(headerV1, dialogflowRequest {
                 originalRequest {
                     version = "2"
                 }
             })
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
+            val mockResponse = ResponseWrapper<DialogflowResponse>()
 
-            val app = ApiAiApp(request = mockRequest, response = mockResponse)
+            val app = DialogflowApp(request = mockRequest, response = mockResponse)
 
             expect(app.isNotApiVersionOne()).to.equal(true)
         }
@@ -213,12 +213,12 @@ object ActionsTest : Spek({
         /**
          * Describes the behavior for AssistantApp isSsml_ method.
          */
-        describe("ApiAiApp#isSsml_") {
+        describe("DialogflowApp#isSsml_") {
             // Success case test, when the API returns a valid 200 response with the response object
             it("Should validate SSML syntax.") {
-                val mockRequest = RequestWrapper(headerV1, apiAiAppRequestBodyNewSession())
-                val mockResponse = ResponseWrapper<ApiAiResponse>()
-                val app = ApiAiApp(request = mockRequest, response = mockResponse)
+                val mockRequest = RequestWrapper(headerV1, dialogflowAppRequestBodyNewSession())
+                val mockResponse = ResponseWrapper<DialogflowResponse>()
+                val app = DialogflowApp(request = mockRequest, response = mockResponse)
                 expect(app.isSsml("""<speak></speak>""")).to.equal(true)
                 expect(app.isSsml("""<SPEAK></SPEAK>""")).to.equal(true)
                 expect(app.isSsml("""  <speak></speak>  """)).to.equal(false)
@@ -251,22 +251,22 @@ object ActionsTest : Spek({
     }
 
     // ---------------------------------------------------------------------------
-    //                   API.ai support
+    //                   Dialogflow support
     // ---------------------------------------------------------------------------
 
     /**
-     * Describes the behavior for ApiAiApp constructor method.
+     * Describes the behavior for DialogflowApp constructor method.
      */
-    describe("ApiAiApp#constructor") {
-        var mockResponse = ResponseWrapper<ApiAiResponse>()
+    describe("DialogflowApp#constructor") {
+        var mockResponse = ResponseWrapper<DialogflowResponse>()
 
         // Calls sessionStarted when provided
         it("Calls sessionStarted when new session") {
-            var mockRequest = RequestWrapper(headerV1, apiAiAppRequestBodyNewSession())
+            var mockRequest = RequestWrapper(headerV1, dialogflowAppRequestBodyNewSession())
 
             val sessionStartedSpy = mock<(() -> Unit)> {}
 
-            val app = ApiAiApp(
+            val app = DialogflowApp(
                     request = mockRequest,
                     response = mockResponse,
                     sessionStarted = sessionStartedSpy
@@ -281,11 +281,11 @@ object ActionsTest : Spek({
     // Does not call sessionStarted when not new sessoin
     it("Does not call sessionStarted when not new session") {
         val mockRequest = RequestWrapper(headerV1, createLiveSessionApiAppBody())
-        val mockResponse = ResponseWrapper<ApiAiResponse>()
+        val mockResponse = ResponseWrapper<DialogflowResponse>()
 
         val sessionStartedSpy = mock<(() -> Unit)> {}
 
-        val app = ApiAiApp(
+        val app = DialogflowApp(
                 request = mockRequest,
                 response = mockResponse,
                 sessionStarted = sessionStartedSpy
@@ -300,19 +300,19 @@ object ActionsTest : Spek({
     //TODO 2 tests
 
     /**
-     * Describes the behavior for ApiAiApp tell method.
+     * Describes the behavior for DialogflowApp tell method.
      */
-    describe("ApiAiApp#tell") {
-        var mockResponse = ResponseWrapper<ApiAiResponse>()
-        var body = ApiAiRequest()
-        var mockRequest = RequestWrapper<ApiAiRequest>(body = body)
-        var app = ApiAiApp(mockRequest, mockResponse, { false })
+    describe("DialogflowApp#tell") {
+        var mockResponse = ResponseWrapper<DialogflowResponse>()
+        var body = DialogflowRequest()
+        var mockRequest = RequestWrapper<DialogflowRequest>(body = body)
+        var app = DialogflowApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
-            mockResponse = ResponseWrapper<ApiAiResponse>()
+            mockResponse = ResponseWrapper<DialogflowResponse>()
             body = createLiveSessionApiAppBody()
             mockRequest = RequestWrapper(headerV1, body)
-            app = ApiAiApp(request = mockRequest, response = mockResponse)
+            app = DialogflowApp(request = mockRequest, response = mockResponse)
         }
 
         // Success case test, when the API returns a valid 200 response with the response object
@@ -419,21 +419,21 @@ object ActionsTest : Spek({
 
     }
     /**
-     * Describes the behavior for ApiAiApp askWithList method.
+     * Describes the behavior for DialogflowApp askWithList method.
      */
-    describe("ApiAiApp#askWithList") {
+    describe("DialogflowApp#askWithList") {
 
-        var mockResponse = ResponseWrapper<ApiAiResponse>()
-        var body = ApiAiRequest()
-        var mockRequest = RequestWrapper<ApiAiRequest>(body = body)
-        var app = ApiAiApp(mockRequest, mockResponse, { false })
+        var mockResponse = ResponseWrapper<DialogflowResponse>()
+        var body = DialogflowRequest()
+        var mockRequest = RequestWrapper<DialogflowRequest>(body = body)
+        var app = DialogflowApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
             mockResponse = ResponseWrapper()
             body = createLiveSessionApiAppBody()
             body.originalRequest?.version = "2"
             mockRequest = RequestWrapper(headerV1, body)
-            app = ApiAiApp(request = mockRequest, response = mockResponse)
+            app = DialogflowApp(request = mockRequest, response = mockResponse)
         }
 
         // Success case test, when the API returns a valid 200 response with the response object
@@ -500,20 +500,20 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp askWithCarousel method.
+     * Describes the behavior for DialogflowApp askWithCarousel method.
      */
-    describe("ApiAiApp#askWithCarousel") {
-        var body: ApiAiRequest = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
-        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
+    describe("DialogflowApp#askWithCarousel") {
+        var body: DialogflowRequest = DialogflowRequest()
+        var mockRequest: RequestWrapper<DialogflowRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+        var app: DialogflowApp = DialogflowApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
             mockResponse = ResponseWrapper()
             body = createLiveSessionApiAppBody()
             body.originalRequest?.version = "2"
             mockRequest = RequestWrapper(headerV1, body)
-            app = ApiAiApp(request = mockRequest, response = mockResponse)
+            app = DialogflowApp(request = mockRequest, response = mockResponse)
         }
 
         // Success case test, when the API returns a valid 200 response with the response object
@@ -584,20 +584,20 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp askForPermissions method in v2.
+     * Describes the behavior for DialogflowApp askForPermissions method in v2.
      */
-    describe("ApiAiApp#askForPermissions") {
-        var body: ApiAiRequest = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
-        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
+    describe("DialogflowApp#askForPermissions") {
+        var body: DialogflowRequest = DialogflowRequest()
+        var mockRequest: RequestWrapper<DialogflowRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+        var app: DialogflowApp = DialogflowApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
-            mockResponse = ResponseWrapper<ApiAiResponse>()
+            mockResponse = ResponseWrapper<DialogflowResponse>()
             body = createLiveSessionApiAppBody()
             body.originalRequest?.version = "2"
             mockRequest = RequestWrapper(headerV1, body)
-            app = ApiAiApp(request = mockRequest, response = mockResponse)
+            app = DialogflowApp(request = mockRequest, response = mockResponse)
         }
 
         // Success case test, when the API returns a valid 200 response with the response object
@@ -634,20 +634,20 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp getUser method.
+     * Describes the behavior for DialogflowApp getUser method.
      */
-    describe("ApiAiApp#getUser") {
-        var body: ApiAiRequest = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
-        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
+    describe("DialogflowApp#getUser") {
+        var body: DialogflowRequest = DialogflowRequest()
+        var mockRequest: RequestWrapper<DialogflowRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+        var app: DialogflowApp = DialogflowApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
             mockResponse = ResponseWrapper()
             body = createLiveSessionApiAppBody()
             body.originalRequest?.data?.user?.userId = "11112226094657824893"
             mockRequest = RequestWrapper(headerV1, body)
-            app = ApiAiApp(request = mockRequest, response = mockResponse)
+            app = DialogflowApp(request = mockRequest, response = mockResponse)
         }
 
         // Success case test, when the API returns a valid 200 response with the response object
@@ -659,13 +659,13 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp getUserName method.
+     * Describes the behavior for DialogflowApp getUserName method.
      */
-    describe("ApiAiApp#getUserName") {
-        var body: ApiAiRequest = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
-        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
+    describe("DialogflowApp#getUserName") {
+        var body: DialogflowRequest = DialogflowRequest()
+        var mockRequest: RequestWrapper<DialogflowRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+        var app: DialogflowApp = DialogflowApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
             mockResponse = ResponseWrapper()
@@ -674,7 +674,7 @@ object ActionsTest : Spek({
 
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should validate assistant request user.") {
-            var mockRequest: RequestWrapper<ApiAiRequest>
+            var mockRequest: RequestWrapper<DialogflowRequest>
             body.originalRequest?.data?.user = gson.fromJson("""{
                 "userId": "11112226094657824893",
                 "profile": {
@@ -684,7 +684,7 @@ object ActionsTest : Spek({
             }
             }""", User::class.java)
             mockRequest = RequestWrapper(headerV1, body)
-            app = ApiAiApp(request = mockRequest, response = mockResponse)
+            app = DialogflowApp(request = mockRequest, response = mockResponse)
             expect(app.getUserName()?.displayName).to.equal("John Smith")
             expect(app.getUserName()?.givenName).to.equal("John")
             expect(app.getUserName()?.familyName).to.equal("Smith")
@@ -692,17 +692,17 @@ object ActionsTest : Spek({
             // Test the false case
             body.originalRequest?.data?.user?.profile = null
             mockRequest = RequestWrapper(headerV1, body)
-            app = ApiAiApp(request = mockRequest, response = mockResponse)
+            app = DialogflowApp(request = mockRequest, response = mockResponse)
             expect(app.getUserName()).to.equal(null)
         }
     }
 
     /**
-     * Describes the behavior for ApiAiApp getUserLocale method.
+     * Describes the behavior for DialogflowApp getUserLocale method.
      */
-    describe("ApiAiApp#getUserLocale") {
-        var body: ApiAiRequest = ApiAiRequest()
-        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
+    describe("DialogflowApp#getUserLocale") {
+        var body: DialogflowRequest = DialogflowRequest()
+        var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
 
         beforeEachTest {
             mockResponse = ResponseWrapper()
@@ -711,33 +711,33 @@ object ActionsTest : Spek({
 
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should validate assistant request user with locale.") {
-            var mockRequest: RequestWrapper<ApiAiRequest>
-            val app: ApiAiApp
+            var mockRequest: RequestWrapper<DialogflowRequest>
+            val app: DialogflowApp
             mockRequest = RequestWrapper(headerV1, body)
-            app = ApiAiApp(request = mockRequest, response = mockResponse)
+            app = DialogflowApp(request = mockRequest, response = mockResponse)
             expect(app.getUserLocale()).to.equal("en-US")
         }
 
         // Failure case
         it("Should return null for missing locale.") {
-            var mockRequest: RequestWrapper<ApiAiRequest>
-            val app: ApiAiApp
+            var mockRequest: RequestWrapper<DialogflowRequest>
+            val app: DialogflowApp
             body.originalRequest?.data?.user?.locale = null
             mockRequest = RequestWrapper(headerV1, body)
-            app = ApiAiApp(request = mockRequest, response = mockResponse)
+            app = DialogflowApp(request = mockRequest, response = mockResponse)
             expect(app.getUserLocale()).to.equal(null)
         }
     }
 
 
     /**
-     * Describes the behavior for ApiAiApp getDeviceLocation method.
+     * Describes the behavior for DialogflowApp getDeviceLocation method.
      */
-    describe("ApiAiApp#getDeviceLocation") {
-        var body: ApiAiRequest = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
-        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
+    describe("DialogflowApp#getDeviceLocation") {
+        var body: DialogflowRequest = DialogflowRequest()
+        var mockRequest: RequestWrapper<DialogflowRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+        var app: DialogflowApp = DialogflowApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
             body = createLiveSessionApiAppBody()
@@ -757,7 +757,7 @@ object ActionsTest : Spek({
         fun initMockApp() {
             mockRequest = RequestWrapper(headerV1, body)
             mockResponse = ResponseWrapper()
-            app = ApiAiApp(request = mockRequest, response = mockResponse)
+            app = DialogflowApp(request = mockRequest, response = mockResponse)
         }
 
         // Success case test, when the API returns a valid 200 response with the response object
@@ -782,19 +782,19 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp askForTransactionRequirements method.
+     * Describes the behavior for DialogflowApp askForTransactionRequirements method.
      */
-    describe("ApiAiApp#askForTransactionRequirements") {
-        var body: ApiAiRequest = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
-        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
+    describe("DialogflowApp#askForTransactionRequirements") {
+        var body: DialogflowRequest = DialogflowRequest()
+        var mockRequest: RequestWrapper<DialogflowRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+        var app: DialogflowApp = DialogflowApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
             body = createLiveSessionApiAppBody();
             mockRequest = RequestWrapper(headerV2, body)
             mockResponse = ResponseWrapper()
-            app = ApiAiApp(
+            app = DialogflowApp(
                     request = mockRequest,
                     response = mockResponse
             )
@@ -909,16 +909,16 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp askForDeliveryAddress method.
+     * Describes the behavior for DialogflowApp askForDeliveryAddress method.
      */
-    describe("ApiAiApp#askForDeliveryAddress") {
+    describe("DialogflowApp#askForDeliveryAddress") {
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should return valid JSON delivery address") {
             val body = createLiveSessionApiAppBody()
             val mockRequest = RequestWrapper(headerV2, body)
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
+            val mockResponse = ResponseWrapper<DialogflowResponse>()
 
-            val app = ApiAiApp(
+            val app = DialogflowApp(
                     request = mockRequest,
                     response = mockResponse
             )
@@ -957,19 +957,19 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp askForTransactionDecision method.
+     * Describes the behavior for DialogflowApp askForTransactionDecision method.
      */
-    describe("ApiAiApp#askForTransactionDecision") {
-        var body: ApiAiRequest = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
-        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
+    describe("DialogflowApp#askForTransactionDecision") {
+        var body: DialogflowRequest = DialogflowRequest()
+        var mockRequest: RequestWrapper<DialogflowRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+        var app: DialogflowApp = DialogflowApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
             body = createLiveSessionApiAppBody()
             mockRequest = RequestWrapper(headerV2, body)
             mockResponse = ResponseWrapper()
-            app = ApiAiApp(
+            app = DialogflowApp(
                     request = mockRequest,
                     response = mockResponse
             )
@@ -1096,19 +1096,19 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp askForConfirmation method.
+     * Describes the behavior for DialogflowApp askForConfirmation method.
      */
-    describe("ApiAiApp#askForConfirmation") {
-        var body: ApiAiRequest = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
-        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
+    describe("DialogflowApp#askForConfirmation") {
+        var body: DialogflowRequest = DialogflowRequest()
+        var mockRequest: RequestWrapper<DialogflowRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+        var app: DialogflowApp = DialogflowApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
             body = createLiveSessionApiAppBody()
             mockRequest = RequestWrapper(headerV2, body)
             mockResponse = ResponseWrapper()
-            app = ApiAiApp(
+            app = DialogflowApp(
                     request = mockRequest,
                     response = mockResponse
             )
@@ -1180,19 +1180,19 @@ object ActionsTest : Spek({
 
 
         /**
-         * Describes the behavior for ApiAiApp askForDateTime method.
+         * Describes the behavior for DialogflowApp askForDateTime method.
          */
-        describe("ApiAiApp#askForDateTime") {
-            var body: ApiAiRequest = ApiAiRequest()
-            var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
-            var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
-            var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
+        describe("DialogflowApp#askForDateTime") {
+            var body: DialogflowRequest = DialogflowRequest()
+            var mockRequest: RequestWrapper<DialogflowRequest> = RequestWrapper(body = body)
+            var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+            var app: DialogflowApp = DialogflowApp(mockRequest, mockResponse, { false })
 
             beforeEachTest {
                 body = createLiveSessionApiAppBody()
                 mockRequest = RequestWrapper(headerV2, body)
                 mockResponse = ResponseWrapper()
-                app = ApiAiApp(
+                app = DialogflowApp(
                         request = mockRequest,
                         response = mockResponse
                 )
@@ -1304,19 +1304,19 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp askForSignIn method.
+     * Describes the behavior for DialogflowApp askForSignIn method.
      */
-    describe("ApiAiApp#askForSignIn") {
-        var body: ApiAiRequest = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
-        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
+    describe("DialogflowApp#askForSignIn") {
+        var body: DialogflowRequest = DialogflowRequest()
+        var mockRequest: RequestWrapper<DialogflowRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+        var app: DialogflowApp = DialogflowApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
             body = createLiveSessionApiAppBody()
             mockRequest = RequestWrapper(headerV2, body)
             mockResponse = ResponseWrapper()
-            app = ApiAiApp(
+            app = DialogflowApp(
                     request = mockRequest,
                     response = mockResponse
             )
@@ -1354,18 +1354,18 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp isPermissionGranted method.
+     * Describes the behavior for DialogflowApp isPermissionGranted method.
      */
-    describe("ApiAiApp#isPermissionGranted") {
-        var body: ApiAiRequest = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
-        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
+    describe("DialogflowApp#isPermissionGranted") {
+        var body: DialogflowRequest = DialogflowRequest()
+        var mockRequest: RequestWrapper<DialogflowRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+        var app: DialogflowApp = DialogflowApp(mockRequest, mockResponse, { false })
 
         fun initMockApp() {
             mockRequest = RequestWrapper(headerV1, body)
             mockResponse = ResponseWrapper()
-            app = ApiAiApp(
+            app = DialogflowApp(
                     request = mockRequest,
                     response = mockResponse
             )
@@ -1389,18 +1389,18 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp isInSandbox method.
+     * Describes the behavior for DialogflowApp isInSandbox method.
      */
-    describe("ApiAiApp#isInSandbox") {
-        var body: ApiAiRequest = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
-        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
+    describe("DialogflowApp#isInSandbox") {
+        var body: DialogflowRequest = DialogflowRequest()
+        var mockRequest: RequestWrapper<DialogflowRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+        var app: DialogflowApp = DialogflowApp(mockRequest, mockResponse, { false })
 
         fun initMockApp() {
             mockRequest = RequestWrapper(headerV1, body)
             mockResponse = ResponseWrapper()
-            app = ApiAiApp(
+            app = DialogflowApp(
                     request = mockRequest,
                     response = mockResponse
             )
@@ -1421,17 +1421,17 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp getIntent method.
+     * Describes the behavior for DialogflowApp getIntent method.
      */
-    describe("ApiAiApp#getIntent") {
+    describe("DialogflowApp#getIntent") {
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should get the intent value for the success case.") {
             val body = createLiveSessionApiAppBody()
             body.result.action = "check_guess"
             val mockRequest = RequestWrapper(headerV1, body)
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
+            val mockResponse = ResponseWrapper<DialogflowResponse>()
 
-            val app = ApiAiApp(
+            val app = DialogflowApp(
                     request = mockRequest,
                     response = mockResponse
             )
@@ -1441,9 +1441,9 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp getArgument method.
+     * Describes the behavior for DialogflowApp getArgument method.
      */
-    describe("ApiAiApp#getArgument") {
+    describe("DialogflowApp#getArgument") {
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should get the argument value for the success case.") {
             val body = createLiveSessionApiAppBody()
@@ -1471,9 +1471,9 @@ object ActionsTest : Spek({
             body.originalRequest?.data?.inputs?.get(0)?.arguments = arg
 
             val mockRequest = RequestWrapper(headerV2, body)
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
+            val mockResponse = ResponseWrapper<DialogflowResponse>()
 
-            val app = ApiAiApp(
+            val app = DialogflowApp(
                     request = mockRequest,
                     response = mockResponse
             )
@@ -1493,9 +1493,9 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp getContextArgument method.
+     * Describes the behavior for DialogflowApp getContextArgument method.
      */
-    describe("ApiAiApp#getContextArgument") {
+    describe("DialogflowApp#getContextArgument") {
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should get the context argument value for the success case.") {
             val body = createLiveSessionApiAppBody()
@@ -1514,24 +1514,24 @@ object ActionsTest : Spek({
                     ))
 
             val mockRequest = RequestWrapper(headerV1, body)
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
+            val mockResponse = ResponseWrapper<DialogflowResponse>()
 
-            val app = ApiAiApp(
+            val app = DialogflowApp(
                     request = mockRequest,
                     response = mockResponse
             )
 
             expect(app.getContextArgument("game", "guess")).to
-                    .equal(ApiAiApp.ContextArgument(value = "50", original = "50"))
+                    .equal(DialogflowApp.ContextArgument(value = "50", original = "50"))
             expect(app.getContextArgument("previous_answer", "answer")).to
-                    .equal(ApiAiApp.ContextArgument(value = "68"))
+                    .equal(DialogflowApp.ContextArgument(value = "68"))
         }
     }
 
     /**
-     * Describes the behavior for ApiAiApp getIncomingRichResponse method.
+     * Describes the behavior for DialogflowApp getIncomingRichResponse method.
      */
-    describe("ApiAiApp#getIncomingRichResponse") {
+    describe("DialogflowApp#getIncomingRichResponse") {
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should get the incoming rich response for the success case.") {
             val body = createLiveSessionApiAppBody()
@@ -1570,9 +1570,9 @@ object ActionsTest : Spek({
             ]""", arrayOf<Messages>().javaClass)?.toMutableList()
 
             val mockRequest = RequestWrapper(headerV1, body)
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
+            val mockResponse = ResponseWrapper<DialogflowResponse>()
 
-            val app = ApiAiApp(
+            val app = DialogflowApp(
                     request = mockRequest,
                     response = mockResponse)
 
@@ -1588,9 +1588,9 @@ object ActionsTest : Spek({
         }
 
         /**
-         * Describes the behavior for ApiAiApp getIncomingList method.
+         * Describes the behavior for DialogflowApp getIncomingList method.
          */
-        describe("ApiAiApp#getIncomingList") {
+        describe("DialogflowApp#getIncomingList") {
             // Success case test, when the API returns a valid 200 response with the response object
             it("Should get the incoming list for the success case.") {
                 val body = createLiveSessionApiAppBody()
@@ -1616,9 +1616,9 @@ object ActionsTest : Spek({
                     ]
                 }""", Messages::class.java))
                 val mockRequest = RequestWrapper(headerV1, body)
-                val mockResponse = ResponseWrapper<ApiAiResponse>()
+                val mockResponse = ResponseWrapper<DialogflowResponse>()
 
-                val app = ApiAiApp(
+                val app = DialogflowApp(
                         request = mockRequest,
                         response = mockResponse
                 )
@@ -1635,9 +1635,9 @@ object ActionsTest : Spek({
         }
 
         /**
-         * Describes the behavior for ApiAiApp getIncomingCarousel method.
+         * Describes the behavior for DialogflowApp getIncomingCarousel method.
          */
-        describe("ApiAiApp#getIncomingCarousel") {
+        describe("DialogflowApp#getIncomingCarousel") {
             // Success case test, when the API returns a valid 200 response with the response object
             it("Should get the incoming list for the success case.") {
                 val body = createLiveSessionApiAppBody()
@@ -1665,9 +1665,9 @@ object ActionsTest : Spek({
                 }""", Messages::class.java))
 
                 val mockRequest = RequestWrapper(headerV1, body)
-                val mockResponse = ResponseWrapper<ApiAiResponse>()
+                val mockResponse = ResponseWrapper<DialogflowResponse>()
 
-                val app = ApiAiApp(
+                val app = DialogflowApp(
                         request = mockRequest,
                         response = mockResponse
                 )
@@ -1686,13 +1686,13 @@ object ActionsTest : Spek({
         }
 
         /**
-         * Describes the behavior for ApiAiApp getSelectedOption method.
+         * Describes the behavior for DialogflowApp getSelectedOption method.
          */
-        describe("ApiAiApp#getSelectedOption") {
-            var body: ApiAiRequest = ApiAiRequest()
-            var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
-            var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
-            var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
+        describe("DialogflowApp#getSelectedOption") {
+            var body: DialogflowRequest = DialogflowRequest()
+            var mockRequest: RequestWrapper<DialogflowRequest> = RequestWrapper(body = body)
+            var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+            var app: DialogflowApp = DialogflowApp(mockRequest, mockResponse, { false })
 
             beforeEachTest {
                 mockRequest = RequestWrapper(headerV1, body)
@@ -1701,7 +1701,7 @@ object ActionsTest : Spek({
 
 
             // Success case test, when the API returns a valid 200 response with the response object
-            it("Should get the selected option when given in APIAI context.") {
+            it("Should get the selected option when given in Dialogflow context.") {
                 val body = createLiveSessionApiAppBody()
                 body.originalRequest?.data?.inputs?.add(0, gson.fromJson("""{
                     "arguments": [
@@ -1729,7 +1729,7 @@ object ActionsTest : Spek({
                 }
                 ]""", arrayOf<Context>().javaClass).toList()
                 mockRequest = mockRequest.copy(body = body)
-                app = ApiAiApp(
+                app = DialogflowApp(
                         request = mockRequest,
                         response = mockResponse
                 )
@@ -1737,7 +1737,7 @@ object ActionsTest : Spek({
             }
 
             // Success case test, when the API returns a valid 200 response with the response object
-            it("Should get the selected option when not given in APIAI context.") {
+            it("Should get the selected option when not given in Dialogflow context.") {
                 val body = createLiveSessionApiAppBody()
                 body.originalRequest?.data?.inputs?.add(gson.fromJson("""{
                 "arguments": [
@@ -1756,7 +1756,7 @@ object ActionsTest : Spek({
                 ]
             }""", Input::class.java))
                 mockRequest = mockRequest.copy(body = body)
-                app = ApiAiApp(
+                app = DialogflowApp(
                         request = mockRequest,
                         response = mockResponse
                 )
@@ -1764,17 +1764,17 @@ object ActionsTest : Spek({
             }
         }
         /**
-         * Describes the behavior for ApiAiApp isRequestFromApiAi method.
+         * Describes the behavior for DialogflowApp isRequestFromDialogflow method.
          */
-        describe("ApiAiApp#isRequestFromApiAi") {
+        describe("DialogflowApp#isRequestFromDialogflow") {
             // Success case test, when the API returns a valid 200 response with the response object
-            it("Should confirm request is from API.ai.") {
+            it("Should confirm request is from Dialogflow.") {
                 val header = headerV1.toMutableMap()
                 header["Google-Assistant-Signature"] = "YOUR_PRIVATE_KEY"
                 val mockRequest = RequestWrapper(header, createLiveSessionApiAppBody())
-                val mockResponse = ResponseWrapper<ApiAiResponse>()
+                val mockResponse = ResponseWrapper<DialogflowResponse>()
 
-                val app = ApiAiApp(
+                val app = DialogflowApp(
                         request = mockRequest,
                         response = mockResponse
                 )
@@ -1782,16 +1782,16 @@ object ActionsTest : Spek({
                 val HEADER_KEY = "Google-Assistant-Signature"
                 val HEADER_VALUE = "YOUR_PRIVATE_KEY"
 
-                expect(app.isRequestFromApiAi(HEADER_KEY, HEADER_VALUE)).to.equal(true)
+                expect(app.isRequestFromDialogflow(HEADER_KEY, HEADER_VALUE)).to.equal(true)
             }
 
-            it("Should confirm request is NOT from API.ai.") {
+            it("Should confirm request is NOT from Dialogflow.") {
                 val header = headerV1
                 val body = createLiveSessionApiAppBody()
                 val mockRequest = RequestWrapper(header, body)
-                val mockResponse = ResponseWrapper<ApiAiResponse>()
+                val mockResponse = ResponseWrapper<DialogflowResponse>()
 
-                val app = ApiAiApp(
+                val app = DialogflowApp(
                         request = mockRequest,
                         response = mockResponse
                 )
@@ -1799,16 +1799,16 @@ object ActionsTest : Spek({
                 val HEADER_KEY = "Google-Assistant-Signature"
                 val HEADER_VALUE = "YOUR_PRIVATE_KEY"
 
-                expect(app.isRequestFromApiAi(HEADER_KEY, HEADER_VALUE)).to.equal(false)
+                expect(app.isRequestFromDialogflow(HEADER_KEY, HEADER_VALUE)).to.equal(false)
             }
         }
 
     }
 
     /**
-     * Describes the behavior for ApiAiApp hasSurfaceCapability method.
+     * Describes the behavior for DialogflowApp hasSurfaceCapability method.
      */
-    describe("ApiAiApp#hasSurfaceCapability") {
+    describe("DialogflowApp#hasSurfaceCapability") {
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should return true for a valid capability from incoming JSON for the success case.") {
             val body = createLiveSessionApiAppBody()
@@ -1824,9 +1824,9 @@ object ActionsTest : Spek({
             }""", Surface::class.java)
 
             val mockRequest = RequestWrapper(headerV1, body)
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
+            val mockResponse = ResponseWrapper<DialogflowResponse>()
 
-            val app = ApiAiApp(
+            val app = DialogflowApp(
                     request = mockRequest,
                     response = mockResponse
             )
@@ -1841,9 +1841,9 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp getSurfaceCapabilities method.
+     * Describes the behavior for DialogflowApp getSurfaceCapabilities method.
      */
-    describe("ApiAiApp#getSurfaceCapabilities") {
+    describe("DialogflowApp#getSurfaceCapabilities") {
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should return valid list of capabilities from incoming JSON for the success case.") {
             val body = createLiveSessionApiAppBody()
@@ -1859,9 +1859,9 @@ object ActionsTest : Spek({
             }""", Surface::class.java)
 
             val mockRequest = RequestWrapper(headerV1, body)
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
+            val mockResponse = ResponseWrapper<DialogflowResponse>()
 
-            val app = ApiAiApp(
+            val app = DialogflowApp(
                     request = mockRequest,
                     response = mockResponse
             )
@@ -1875,9 +1875,9 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp getInputType method.
+     * Describes the behavior for DialogflowApp getInputType method.
      */
-    describe("ApiAiApp#getInputType") {
+    describe("DialogflowApp#getInputType") {
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should return valid input type from incoming JSON for the success case.") {
             val body = createLiveSessionApiAppBody()
@@ -1892,8 +1892,8 @@ object ActionsTest : Spek({
             }
             ]""", arrayOf<Input>().javaClass).toMutableList()
             val mockRequest = RequestWrapper(headerV1, body)
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
-            val app = ApiAiApp(
+            val mockResponse = ResponseWrapper<DialogflowResponse>()
+            val app = DialogflowApp(
                     request = mockRequest,
                     response = mockResponse
             )
@@ -1904,18 +1904,18 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp getRawInput method.
+     * Describes the behavior for DialogflowApp getRawInput method.
      */
-    describe("ApiAiApp#getRawInput") {
+    describe("DialogflowApp#getRawInput") {
         // Success case test, when the API returns a valid 200 response with the response object
-        it("Should raw input from API.ai.") {
+        it("Should raw input from Dialogflow.") {
             val body = createLiveSessionApiAppBody()
             body.result.resolvedQuery = "is it 667"
 
             val mockRequest = RequestWrapper(headerV1, body)
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
+            val mockResponse = ResponseWrapper<DialogflowResponse>()
 
-            val app = ApiAiApp(
+            val app = DialogflowApp(
                     request = mockRequest,
                     response = mockResponse
             )
@@ -1925,15 +1925,15 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp setContext method.
+     * Describes the behavior for DialogflowApp setContext method.
      */
-    describe("ApiAiApp#setContext") {
+    describe("DialogflowApp#setContext") {
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should return the valid JSON in the response object for the success case.") {
             val body = createLiveSessionApiAppBody()
             val mockRequest = RequestWrapper(headerV1, body)
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
-            val app = ApiAiApp(
+            val mockResponse = ResponseWrapper<DialogflowResponse>()
+            val app = DialogflowApp(
                     request = mockRequest,
                     response = mockResponse
             )
@@ -1973,16 +1973,16 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp getContexts method.
+     * Describes the behavior for DialogflowApp getContexts method.
      */
-    describe("ApiAiApp#getContexts") {
-        var body: ApiAiRequest = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
-        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
+    describe("DialogflowApp#getContexts") {
+        var body: DialogflowRequest = DialogflowRequest()
+        var mockRequest: RequestWrapper<DialogflowRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+        var app: DialogflowApp = DialogflowApp(mockRequest, mockResponse, { false })
 
         fun initMockApp() {
-            app = ApiAiApp(
+            app = DialogflowApp(
                     request = mockRequest,
                     response = mockResponse
             )
@@ -1991,7 +1991,7 @@ object ActionsTest : Spek({
         beforeEachTest {
             body = createLiveSessionApiAppBody()
             mockRequest = RequestWrapper(headerV1, body)
-            mockResponse = ResponseWrapper<ApiAiResponse>()
+            mockResponse = ResponseWrapper<DialogflowResponse>()
         }
 
         // Success case test, when the API returns a valid 200 response with the response object
@@ -2061,22 +2061,22 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp getContext method.
+     * Describes the behavior for DialogflowApp getContext method.
      */
-    describe("ApiAiApp#getContext") {
-        var body: ApiAiRequest = ApiAiRequest()
-        var mockRequest: RequestWrapper<ApiAiRequest> = RequestWrapper(body = body)
-        var mockResponse: ResponseWrapper<ApiAiResponse> = ResponseWrapper()
-        var app: ApiAiApp = ApiAiApp(mockRequest, mockResponse, { false })
+    describe("DialogflowApp#getContext") {
+        var body: DialogflowRequest = DialogflowRequest()
+        var mockRequest: RequestWrapper<DialogflowRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+        var app: DialogflowApp = DialogflowApp(mockRequest, mockResponse, { false })
 
         beforeEachTest {
             body = createLiveSessionApiAppBody()
             mockRequest = RequestWrapper(headerV1, body)
-            mockResponse = ResponseWrapper<ApiAiResponse>()
+            mockResponse = ResponseWrapper<DialogflowResponse>()
         }
 
         fun initMockApp() {
-            app = ApiAiApp(
+            app = DialogflowApp(
                     request = mockRequest,
                     response = mockResponse
             )
@@ -2119,15 +2119,15 @@ object ActionsTest : Spek({
     }
 
     /**
-     * Describes the behavior for ApiAiApp ask with no inputs method.
+     * Describes the behavior for DialogflowApp ask with no inputs method.
      */
-    describe("ApiAiApp#ask") {
+    describe("DialogflowApp#ask") {
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should return the valid JSON in the response object for the success case.") {
             val body = createLiveSessionApiAppBody()
             val mockRequest = RequestWrapper(headerV2, body)
-            val mockResponse = ResponseWrapper<ApiAiResponse>()
-            val app = ApiAiApp(
+            val mockResponse = ResponseWrapper<DialogflowResponse>()
+            val app = DialogflowApp(
                     request = mockRequest,
                     response = mockResponse
             )
@@ -2173,7 +2173,7 @@ object ActionsTest : Spek({
      * NOTE: This are an addition to the official test suite.  These are needed due to the dynamic nature of
      * parameters.
      */
-    describe("ApiAiResponse#Result#Parameters") {
+    describe("DialogflowResponse#Result#Parameters") {
         // Success case test, when the API returns a valid 200 response with the response object
         it("fields should be accessible through map") {
             val body = createLiveSessionApiAppBody()
@@ -2188,8 +2188,8 @@ object ActionsTest : Spek({
     it("Should allow extending with custom data") {
         val body = createLiveSessionApiAppBody()
         val mockRequest = RequestWrapper(headerV2, body)
-        val mockResponse = ResponseWrapper<ApiAiResponse>()
-        val app = ApiAiApp(
+        val mockResponse = ResponseWrapper<DialogflowResponse>()
+        val app = DialogflowApp(
                 request = mockRequest,
                 response = mockResponse
         )

@@ -1,10 +1,10 @@
 package com.tmsdurham.actions
 
-import com.tmsdurham.apiai.*
-import com.tmsdurham.apiai.google.GoogleData
+import com.tmsdurham.dialogflow.*
+import com.tmsdurham.dialogflow.google.GoogleData
 
 
-class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
+class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
 
 
     // Constants
@@ -15,7 +15,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
     val ORIGINAL_SUFFIX = ".original"
     val SELECT_EVENT = "actions_intent_option"
 
-    // API.AI Rich Response item types
+    // Dialogflow Rich Response item types
     val SIMPLE_RESPONSE = "simple_response"
     val BASIC_CARD = "basic_card"
     val LIST = "list_card"
@@ -26,9 +26,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
     val PLATFORM = "platform"
 
 
-    constructor(request: RequestWrapper<ApiAiRequest>, response: ResponseWrapper<ApiAiResponse>, sessionStarted: (() -> Unit)? = null) :
+    constructor(request: RequestWrapper<DialogflowRequest>, response: ResponseWrapper<DialogflowResponse>, sessionStarted: (() -> Unit)? = null) :
             super(request, response, sessionStarted) {
-        debug("ApiAiApp constructor")
+        debug("DialogflowApp constructor")
 
         // If request contains originalRequest, convert to Proto3.
         if (request.body.originalRequest != null && !isNotApiVersionOne()) {
@@ -44,17 +44,17 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
     }
 
     /**
-     * Verifies whether the request comes from API.AI.
+     * Verifies whether the request comes from Dialogflow.
      *
      * @param {String} key The header key specified by the developer in the
-     *     API.AI Fulfillment settings of the app.
+     *     Dialogflow Fulfillment settings of the app.
      * @param {String} value The private value specified by the developer inside the
      *     fulfillment header.
-     * @return {Boolean} True if the request comes from API.AI.
-     * @apiai
+     * @return {Boolean} True if the request comes from Dialogflow.
+     * @dialogflow
      */
-    fun isRequestFromApiAi(key: String, value: String): Boolean {
-        debug("isRequestFromApiAi: key=$key, value=$value")
+    fun isRequestFromDialogflow(key: String, value: String): Boolean {
+        debug("isRequestFromDialogflow: key=$key, value=$value")
         if (key.isBlank()) {
             handleError("key must be specified.")
             return false
@@ -72,9 +72,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * the client library will automatically handle the incoming intents.
      *
      * @example
-     * val app = ApiAiApp(request = request, response = response)
+     * val app = DialogflowApp(request = request, response = response)
      *
-     * fun responseHandler (app: ApiAiApp) {
+     * fun responseHandler (app: DialogflowApp) {
      *   val intent = app.getIntent()
      *   when (intent) {
      *     WELCOME_INTENT ->
@@ -90,7 +90,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * app.handleRequest(responseHandler);
      *
      * @return {string} Intent id or null if no value.
-     * @apiai
+     * @dialogflow
      */
     override fun getIntent(): String? {
         debug("getIntent")
@@ -110,15 +110,15 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * the argument object will be in Proto2 format (snake_case, etc).
      *
      * @example
-     * val app = ApiAiApp(request = request, response = response)
+     * val app = DialogflowApp(request = request, response = response)
      * val WELCOME_INTENT = "input.welcome"
      * val NUMBER_INTENT = "input.number"
      *
-     * fun welcomeIntent (app: ApiAiApp<Parameters>) {
+     * fun welcomeIntent (app: DialogflowApp<Parameters>) {
      *   app.ask("Welcome to action snippets! Say a number.");
      * }
      *
-     * fun numberIntent (app: ApiAiApp<Parameter>) {
+     * fun numberIntent (app: DialogflowApp<Parameter>) {
      *   val number = app.getArgument(NUMBER_ARGUMENT)
      *   app.tell("You said " + number)
      * }
@@ -131,7 +131,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * @param {String} argName Name of the argument.
      * @return {Object} Argument value matching argName
      *     or null if no matching argument.
-     * @apiai
+     * @dialogflow
      */
     fun getArgument(argName: String): Any? {
         debug("getArgument: argName=$argName")
@@ -156,7 +156,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * as part of the return object.
      *
      * @example
-     * const app = new ApiAiApp({request: request, response: response});
+     * const app = new DialogflowApp({request: request, response: response});
      * const WELCOME_INTENT = "input.welcome";
      * const NUMBER_INTENT = "input.number";
      * const OUT_CONTEXT = "output_context";
@@ -184,7 +184,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * @param {string} argName Name of the argument.
      * @return {Object} Object containing value property and optional original
      *     property matching context argument. Null if no matching argument.
-     * @apiai
+     * @dialogflow
      */
     fun getContextArgument(contextName: String, argName: String): ContextArgument? {
         debug("getContextArgument: contextName=$contextName, argName=$argName")
@@ -217,12 +217,12 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
 
 
     /**
-     * Returns the RichResponse constructed in API.AI response builder.
+     * Returns the RichResponse constructed in Dialogflow response builder.
      *
      * @example
-     * val app = ApiAiApp(request = req, response = res)
+     * val app = DialogflowApp(request = req, response = res)
      *
-     * fun tellFact (app: ApiAiApp<T>) {
+     * fun tellFact (app: DialogflowApp<T>) {
      *   val fact = "Google was founded in 1998"
      *
      *   if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
@@ -239,9 +239,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      *
      * app.handleRequest(actionMap)
      *
-     * @return {RichResponse} RichResponse created in API.AI. If no RichResponse was
+     * @return {RichResponse} RichResponse created in Dialogflow. If no RichResponse was
      *     created, an empty RichResponse is returned.
-     * @apiai
+     * @dialogflow
      */
     fun getIncomingRichResponse(): RichResponse {
         debug("getIncomingRichResponse")
@@ -279,12 +279,12 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
     }
 
     /**
-     * Returns the List constructed in API.AI response builder.
+     * Returns the List constructed in Dialogflow response builder.
      *
      * @example
-     * val app = ApiAiApp(request = req, response = res)
+     * val app = DialogflowApp(request = req, response = res)
      *
-     * fun pickOption (app: ApiAiApp) {
+     * fun pickOption (app: DialogflowApp) {
      * if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
      *     app.askWithList("Which of these looks good?",
      *       app.getIncomingList().addItems(
@@ -300,9 +300,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      *
      * app.handleRequest(actionMap)
      *
-     * @return {List} List created in API.AI. If no List was created, an empty
+     * @return {List} List created in Dialogflow. If no List was created, an empty
      *     List is returned.
-     * @apiai
+     * @dialogflow
      */
     fun getIncomingList(): List {
         debug("getIncomingList")
@@ -318,12 +318,12 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
 
 
     /**
-     * Returns the Carousel constructed in API.AI response builder.
+     * Returns the Carousel constructed in Dialogflow response builder.
      *
      * @example
-     * val app = ApiAiApp(request = req, response = res)
+     * val app = DialogflowApp(request = req, response = res)
      *
-     * fun pickOption (app: ApiAiApp) {
+     * fun pickOption (app: DialogflowApp) {
      * if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
      *     app.askWithCarousel("Which of these looks good?",
      *       app.getIncomingCarousel().addItems(
@@ -339,9 +339,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      *
      * app.handleRequest(actionMap)
      *
-     * @return {Carousel} Carousel created in API.AI. If no Carousel was created,
+     * @return {Carousel} Carousel created in Dialogflow. If no Carousel was created,
      *     an empty Carousel is returned.
-     * @apiai
+     * @dialogflow
      */
     fun getIncomingCarousel(): Carousel {
         debug("getIncomingCarousel")
@@ -357,9 +357,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
     /**
      * Returns the option key user chose from options response.
      * @example
-     * * val app = ApiAiApp(request = req, response = res);
+     * * val app = DialogflowApp(request = req, response = res);
      * *
-     * * fun pickOption (app: ApiAiApp<Parameter>) {
+     * * fun pickOption (app: DialogflowApp<Parameter>) {
      * *   if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT) != null) {
      * *     app.askWithCarousel("Which of these looks good?",
      * *       app.getIncomingCarousel().addItems(
@@ -370,7 +370,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * *   }
      * * }
      * *
-     * * fun optionPicked (app: ApiAiApp<Parameter>) {
+     * * fun optionPicked (app: DialogflowApp<Parameter>) {
      * *   assistant.ask("You picked " + app.getSelectedOption())
      * * }
      * *
@@ -384,7 +384,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * @return {string} Option key of selected item. Null if no option selected or
      * *     if current intent is not OPTION intent.
      * *
-     * @apiai
+     * @dialogflow
      */
     fun getSelectedOption(): String? {
         debug("getSelectedOption")
@@ -407,7 +407,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * for a bye message until the bug is fixed.
      *
      * @example
-     * const app = new ApiAiApp({request: request, response: response});
+     * const app = new DialogflowApp({request: request, response: response});
      * const WELCOME_INTENT = "input.welcome";
      * const NUMBER_INTENT = "input.number";
      *
@@ -430,9 +430,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      *     response.
      * @param {Array<string>=} noInputs Array of re-prompts when the user does not respond (max 3).
      * @return {Object} HTTP response.
-     * @apiai
+     * @dialogflow
      */
-    fun ask(inputPrompt: RichResponse, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse>? {
+    fun ask(inputPrompt: RichResponse, noInputs: MutableList<String>? = null): ResponseWrapper<DialogflowResponse>? {
         debug("ask: inputPrompt=$inputPrompt, noInputs=$noInputs")
         if (inputPrompt.isEmpty()) {
             handleError("Invalid input prompt")
@@ -446,7 +446,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         return doResponse(response, RESPONSE_CODE_OK)
     }
 
-    fun ask(speech: String, vararg noInputs: String = arrayOf()): ResponseWrapper<ApiAiResponse>? {
+    fun ask(speech: String, vararg noInputs: String = arrayOf()): ResponseWrapper<DialogflowResponse>? {
         debug("ask: speech:$speech")
         if (speech.isBlank()) {
             handleError("Invalid input prompt")
@@ -463,7 +463,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
     /**
      * One arg function for convenience when calling from Java
      */
-    fun ask(speech: String): ResponseWrapper<ApiAiResponse>? {
+    fun ask(speech: String): ResponseWrapper<DialogflowResponse>? {
         debug("ask: speech:$speech")
         if (speech.isBlank()) {
             handleError("Invalid input prompt")
@@ -483,7 +483,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * Asks to collect the user"s input with a list.
      *
      * @example
-     * const app = new ApiAiApp({request, response});
+     * const app = new DialogflowApp({request, response});
      * const WELCOME_INTENT = "input.welcome";
      * const OPTION_INTENT = "option.select";
      *
@@ -517,10 +517,10 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      *     response.
      * @param {List} list List built with {@link AssistantApp#buildList|buildList}.
      * @return {Object} HTTP response.
-     * @apiai
+     * @dialogflow
      */
 
-    fun askWithList(richResponse: RichResponse, list: List): ResponseWrapper<ApiAiResponse>? {
+    fun askWithList(richResponse: RichResponse, list: List): ResponseWrapper<DialogflowResponse>? {
         if (list.items.size < 2) {
             this.handleError("List requires at least 2 items")
             return null
@@ -528,7 +528,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         return askWithResponseAndList(buildResponse(richResponse, true), list)
     }
 
-    fun askWithList(inputPrompt: String?, list: List): ResponseWrapper<ApiAiResponse>? {
+    fun askWithList(inputPrompt: String?, list: List): ResponseWrapper<DialogflowResponse>? {
         debug("askWithList: inputPrompt=$inputPrompt, list=$list")
         if (inputPrompt.isNullOrBlank()) {
             this.handleError("Invalid input prompt")
@@ -542,7 +542,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         return askWithResponseAndList(buildResponse(inputPrompt ?: "", true), list)
     }
 
-    private fun askWithResponseAndList(response: ResponseWrapper<ApiAiResponse>?, list: List): ResponseWrapper<ApiAiResponse>? {
+    private fun askWithResponseAndList(response: ResponseWrapper<DialogflowResponse>?, list: List): ResponseWrapper<DialogflowResponse>? {
         if (response == null) {
             error("Error in building response")
             return null
@@ -567,7 +567,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * Asks to collect the user"s input with a carousel.
      *
      * @example
-     * const app = new ApiAiApp({request, response});
+     * const app = new DialogflowApp({request, response});
      * const WELCOME_INTENT = "input.welcome";
      * const OPTION_INTENT = "option.select";
      *
@@ -602,9 +602,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * @param {Carousel} carousel Carousel built with
      *     {@link AssistantApp#buildCarousel|buildCarousel}.
      * @return {Object} HTTP response.
-     * @apiai
+     * @dialogflow
      */
-    fun askWithCarousel(inputPrompt: String, carousel: Carousel): ResponseWrapper<ApiAiResponse>? {
+    fun askWithCarousel(inputPrompt: String, carousel: Carousel): ResponseWrapper<DialogflowResponse>? {
         debug("askWithCarousel: inputPrompt=$inputPrompt, carousel=$carousel")
         if (inputPrompt.isNullOrBlank()) {
             handleError("Invalid input prompt")
@@ -642,7 +642,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
     /**
      * Same as #askWithCarousel(input:String, carousel: Carousel), except takes a RichResponse.
      */
-    fun askWithCarousel(inputPrompt: RichResponse, carousel: Carousel): ResponseWrapper<ApiAiResponse>? {
+    fun askWithCarousel(inputPrompt: RichResponse, carousel: Carousel): ResponseWrapper<DialogflowResponse>? {
         debug("askWithCarousel: inputPrompt=$inputPrompt, carousel=$carousel")
         if (inputPrompt.isEmpty()) {
             handleError("Invalid input prompt")
@@ -683,7 +683,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * Asks user for delivery address.
      *
      * @example
-     * val app = ApiAiApp(request = request, response = response)
+     * val app = DialogflowApp(request = request, response = response)
      * val WELCOME_INTENT = "input.welcome"
      * val DELIVERY_INTENT = "delivery.address"
      *
@@ -706,10 +706,10 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * app.handleRequest(actionMap)
      *
      * @param {String} reason Reason given to user for asking delivery address.
-     * @return {ResponseWrapper<ApiAiResponse<T>>} HTTP response.
-     * @apiai
+     * @return {ResponseWrapper<DialogflowResponse<T>>} HTTP response.
+     * @dialogflow
      */
-    fun askForDeliveryAddress(reason: String): ResponseWrapper<ApiAiResponse>? {
+    fun askForDeliveryAddress(reason: String): ResponseWrapper<DialogflowResponse>? {
         debug("askForDeliveryAddress: reason=$reason")
         if (reason.isBlank()) {
             this.handleError("reason cannot be empty")
@@ -738,7 +738,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * Tells the Assistant to render the speech response and close the mic.
      *
      * @example
-     * const app = new ApiAiApp({request: request, response: response});
+     * const app = new DialogflowApp({request: request, response: response});
      * const WELCOME_INTENT = "input.welcome";
      * const NUMBER_INTENT = "input.number";
      *
@@ -759,9 +759,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * @param {string|SimpleResponse|RichResponse} textToSpeech Final response.
      *     Spoken response can be SSML.
      * @return The response that is sent back to Assistant.
-     * @apiai
+     * @dialogflow
      */
-    override fun tell(richResponse: RichResponse?): ResponseWrapper<ApiAiResponse>? {
+    override fun tell(richResponse: RichResponse?): ResponseWrapper<DialogflowResponse>? {
         debug("tell: richResponse=$richResponse")
         if (richResponse == null || richResponse.isEmpty()) {
             handleError("Invalid rich response")
@@ -771,7 +771,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         return doResponse(response, RESPONSE_CODE_OK)
     }
 
-    override fun tell(simpleResponse: SimpleResponse): ResponseWrapper<ApiAiResponse>? {
+    override fun tell(simpleResponse: SimpleResponse): ResponseWrapper<DialogflowResponse>? {
         debug("tell: speechResponse=$simpleResponse")
         if (simpleResponse.isEmpty()) {
             handleError("Invalid speech response")
@@ -781,7 +781,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         return doResponse(response, RESPONSE_CODE_OK)
     }
 
-    override fun tell(speech: String, displayText: String?): ResponseWrapper<ApiAiResponse>? {
+    override fun tell(speech: String, displayText: String?): ResponseWrapper<DialogflowResponse>? {
         debug("tell: speechResponse=$speech displayText=$displayText")
         if (speech.isNullOrBlank()) {
             handleError("Invalid speech response")
@@ -798,7 +798,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         return this.doResponse(response, RESPONSE_CODE_OK)
     }
 
-    override fun tell(speech: String): ResponseWrapper<ApiAiResponse>? {
+    override fun tell(speech: String): ResponseWrapper<DialogflowResponse>? {
         debug("tell: speechResponse=$speech")
         if (speech.isBlank()) {
             handleError("Invalid speech response")
@@ -813,16 +813,16 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * Set a new context for the current intent.
      *
      * @example
-     * val app = ApiAiApp(request = request, response = response)
+     * val app = DialogflowApp(request = request, response = response)
      * val CONTEXT_NUMBER = "number"
      * val NUMBER_ARGUMENT = "myNumber"
      *
-     * fun welcomeIntent (app: ApiAiApp) {
+     * fun welcomeIntent (app: DialogflowApp) {
      *   app.setContext(CONTEXT_NUMBER)
      *   app.ask("Welcome to action snippets! Say a number.")
      * }
      *
-     * fun numberIntent (app: ApiAiApp) {
+     * fun numberIntent (app: DialogflowApp) {
      *   val number = app.getArgument(NUMBER_ARGUMENT)
      *   app.tell("You said " + number)
      * }
@@ -832,10 +832,10 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      *      NUMBER_INTENT to ::numberIntent)
      * app.handleRequest(actionMap)
      *
-     * @param {String} name Name of the context. API.AI converts to lowercase.
+     * @param {String} name Name of the context. Dialogflow converts to lowercase.
      * @param {Int} [lifespan=1] Context lifespan.
      * @param {Map<String, Any?>=} parameters Context JSON parameters.
-     * @apiai
+     * @dialogflow
      */
     fun setContext(name: String, lifespan: Int? = null, parameters: MutableMap<String, Any>? = null): Unit {
         debug("setContext: context=$contexts, lifespan=$lifespan, parameters=$parameters")
@@ -860,16 +860,16 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * Returns the incoming contexts for this intent.
      *
      * @example
-     * val app = ApiAiApp(request = request, response = response)
+     * val app = DialogflowApp(request = request, response = response)
      * val CONTEXT_NUMBER = "number"
      * val NUMBER_ARGUMENT = "myNumber"
      *
-     * function welcomeIntent (app: ApiAiApp) {
+     * function welcomeIntent (app: DialogflowApp) {
      *   app.setContext(CONTEXT_NUMBER)
      *   app.ask("Welcome to action snippets! Say a number.")
      * }
      *
-     * fun numberIntent (app: ApiAiApp) {
+     * fun numberIntent (app: DialogflowApp) {
      *   val contexts = app.getContexts()
      *   // contexts == [{
      *   //   name: "number",
@@ -889,7 +889,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * app.handleRequest(actionMap)
      *
      * @return {MutableList<Context>} Empty if no active contexts.
-     * @apiai
+     * @dialogflow
      */
     fun getContexts(): MutableList<Context> {
         debug("getContexts")
@@ -904,16 +904,16 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * Returns the incoming context by name for this intent.
      *
      * @example
-     * val app = ApiAiapp(request = request, response = response)
+     * val app = Dialogflowapp(request = request, response = response)
      * val CONTEXT_NUMBER = "number"
      * val NUMBER_ARGUMENT = "myNumber"
      *
-     * fun welcomeIntent (app: ApiAiApp) {
+     * fun welcomeIntent (app: DialogflowApp) {
      *   app.setContext(CONTEXT_NUMBER)
      *   app.ask("Welcome to action snippets! Say a number.")
      * }
      *
-     * fun numberIntent (app: ApiAiApp) {
+     * fun numberIntent (app: DialogflowApp) {
      *   val context = app.getContext(CONTEXT_NUMBER)
      *   // context == {
      *   //   name: "number",
@@ -934,7 +934,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      *
      * @return {Object} Context value matching name
      *     or null if no matching context.
-     * @apiai
+     * @dialogflow
      */
 
     fun getContext(name: String): Context? {
@@ -957,13 +957,13 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * Gets the user"s raw input query.
 
      * @example
-     * * val app = ApiAiApp(request = request, response = response)
+     * * val app = DialogflowApp(request = request, response = response)
      * * app.tell("You said " + app.getRawInput())
      * *
      * *
      * @return {String} User"s raw query or null if no value.
      * *
-     * @apiai
+     * @dialogflow
      */
     fun getRawInput(): String? {
         debug("getRawInput")
@@ -986,9 +986,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      *     the permissions prefix and permissions requested.
      * @return {Object} The HTTP response.
      * @private
-     * @apiai
+     * @dialogflow
      */
-    override fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ApiAiResponse>? {
+    override fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest, dialogState: MutableMap<String, Any?>?): ResponseWrapper<DialogflowResponse>? {
         debug("fulfillPermissionsRequest_: permissionsValueSpec=$permissionsSpec")
         val inputPrompt = "PLACEHOLDER_FOR_PERMISSION"
         val response = buildResponse(inputPrompt, true)
@@ -1047,10 +1047,10 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      *     object.
      * @return {ResponseWrapper<T>} HTTP response.
      * @private
-     * @apiai
+     * @dialogflow
      */
     override fun fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec: TransactionRequirementsCheckSpec,
-                                                     dialogState: MutableMap<String, Any?>?): ResponseWrapper<ApiAiResponse>? {
+                                                     dialogState: MutableMap<String, Any?>?): ResponseWrapper<DialogflowResponse>? {
         debug("fulfillTransactionRequirementsCheck_: transactionRequirementsSpec=%s")
         val response = buildResponse("PLACEHOLDER_FOR_TXN_REQUIREMENTS", true)
         response {
@@ -1078,11 +1078,11 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      *
      * @param {TransactionDecisionValueSpec} transactionDecisionValueSpec TransactionDecisionValueSpec
      *     object.
-     * @return {ResponseWrapper<ApiAiResponse<T>>} HTTP response.
+     * @return {ResponseWrapper<DialogflowResponse<T>>} HTTP response.
      * @private
-     * @apiai
+     * @dialogflow
      */
-    override fun fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ApiAiResponse>? {
+    override fun fulfillTransactionDecision(transactionDecisionValueSpec: TransactionDecisionValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<DialogflowResponse>? {
         debug("fulfillTransactionDecision_: transactionDecisionValueSpec=$transactionDecisionValueSpec")
         val response = buildResponse("PLACEHOLDER_FOR_TXN_DECISION", true)
         response {
@@ -1113,9 +1113,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * @param {Object} confirmationValueSpec ConfirmationValueSpec object.
      * @return {Object} HTTP response.
      * @private
-     * @apiai
+     * @dialogflow
      */
-    override fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ApiAiResponse>? {
+    override fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<DialogflowResponse>? {
         debug("fulfillConfirmationRequest_: confirmationValueSpec=$confirmationValueSpec")
         val response = this.buildResponse("PLACEHOLDER_FOR_CONFIRMATION", true)
         response {
@@ -1142,9 +1142,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * @param {Object} dateTimeValueSpec DateTimeValueSpec object.
      * @return {Object} HTTP response.
      * @private
-     * @apiai
+     * @dialogflow
      */
-    override fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ApiAiResponse>? {
+    override fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<DialogflowResponse>? {
         debug("fulfillDateTimeRequest_: dateTimeValueSpec=$confirmationValueSpec")
         val response = buildResponse("PLACEHOLDER_FOR_DATETIME", true)
         response {
@@ -1168,11 +1168,11 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
     /**
      * Constructs and sends a sign in request to Google.
      *
-     * @return {ResponseWrapper<ApiAiResponse<T>>} HTTP response.
+     * @return {ResponseWrapper<DialogflowResponse<T>>} HTTP response.
      * @private
-     * @apiai
+     * @dialogflow
      */
-    override fun fulfillSignInRequest(dialogState: MutableMap<String, Any?>?): ResponseWrapper<ApiAiResponse>? {
+    override fun fulfillSignInRequest(dialogState: MutableMap<String, Any?>?): ResponseWrapper<DialogflowResponse>? {
         debug("fulfillSignInRequest_")
         val response = buildResponse("PLACEHOLDER_FOR_SIGN_IN", true)
         response {
@@ -1194,7 +1194,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
 
 
     /**
-     * Builds a response for API.AI to send back to the Assistant.
+     * Builds a response for Dialogflow to send back to the Assistant.
      *
      * @param {SimpleResponse} textToSpeech TTS/response
      *     spoken/shown to end user.
@@ -1202,9 +1202,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * @param {Array<string>=} noInputs Array of re-prompts when the user does not respond (max 3).
      * @return {Object} The final response returned to Assistant.
      * @private
-     * @apiai
+     * @dialogflow
      */
-    fun buildResponse(simpleResponse: SimpleResponse, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse>? {
+    fun buildResponse(simpleResponse: SimpleResponse, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<DialogflowResponse>? {
         debug("buildResponse_: simpleResponse=$simpleResponse, expectUserResponse=$expectUserResponse, noInputs=$noInputs")
         if (simpleResponse.isEmpty()) {
             handleError("Invalid text to speech")
@@ -1214,7 +1214,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
     }
 
     /**
-     * Builds a response for API.AI to send back to the Assistant.
+     * Builds a response for Dialogflow to send back to the Assistant.
      *
      * @param {string|RichResponse|SimpleResponse} textToSpeech TTS/response
      *     spoken/shown to end user.
@@ -1222,9 +1222,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * @param {Array<string>=} noInputs Array of re-prompts when the user does not respond (max 3).
      * @return {Object} The final response returned to Assistant.
      * @private
-     * @apiai
+     * @dialogflow
      */
-    fun buildResponse(richResponse: RichResponse, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse>? {
+    fun buildResponse(richResponse: RichResponse, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<DialogflowResponse>? {
         debug("buildResponse_: textToSpeech=$richResponse, expectUserResponse=$expectUserResponse, noInputs=$noInputs")
         if (richResponse.isEmpty()) {
             handleError("Invalid text to speech")
@@ -1260,7 +1260,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         } else {
             noInputsFinal = mutableListOf()
         }
-        val response = ApiAiResponse(
+        val response = DialogflowResponse(
                 speech = speech)
         response.data.google = GoogleData(
                 expectUserResponse = expectUserResponse,
@@ -1280,7 +1280,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
     }
 
     /**
-     * Builds a response for API.AI to send back to the Assistant.
+     * Builds a response for Dialogflow to send back to the Assistant.
      *
      * @param {String} textToSpeech TTS/response
      *     spoken/shown to end user.
@@ -1288,9 +1288,9 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      * @param {Array<string>=} noInputs Array of re-prompts when the user does not respond (max 3).
      * @return {Object} The final response returned to Assistant.
      * @private
-     * @apiai
+     * @dialogflow
      */
-    fun buildResponse(textToSpeech: String, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<ApiAiResponse>? {
+    fun buildResponse(textToSpeech: String, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<DialogflowResponse>? {
         debug("buildResponse_: textToSpeech=$textToSpeech, expectUserResponse=$expectUserResponse, noInputs=$noInputs")
         if (textToSpeech.isEmpty()) {
             handleError("Invalid text to speech")
@@ -1314,7 +1314,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
         } else {
             noInputsFinal = mutableListOf()
         }
-        val response = ApiAiResponse(
+        val response = DialogflowResponse(
                 speech = textToSpeech)
         response.data.google = GoogleData(
                 expectUserResponse = expectUserResponse,
@@ -1347,7 +1347,7 @@ class ApiAiApp : AssistantApp<ApiAiRequest, ApiAiResponse> {
      */
     fun data(init: Data.() -> Unit) {
         if (response.body == null) {
-            response.body = ApiAiResponse()
+            response.body = DialogflowResponse()
         }
         if (response.body?.data == null) {
             response.body?.data = Data()

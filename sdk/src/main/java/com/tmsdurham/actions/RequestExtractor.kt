@@ -1,6 +1,6 @@
 package com.tmsdurham.actions
 
-import com.tmsdurham.apiai.*
+import com.tmsdurham.dialogflow.*
 import com.tmsdurham.actions.actions.ActionRequest
 
 
@@ -19,7 +19,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T, S>) {
      * see {@link AssistantApp#askForPermissions|askForPermissions}).
      *
      * @example
-     * val app = ApiAiApp(request = request, response = response)
+     * val app = DialogflowApp(request = request, response = response)
      * or
      * val app = ActionsSdkApp(request = request, response = response)
      * val userId = app.getUser().userId
@@ -30,7 +30,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T, S>) {
     fun getUser(): User? {
         debug("getUser")
         when (app.request.body) {
-            is ApiAiRequest -> {
+            is DialogflowRequest -> {
                 val data = app.request.body.originalRequest?.data
                 if (data?.user == null) {
                     app.handleError("No user object")
@@ -51,7 +51,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T, S>) {
     }
 
     fun requestData(): ActionRequest? = when (app.request.body) {
-        is ApiAiRequest -> { app.request.body.originalRequest?.data }
+        is DialogflowRequest -> { app.request.body.originalRequest?.data }
         is ActionRequest -> { app.request.body }
         else -> null
     }
@@ -62,7 +62,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T, S>) {
      * If device info is unavailable, returns null.
      *
      * @example
-     * val app = ApiAiApp(request = req, response = res)
+     * val app = DialogflowApp(request = req, response = res)
      * or
      * val app = ActionsSdkApp(request = req, response = res)
      * app.askForPermission("To get you a ride",
@@ -113,15 +113,15 @@ class RequestExtractor<T, S>(val app: AssistantApp<T, S>) {
      * the argument object will be in Proto2 format (snake_case, etc).
      *
      * @example
-     * val app = ApiAiApp(request = request, response = response)
+     * val app = DialogflowApp(request = request, response = response)
      * val WELCOME_INTENT = "input.welcome"
      * val NUMBER_INTENT = "input.number"
      *
-     * fun welcomeIntent (app: ApiAiApp<T>) {
+     * fun welcomeIntent (app: DialogflowApp<T>) {
      *   app.ask("Welcome to action snippets! Say a number.")
      * }
      *
-     * fun numberIntent (app: ApiAiApp<T>) {
+     * fun numberIntent (app: DialogflowApp<T>) {
      *   const number = app.getArgument(NUMBER_ARGUMENT)
      *   app.tell("You said " + number)
      * }
@@ -263,7 +263,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T, S>) {
      * Gets status of user sign in request.
      *
      * @return {String?} Result of user sign in request. One of
-     * ApiAiApp.SignInStatus or ActionsSdkApp.SignInStatus
+     * DialogflowApp.SignInStatus or ActionsSdkApp.SignInStatus
      * Null if no sign in status.
      * @requestextractor
      */
@@ -295,7 +295,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T, S>) {
      *
      * @return {Array<string>} Supported surface capabilities, as defined in
      *     AssistantApp.SurfaceCapabilities.
-     * @apiai
+     * @dialogflow
      */
     fun getSurfaceCapabilities(): MutableList<String>? {
         debug("getSurfaceCapabilities")
@@ -315,7 +315,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T, S>) {
     /**
      * Gets type of input used for this request.
      *
-     * @return {String?} One of ApiAiApp.InputTypes.
+     * @return {String?} One of DialogflowApp.InputTypes.
      *     Null if no input type given.
      * @requestextractor
      */
@@ -342,7 +342,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T, S>) {
      * @example
      * val app = ActionsSdkApp(request = request, response = response)
      * or
-     * val app = ApiAiApp(request = request, response = response)
+     * val app = DialogflowApp(request = request, response = response)
      * app.askForPermissions("To get you a ride", [
      *   app.SupportedPermissions.NAME,
      *   app.SupportedPermissions.DEVICE_PRECISE_LOCATION

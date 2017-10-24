@@ -1,6 +1,6 @@
 package com.tmsdurham.actions
 
-import main.java.com.tmsdurham.apiai.sample.ApiAiAction
+import main.java.com.tmsdurham.dialogflow.sample.DialogflowAction
 import java.util.logging.Logger
 import javax.servlet.annotation.WebServlet
 import javax.servlet.http.HttpServlet
@@ -37,7 +37,7 @@ const val IMG_URL_GOOGLE_HOME = "https://lh3.googleusercontent.com" +
 const val IMG_URL_GOOGLE_PIXEL = "https://storage.googleapis.com/madebygoog/v1" +
         "/Pixel/Pixel_ColorPicker/Pixel_Device_Angled_Black-720w.png"
 const val IMG_URL_GOOGLE_ALLO = "https://allo.google.com/images/allo-logo.png"
-fun welcome(app: ApiAiApp) =
+fun welcome(app: DialogflowApp) =
         app.ask(app.buildRichResponse()
                 .addSimpleResponse(speech = "Hi there!", displayText = "Hello there!")
                 .addSimpleResponse(
@@ -45,9 +45,9 @@ fun welcome(app: ApiAiApp) =
                         displayText = """I can show you basic cards, lists and carousels as well as suggestions""")
                 .addSuggestions("Basic Card", "List", "Carousel", "Suggestions"))
 
-fun normalAsk(app: ApiAiApp) = app.ask("Ask me to show you a list, carousel, or basic card")
+fun normalAsk(app: DialogflowApp) = app.ask("Ask me to show you a list, carousel, or basic card")
 
-fun suggestions(app: ApiAiApp) =
+fun suggestions(app: DialogflowApp) =
         app.ask(app
                 .buildRichResponse()
                 .addSimpleResponse("This is a simple response for suggestions")
@@ -55,7 +55,7 @@ fun suggestions(app: ApiAiApp) =
                 .addSuggestions("Basic Card", "List", "Carousel")
                 .addSuggestionLink("Suggestion Link", "https://assistant.google.com/"))
 
-fun basicCard(app: ApiAiApp) =
+fun basicCard(app: DialogflowApp) =
         app.ask(app.buildRichResponse()
                 .addSimpleResponse("This is the first simple response for a basic card")
                 .addSuggestions(
@@ -77,7 +77,7 @@ fun basicCard(app: ApiAiApp) =
         )
 
 
-fun list(app: ApiAiApp) {
+fun list(app: DialogflowApp) {
     app.askWithList(app.buildRichResponse()
             .addSimpleResponse("This is a simple response for a list")
             .addSuggestions("Basic Card", "List", "Carousel", "Suggestions"),
@@ -115,7 +115,7 @@ fun list(app: ApiAiApp) {
 }
 
 // Carousel
-fun carousel(app: ApiAiApp) {
+fun carousel(app: DialogflowApp) {
     app.askWithCarousel(app.buildRichResponse()
             .addSimpleResponse("This is a simple response for a carousel")
             .addSuggestions("Basic Card", "List", "Carousel", "Suggestions"),
@@ -153,7 +153,7 @@ fun carousel(app: ApiAiApp) {
 }
 
 // React to list or carousel selection
-fun itemSelected(app: ApiAiApp) {
+fun itemSelected(app: DialogflowApp) {
     app.getIntent()
     val param = app.getSelectedOption()
     logger.info("USER SELECTED: $param")
@@ -167,8 +167,8 @@ fun itemSelected(app: ApiAiApp) {
     }
 }
 
-// Receive a rich response from API.AI and modify it
-fun cardBuilder(app: ApiAiApp) =
+// Receive a rich response from Dialogflow and modify it
+fun cardBuilder(app: DialogflowApp) =
         app.ask(app.getIncomingRichResponse()
                 .addBasicCard(app.buildBasicCard("""Actions on Google let you build for
             the Google Assistant. Reach users right when they need you. Users don’t
@@ -181,16 +181,16 @@ fun cardBuilder(app: ApiAiApp) =
                                 "L6uxdLBl=s1376", "Actions on Google")))
 
 // Leave conversation with card
-fun byeCard(app: ApiAiApp) =
+fun byeCard(app: DialogflowApp) =
         app.tell(app.buildRichResponse()
                 .addSimpleResponse("Goodbye, World!")
                 .addBasicCard(app.buildBasicCard("This is a goodbye card.")))
 
-fun byeResponse(action: ApiAiApp) =
+fun byeResponse(action: DialogflowApp) =
         action.tell(speech = "Okay see you later",
                 displayText = "OK see you later!")
 
-fun normalBye(action: ApiAiApp) = action.tell("Okay see you later!")
+fun normalBye(action: DialogflowApp) = action.tell("Okay see you later!")
 
 val actionMap = mapOf(
         WELCOME to ::welcome,
@@ -209,7 +209,7 @@ val actionMap = mapOf(
 class WebHook : HttpServlet() {
 
     override fun doPost(req: HttpServletRequest, resp: HttpServletResponse) {
-        ApiAiAction(req, resp).handleRequest(actionMap)
+        DialogflowAction(req, resp).handleRequest(actionMap)
     }
 }
 
