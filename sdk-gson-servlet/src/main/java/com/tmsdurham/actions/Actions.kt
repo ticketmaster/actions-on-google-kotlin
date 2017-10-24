@@ -2,8 +2,8 @@ package main.java.com.tmsdurham.apiai.sample
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.ticketmaster.apiai.ApiAiRequest
-import com.ticketmaster.apiai.ApiAiResponse
+import com.tmsdurham.apiai.ApiAiRequest
+import com.tmsdurham.apiai.ApiAiResponse
 import com.tmsdurham.actions.*
 import com.tmsdurham.actions.actions.ActionRequest
 import com.tmsdurham.actions.actions.ActionResponse

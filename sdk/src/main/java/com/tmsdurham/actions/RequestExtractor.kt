@@ -1,6 +1,6 @@
 package com.tmsdurham.actions
 
-import com.ticketmaster.apiai.*
+import com.tmsdurham.apiai.*
 import com.tmsdurham.actions.actions.ActionRequest
 
 

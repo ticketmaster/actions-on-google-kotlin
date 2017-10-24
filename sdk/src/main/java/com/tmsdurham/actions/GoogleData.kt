@@ -1,4 +1,4 @@
-package com.ticketmaster.apiai.google
+package com.tmsdurham.apiai.google
 
 import com.tmsdurham.actions.*
 

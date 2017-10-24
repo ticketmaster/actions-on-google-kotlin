@@ -1,8 +1,8 @@
 package com.tmsdurham.actions
 
-import com.ticketmaster.apiai.google.GoogleData
-import com.ticketmaster.apiai.google.price
-import com.ticketmaster.apiai.google.totalPrice
+import com.tmsdurham.apiai.google.GoogleData
+import com.tmsdurham.apiai.google.price
+import com.tmsdurham.apiai.google.totalPrice
 
 
 val ORDER_LOCATION_LIMIT = 2

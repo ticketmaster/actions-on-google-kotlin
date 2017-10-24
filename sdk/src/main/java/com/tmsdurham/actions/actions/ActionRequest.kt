@@ -1,6 +1,6 @@
 package com.tmsdurham.actions.actions
 
-import com.ticketmaster.apiai.*
+import com.tmsdurham.apiai.*
 
 data class ActionRequest(val conversation: Conversation? = null,
                          var inputs: MutableList<Input>? = null,
