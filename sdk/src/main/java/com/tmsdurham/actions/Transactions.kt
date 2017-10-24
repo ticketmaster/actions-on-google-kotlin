@@ -1,8 +1,8 @@
 package com.tmsdurham.actions
 
-import com.tmsdurham.apiai.google.GoogleData
-import com.tmsdurham.apiai.google.price
-import com.tmsdurham.apiai.google.totalPrice
+import com.tmsdurham.dialogflow.google.GoogleData
+import com.tmsdurham.dialogflow.google.price
+import com.tmsdurham.dialogflow.google.totalPrice
 
 
 val ORDER_LOCATION_LIMIT = 2

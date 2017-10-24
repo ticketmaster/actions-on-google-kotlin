@@ -1,12 +1,12 @@
 package com.tmsdurham.actions
 
-import main.java.com.tmsdurham.apiai.sample.ApiAiAction
+import main.java.com.tmsdurham.dialogflow.sample.DialogflowAction
 import javax.servlet.annotation.WebServlet
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-// APIAI Actions
+// Dialogflow Actions
 val TRANSACTION_CHECK_NO_PAYMENT = "transaction.check.no.payment"
 val TRANSACTION_CHECK_ACTION_PAYMENT = "transaction.check.action"
 val TRANSACTION_CHECK_GOOGLE_PAYMENT = "transaction.check.google"
@@ -20,16 +20,16 @@ val TRANSACTION_DECISION_COMPLETE = "transaction.decision.complete"
 class TransactionSample : HttpServlet() {
 
     override fun doPost(req: HttpServletRequest, resp: HttpServletResponse) {
-        ApiAiAction(req, resp).handleRequest(transactionMap)
+        DialogflowAction(req, resp).handleRequest(transactionMap)
     }
 
 }
 
-fun transactionCheckNoPayment(app: ApiAiApp) {
+fun transactionCheckNoPayment(app: DialogflowApp) {
     app.askForTransactionRequirements()
 }
 
-fun transactionCheckActionPayment(app: ApiAiApp) {
+fun transactionCheckActionPayment(app: DialogflowApp) {
     app.askForTransactionRequirements(ActionPaymentTransactionConfig(
             type = TransactionValues.PaymentType.PAYMENT_CARD.toString(),
             displayName = "VISA-1234",
@@ -37,7 +37,7 @@ fun transactionCheckActionPayment(app: ApiAiApp) {
     )
 }
 
-fun transactionCheckGooglePayment(app: ApiAiApp) {
+fun transactionCheckGooglePayment(app: DialogflowApp) {
     app.askForTransactionRequirements( GooglePaymentTransactionConfig(
             // These will be provided by payment processor, like Stripe, Braintree, or
             // Vantiv
@@ -51,7 +51,7 @@ fun transactionCheckGooglePayment(app: ApiAiApp) {
     )
 }
 
-fun transactionCheckComplete(app: ApiAiApp) {
+fun transactionCheckComplete(app: DialogflowApp) {
     if (app.getTransactionRequirementsResult() ==
             TransactionValues.ResultType.OK) {
         // Normally take the user through cart building flow
@@ -61,11 +61,11 @@ fun transactionCheckComplete(app: ApiAiApp) {
     }
 }
 
-fun deliveryAddress(app: ApiAiApp) {
+fun deliveryAddress(app: DialogflowApp) {
     app.askForDeliveryAddress("To know where to send the order")
 }
 
-fun deliveryAddressComplete(app: ApiAiApp) {
+fun deliveryAddressComplete(app: DialogflowApp) {
     if (app.getDeliveryAddress() != null) {
         logger.info("DELIVERY ADDRESS: " +
                 app.getDeliveryAddress()?.postalAddress?.addressLines?.get(0))
@@ -75,7 +75,7 @@ fun deliveryAddressComplete(app: ApiAiApp) {
     }
 }
 
-fun transactionDecision(app: ApiAiApp) {
+fun transactionDecision(app: DialogflowApp) {
     val order = app.buildOrder("<UNIQUE_ORDER_ID>")
             .setCart(app.buildCart().setMerchant("book_store_1", "Book Store")
                     .addLineItems(
@@ -133,7 +133,7 @@ fun transactionDecision(app: ApiAiApp) {
     }
 }
 
-fun transactionDecisionComplete(app: ApiAiApp) {
+fun transactionDecisionComplete(app: DialogflowApp) {
     if (app.getTransactionDecision()?.userDecision ==
                     TransactionValues.ConfirmationDecision.ACCEPTED.toString()) {
         val googleOrderId = app.getTransactionDecision()?.order?.googleOrderId

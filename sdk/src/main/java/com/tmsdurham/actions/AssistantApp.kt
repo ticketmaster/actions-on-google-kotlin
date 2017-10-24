@@ -1,7 +1,7 @@
 package com.tmsdurham.actions
 
-import com.tmsdurham.apiai.*
-import com.tmsdurham.apiai.google.GoogleData
+import com.tmsdurham.dialogflow.*
+import com.tmsdurham.dialogflow.google.GoogleData
 import java.util.logging.Logger
 
 typealias Handler<T, S> = (AssistantApp<T, S>) -> Unit
@@ -111,7 +111,7 @@ class InputValueDataTypes {
  * List of possible conversation stages, as defined in the
  * {@link https://developers.google.com/actions/reference/conversation#Conversation|Conversation object}.
  * @actionssdk
- * @apiai
+ * @dialogflow
  */
 class ConversationStages(val isNotVersionOne: Boolean) {
     /**
@@ -133,7 +133,7 @@ class ConversationStages(val isNotVersionOne: Boolean) {
  * @readonly
  * @enum {string}
  * @actionssdk
- * @apiai
+ * @dialogflow
  */
 class SurfaceCapabilities {
     /**
@@ -151,7 +151,7 @@ class SurfaceCapabilities {
  * @readonly
  * @enum {number}
  * @actionssdk
- * @apiai
+ * @dialogflow
  */
 class InputTypes(val isNotApiVersionOne: Boolean) {
     /**
@@ -245,10 +245,10 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
             } else if (request.headers[CONVERSATION_API_VERSION_HEADER] != null){
                 actionsApiVersion = if (request.headers[CONVERSATION_API_VERSION_HEADER] == "v1") "1" else "2"
             }
-            if (request.body is ApiAiRequest) {
+            if (request.body is DialogflowRequest) {
                 if (request.body.originalRequest != null) {
                     actionsApiVersion = request.body.originalRequest?.version ?: "1"
-                    debug("Actions API version from APIAI: " + this.actionsApiVersion)
+                    debug("Actions API version from Dialogflow: " + this.actionsApiVersion)
                 }
             }
         }
@@ -298,7 +298,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      *   equivalent to just asking for DEVICE_PRECISE_LOCATION
      *
      * @example
-     * val app = ApiAIApp(request = req, response = res)
+     * val app = DialogflowApp(request = req, response = res)
      * val REQUEST_PERMISSION_ACTION = "request_permission"
      * val GET_RIDE_ACTION = "get_ride"
      *
@@ -332,7 +332,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @return A response is sent to Assistant to ask for the user"s permission; for any
      *     invalid input, we return null.
      * @actionssdk
-     * @apiai
+     * @dialogflow
      */
     fun askForPermissions(context: String, vararg permissions: String, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
         debug("askForPermissions: context=$context, permissions=$permissions, dialogState=$dialogState")
@@ -362,7 +362,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * Asks user for a confirmation.
      *
      * @example
-     * val app = ApiAiApp(request, response)
+     * val app = DialogflowApp(request, response)
      * val WELCOME_INTENT = "input.welcome"
      * val CONFIRMATION = "confirmation"
      *
@@ -389,7 +389,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @param {DialogState?=} dialogState JSON object the app uses to hold dialog state that
      *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
      * @actionssdk
-     * @apiai
+     * @dialogflow
      */
     fun askForConfirmation(prompt: String = "", dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
         debug("askForConfirmation: prompt=$prompt, dialogState=$dialogState")
@@ -406,7 +406,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * Asks user for a timezone-agnostic date and time.
      *
      * @example
-     * val app = ApiAiApp(request, response )
+     * val app = DialogflowApp(request, response )
      * val WELCOME_INTENT = "input.welcome"
      * val DATETIME = "datetime"
      *
@@ -442,7 +442,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @param {DialogState<T>?=} dialogState JSON object the app uses to hold dialog state that
      *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
      * @actionssdk
-     * @apiai
+     * @dialogflow
      */
     fun askForDateTime(initialPrompt: String? = null, datePrompt: String? = null, timePrompt: String? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
         debug("askForConfirmation: initialPrompt=$initialPrompt, datePrompt=$datePrompt, timePrompt=$timePrompt, dialogState=$dialogState")
@@ -468,7 +468,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * consent".
      *
      * @example
-     * val app = ApiAiApp(request, response)
+     * val app = DialogflowApp(request, response)
      * val WELCOME_INTENT = "input.welcome"
      * val SIGN_IN = "sign.in"
      *
@@ -493,7 +493,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @param {DialogState?=} dialogState JSON object the app uses to hold dialog state that
      *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
      * @actionssdk
-     * @apiai
+     * @dialogflow
      */
     fun askForSignIn(dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
         debug("askForSignIn: dialogState=$dialogState")
@@ -516,7 +516,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * Checks whether user is in transactable state.
      *
      * @example
-     * val app = ApiAiApp(request = request, response = response)
+     * val app = DialogflowApp(request = request, response = response)
      * val WELCOME_INTENT = "input.welcome"
      * val TXN_REQ_COMPLETE = "txn.req.complete"
      *
@@ -550,7 +550,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
      * @return {ResponseWrapper<S>} HTTP response.
      * @actionssdk
-     * @apiai
+     * @dialogflow
      */
     fun askForTransactionRequirements(transactionConfig: TransactionConfig? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
         debug("checkForTransactionRequirements: transactionConfig=$transactionConfig," +
@@ -574,7 +574,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * Asks user to confirm transaction information.
      *
      * @example
-     * val app = ApiAiApp(request = request, response = response);
+     * val app = DialogflowApp(request = request, response = response);
      * val WELCOME_INTENT = "input.welcome"
      * val TXN_COMPLETE = "txn.complete"
      *
@@ -606,7 +606,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      *     options and order options.
      * @param {DialogState=} dialogState JSON object the app uses to hold dialog state that
      *     will be circulated back by Assistant. Used in {@link ActionsSdkAssistant}.
-     * @apiai
+     * @dialogflow
      */
     fun askForTransactionDecision(order: Order, transactionConfig: TransactionConfig? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
         debug("askForTransactionDecision: order=$order, transactionConfig=$transactionConfig, dialogState=$dialogState")
@@ -916,16 +916,16 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * returns null.
 
      * @example
-     * * val app = ApiAIApp(request = req, response = res)
+     * * val app = DialogflowApp(request = req, response = res)
      * * val REQUEST_PERMISSION_ACTION = "request_permission"
      * * val SAY_NAME_ACTION = "get_name"
      * *
-     * * fun requestPermission (app: ApiAiApp) {
+     * * fun requestPermission (app: DialogflowApp) {
      * *   val permission = app.SupportedPermissions.NAME
      * *   app.askForPermission("To know who you are", permission)
      * * }
      * *
-     * * fun sayName (app: ApiAiApp) {
+     * * fun sayName (app: DialogflowApp) {
      * *   if (app.isPermissionGranted()) {
      * *     app.tell("Your name is " + app.getUserName().displayName))
      * *   } else {
@@ -942,7 +942,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * *
      * @actionssdk
      * *
-     * @apiai
+     * @dialogflow
      */
     fun getUserName(): Profile? {
         debug("getUserName")
@@ -955,7 +955,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * For example, "en-US" represents US English.
 
      * @example
-     * * val app = ApiAiApp(request, response)
+     * * val app = DialogflowApp(request, response)
      * * val locale = app.getUserLocale()
      * *
      * *
@@ -963,7 +963,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * *
      * @actionssdk
      * *
-     * @apiai
+     * @dialogflow
      */
     fun getUserLocale(): String? {
         debug("getUserLocale")
@@ -977,10 +977,10 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @return {boolean} True if user device has the given capability.
      *
      * @example
-     * val app = ApiAIApp(request = req, response = res)
+     * val app = DialogflowApp(request = req, response = res)
      * val DESCRIBE_SOMETHING = "DESCRIBE_SOMETHING"
      *
-     * fun describe (app: ApiAiApp) {
+     * fun describe (app: DialogflowApp) {
      *   if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
      *     app.tell(richResponseWithBasicCard)
      *   } else {
@@ -991,7 +991,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      *      DESCRIBE_SOMETHING to ::describe)
      * app.handleRequest(actionMap)
      *
-     * @apiai
+     * @dialogflow
      * @actionssdk
      */
     fun hasSurfaceCapability(requestedCapability: String): Boolean {

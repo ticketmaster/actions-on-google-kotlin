@@ -10,7 +10,7 @@ __Quick Facts__
  * Closely matches Node.js Client Library API
  * Closely matches implementation of Node.js sdk so code can be maintained easily as features are added
  * All tests ported from nodejs SDK (using [Spek framework](http://spekframework.org/)) & 100% passing
- * Api.Ai and Actions SDK support
+ * Dialogflow and Actions SDK support
  * Conversation Components & Transaction Sample ported
  * Supports v2 of Actions on Google API (if v1 is needed, make an issue please)
 
@@ -55,7 +55,7 @@ __Maven:__
 
 ### Using Kotlin
 
-    fun welcome(app: ApiAiApp) =
+    fun welcome(app: DialogflowApp) =
         app.ask(app.buildRichResponse()
                 .addSimpleResponse(speech = "Hi there!", displayText = "Hello there!")
                 .addSimpleResponse(
@@ -65,9 +65,9 @@ __Maven:__
                     "well as suggestions"""")
                 .addSuggestions("Basic Card", "List", "Carousel", "Suggestions"))
                 
-    fun normalAsk(app: ApiAiApp) = app.ask("Ask me to show you a list, carousel, or basic card")
+    fun normalAsk(app: DialogflowApp) = app.ask("Ask me to show you a list, carousel, or basic card")
 
-    fun suggestions(app: ApiAiApp) {
+    fun suggestions(app: DialogflowApp) {
         app.ask(app
             .buildRichResponse()
             .addSimpleResponse("This is a simple response for suggestions")
@@ -86,7 +86,7 @@ __Maven:__
     class WebHook : HttpServlet() {
 
     	override fun doPost(req: HttpServletRequest, resp: HttpServletResponse) {
-        	ApiAiAction(req, resp).handleRequest(actionMap)
+        	DialogflowAction(req, resp).handleRequest(actionMap)
        }
     }
 
@@ -96,7 +96,7 @@ __Maven:__
 	public class ConversationComponentsSampleJava extends HttpServlet {
     	private static final Logger logger = Logger.getAnonymousLogger();
 
-		Function1<ApiAiApp, Object> welcome = app -> {
+		Function1<DialogflowApp, Object> welcome = app -> {
         	app.ask(app.buildRichResponse()
                 .addSimpleResponse("Hi there from Java!", "Hello there from Java!")
                 .addSimpleResponse(
@@ -106,10 +106,10 @@ __Maven:__
         	return Unit.INSTANCE;
     	};
 
-    	Function1<ApiAiApp, Object> normalAsk = app ->
+    	Function1<DialogflowApp, Object> normalAsk = app ->
        	     app.ask("Ask me to show you a list, carousel, or basic card");
 
-    	Function1<ApiAiApp, Object> suggestions = app ->
+    	Function1<DialogflowApp, Object> suggestions = app ->
        	     app.ask(app.buildRichResponse(null)
                     .addSimpleResponse("This is a simple response for suggestions", null)
                     .addSuggestions("Suggestion Chips")
@@ -124,24 +124,24 @@ __Maven:__
 
     	@Override
     	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-         	 ApiAiAction action = new ApiAiAction(req, resp);
+         	 DialogflowAction action = new DialogflowAction(req, resp);
        	 	 action.handleRequest(intentMap);
     	}
     }
 
 
 ## Extending to other Platforms
-API.AI can be integrated with other platforms, such as Facebook Messenger, Slack, etc.  Actions-on-Goolge-kotlin can be extended and data for those platforms returned from your webhook.  To do this, simply add to the data for your platform using the app.data function.  This must be done before calling the ask function.
+Dialogflow can be integrated with other platforms, such as Facebook Messenger, Slack, etc.  Actions-on-Goolge-kotlin can be extended and data for those platforms returned from your webhook.  To do this, simply add to the data for your platform using the app.data function.  This must be done before calling the ask function.
 
 
-    val app = ApiAiAction(resp, req, gson)
+    val app = DialogflowAction(resp, req, gson)
     val facebookResponse = //build response with your choice of method
     app.data {
     	this["facebook"] = facebookMessages
     }
     app.ask("Hello facebook users!")
     
-The objects in the data object will be passed to the original platform.  It may also be used to send custom data back in the response to the /query rest endpoint.  More info on this is in the API.AI docs.
+The objects in the data object will be passed to the original platform.  It may also be used to send custom data back in the response to the /query rest endpoint.  More info on this is in the Dialogflow docs.
 
 ## License
 See [LICENSE.md.](https://github.com/TicketmasterMobileStudio/actions-on-google-kotlin/blob/master/LICENSE)

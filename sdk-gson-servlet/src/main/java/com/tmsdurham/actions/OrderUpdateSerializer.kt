@@ -5,8 +5,8 @@ import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
-import com.tmsdurham.apiai.Data
-import com.tmsdurham.apiai.google.GoogleData
+import com.tmsdurham.dialogflow.Data
+import com.tmsdurham.dialogflow.google.GoogleData
 
 class DataTypeAdapter(val gson: Gson) : TypeAdapter<Data>() {
     override fun write(out: JsonWriter, value: Data) {

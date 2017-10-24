@@ -1,6 +1,6 @@
 package com.tmsdurham.actions.actions
 
-import com.tmsdurham.apiai.google.GoogleData
+import com.tmsdurham.dialogflow.google.GoogleData
 import com.tmsdurham.actions.ExpectedInput
 import com.tmsdurham.actions.RichResponse
 import com.tmsdurham.actions.SimpleResponse

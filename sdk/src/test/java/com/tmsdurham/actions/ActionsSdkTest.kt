@@ -2,7 +2,7 @@ package com.tmsdurham.actions
 
 import com.google.gson.internal.LinkedTreeMap
 import com.google.gson.reflect.TypeToken
-import com.tmsdurham.apiai.*
+import com.tmsdurham.dialogflow.*
 import com.tmsdurham.actions.actions.ActionRequest
 import com.tmsdurham.actions.actions.ActionResponse
 import com.winterbe.expekt.expect
@@ -55,7 +55,7 @@ object ActionsSdkTest : Spek({
         return tmp
     }
     /**
-     * Describes the behavior for ApiAiApp constructor method.
+     * Describes the behavior for DialogflowApp constructor method.
      */
     describe("ActionsSdkApp#constructor") {
         var mockResponse = ResponseWrapper<ActionResponse>()
@@ -2096,7 +2096,7 @@ object ActionsSdkTest : Spek({
      */
     describe("ActionsSdkApp#getSelectedOption") {
         // Success case test, when the API returns a valid 200 response with the response object
-        it("Should get the selected option when given in APIAI context.") {
+        it("Should get the selected option when given in Dialogflow context.") {
             val body = createLiveSessionActionsSdkAppBody()
             body.inputs!![0].arguments = mutableListOf(gson.fromJson("""
         {

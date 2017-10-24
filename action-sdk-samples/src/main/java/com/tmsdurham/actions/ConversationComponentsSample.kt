@@ -1,6 +1,6 @@
 package com.tmsdurham.actions
 
-import main.java.com.tmsdurham.apiai.sample.ActionsSdkAction
+import main.java.com.tmsdurham.dialogflow.sample.ActionsSdkAction
 import java.util.logging.Logger
 import javax.servlet.annotation.WebServlet
 import javax.servlet.http.HttpServlet
