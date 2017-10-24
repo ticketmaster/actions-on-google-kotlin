@@ -1,7 +1,7 @@
 package com.tmsdurham.actions
 
-import com.ticketmaster.apiai.*
-import com.ticketmaster.apiai.google.GoogleData
+import com.tmsdurham.apiai.*
+import com.tmsdurham.apiai.google.GoogleData
 import java.util.logging.Logger
 
 typealias Handler<T, S> = (AssistantApp<T, S>) -> Unit

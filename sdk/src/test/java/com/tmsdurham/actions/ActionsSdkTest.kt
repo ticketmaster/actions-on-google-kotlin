@@ -2,7 +2,7 @@ package com.tmsdurham.actions
 
 import com.google.gson.internal.LinkedTreeMap
 import com.google.gson.reflect.TypeToken
-import com.ticketmaster.apiai.*
+import com.tmsdurham.apiai.*
 import com.tmsdurham.actions.actions.ActionRequest
 import com.tmsdurham.actions.actions.ActionResponse
 import com.winterbe.expekt.expect

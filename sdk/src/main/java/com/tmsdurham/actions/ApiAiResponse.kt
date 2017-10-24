@@ -1,4 +1,4 @@
-package com.ticketmaster.apiai
+package com.tmsdurham.apiai
 
 data class ApiAiResponse(var speech: String = "", var displayText: String = "", var secondDisplayText: String = "",
                             var data: Data = Data.empty, var contextOut: MutableList<Context> = mutableListOf(), var source: String = "") {

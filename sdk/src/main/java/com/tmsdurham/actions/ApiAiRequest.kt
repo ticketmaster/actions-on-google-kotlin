@@ -1,6 +1,6 @@
-package com.ticketmaster.apiai
+package com.tmsdurham.apiai
 
-import com.ticketmaster.apiai.google.GoogleData
+import com.tmsdurham.apiai.google.GoogleData
 import com.tmsdurham.actions.*
 import com.tmsdurham.actions.actions.ActionRequest
 import com.tmsdurham.actions.actions.Sender
