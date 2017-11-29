@@ -81,6 +81,14 @@ class BuiltInArgNames(isNotVersionOne: Boolean) {
     val DATETIME = "DATETIME"
     /** Sign in status argument. */
     val SIGN_IN = "SIGN_IN"
+    /** Reprompt count for consecutive NO_INPUT intents. */
+    val REPROMPT_COUNT = "REPROMPT_COUNT"
+    /** Flag representing finality of NO_INPUT intent. */
+    val IS_FINAL_REPROMPT = "IS_FINAL_REPROMPT"
+    /** New surface value argument. */
+    val NEW_SURFACE = "NEW_SURFACE"
+    /** Update registration value argument. */
+    val REGISTER_UPDATE = "REGISTER_UPDATE"
 }
 
 const val ANY_TYPE_PROPERTY = "@type"
@@ -242,7 +250,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
             if (request.headers[ACTIONS_CONVERSATION_API_VERSION_HEADER] != null) {
                 actionsApiVersion = request.headers[ACTIONS_CONVERSATION_API_VERSION_HEADER] ?: "2"
                 debug("Actions API version from header: " + this.actionsApiVersion)
-            } else if (request.headers[CONVERSATION_API_VERSION_HEADER] != null){
+            } else if (request.headers[CONVERSATION_API_VERSION_HEADER] != null) {
                 actionsApiVersion = if (request.headers[CONVERSATION_API_VERSION_HEADER] == "v1") "1" else "2"
             }
             if (request.body is DialogflowRequest) {
@@ -968,6 +976,57 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     fun getUserLocale(): String? {
         debug("getUserLocale")
         return getUser()?.locale
+    }
+
+    /**
+     * Returns the set of other available surfaces for the user.
+     *
+     * @return {Array<Surface>} Empty if no available surfaces.
+     * @actionssdk
+     * @dialogflow
+     */
+    fun getAvailableSurfaces(): MutableList<Surface> {
+        debug("getAvailableSurfaces")
+        return requestExtractor.requestData()?.availableSurfaces ?: mutableListOf()
+    }
+
+    /**
+     * Returns true if user has an available surface which includes all given
+     * capabilities. Available surfaces capabilities may exist on surfaces other
+     * than that used for an ongoing conversation.
+     *
+     * @param {string|Array<string>} capabilities Must be one of
+     *     {@link SurfaceCapabilities}.
+     * @return {boolean} True if user has a capability available on some surface.
+     *
+     * @dialogflow
+     * @actionssdk
+     */
+    fun hasAvailableSurfaceCapabilities(vararg capabilities: String): Boolean {
+        debug("hasAvailableSurfaceCapabilities: capabilities=$capabilities")
+        val availableSurfaces = requestExtractor.requestData()
+        availableSurfaces?.availableSurfaces?.forEach {
+            val availableCapabilities = it.capabilities?.map { it.name }
+            val unavailableCapabilities = capabilities.filter { !(availableCapabilities?.contains(it) ?: false) }
+            if (unavailableCapabilities.isEmpty()) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * Returns the result of the AskForNewSurface helper.
+     *
+     * @return {boolean} True if user has triggered conversation on a new device
+     *     following the NEW_SURFACE intent.
+     * @actionssdk
+     * @dialogflow
+     */
+    fun isNewSurface(): Boolean {
+        debug("isNewSurface")
+        val argument = requestExtractor.findArgument(this.BUILT_IN_ARG_NAMES.NEW_SURFACE)
+        return argument?.extension?.status == "OK"
     }
 
     /**

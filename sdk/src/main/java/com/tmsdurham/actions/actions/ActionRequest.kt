@@ -8,6 +8,7 @@ data class ActionRequest(val conversation: Conversation? = null,
                          var device: Device? = null,
                          var isInSandbox: Boolean? = null,
                          var surface: Surface? = null,
+                         var availableSurfaces: MutableList<Surface>? = null,
                          var sender: Sender? = null)
 
 data class Conversation(var type: String? = null,

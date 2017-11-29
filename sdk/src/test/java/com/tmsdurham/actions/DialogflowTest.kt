@@ -40,7 +40,7 @@ const val fakeConversationId = "0123456789"
 object ActionsTest : Spek({
 
     debugFunction = defaultLogFunction
-    
+
     fun requestFromJson(body: String) = gson.fromJson<DialogflowRequest>(body, DialogflowRequest::class.java)
 
     fun responseFromJson(body: String) = gson.fromJson<DialogflowResponse>(body, DialogflowResponse::class.java)
@@ -1352,6 +1352,169 @@ object ActionsTest : Spek({
             expect(mockResponse.body).to.equal(expectedResponse)
         }
     }
+
+    /**
+     * Describes the behavior for DialogflowApp getAvailableSurfaces method.
+     */
+    describe("#getAvailableSurfaces", {
+        var body: DialogflowRequest = DialogflowRequest()
+        var mockRequest: RequestWrapper<DialogflowRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+        var app: DialogflowApp = DialogflowApp(mockRequest, mockResponse, { false })
+        var availableSurfaces: MutableList<Surface>? = null
+
+        beforeEachTest {
+            body = createLiveSessionApiAppBody()
+            mockRequest = RequestWrapper(headerV2, body)
+            mockResponse = ResponseWrapper()
+            app = DialogflowApp(
+                    request = mockRequest,
+                    response = mockResponse
+            )
+            availableSurfaces = gson.fromJson("""[
+            {
+                "capabilities": [
+                {
+                    "name": "cap_one"
+                },
+                {
+                    "name": "cap_two"
+                }
+                ]
+            },
+            {
+                "capabilities": [
+                {
+                    "name": "cap_three"
+                },
+                {
+                    "name": "cap_four"
+                }
+                ]
+            }
+            ]""", arrayOf<Surface>().javaClass).toMutableList()
+            body.originalRequest?.data?.availableSurfaces = availableSurfaces
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return assistant available surfaces", {
+            body.originalRequest?.data?.availableSurfaces = availableSurfaces
+            val mockRequest = RequestWrapper(headerV1, body)
+            val app = DialogflowApp(
+                    mockRequest,
+                    mockResponse)
+
+            expect(app.getAvailableSurfaces()).to.equal(availableSurfaces)
+        })
+
+        // Failure case test
+        it("Should return empty assistant available surfaces", {
+            body.originalRequest?.data?.availableSurfaces = mutableListOf()
+            val mockRequest = RequestWrapper(headerV2, body)
+            val app = DialogflowApp(
+                    mockRequest,
+                    mockResponse
+            )
+            expect(app.getAvailableSurfaces()).to.equal(mutableListOf<Surface>())
+        })
+
+    })
+    /**
+     * Describes the behavior for DialogflowApp hasAvailableSurfaceCapabilities method.
+     */
+    describe("#hasAvailableSurfaceCapabilities", {
+        var body: DialogflowRequest = DialogflowRequest()
+        var mockRequest: RequestWrapper<DialogflowRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+        var app: DialogflowApp = DialogflowApp(mockRequest, mockResponse, { false })
+        var availableSurfaces: MutableList<Surface>? = null
+
+        beforeEachTest {
+            body = createLiveSessionApiAppBody()
+            mockRequest = RequestWrapper(headerV2, body)
+            mockResponse = ResponseWrapper()
+            app = DialogflowApp(
+                    request = mockRequest,
+                    response = mockResponse
+            )
+            availableSurfaces = gson.fromJson("""[
+            {
+                "capabilities": [
+                {
+                    "name": "cap_one"
+                },
+                {
+                    "name": "cap_two"
+                }
+                ]
+            },
+            {
+                "capabilities": [
+                {
+                    "name": "cap_three"
+                },
+                {
+                    "name": "cap_four"
+                }
+                ]
+            }
+            ]""", arrayOf<Surface>().javaClass).toMutableList()
+            body.originalRequest?.data?.availableSurfaces = availableSurfaces
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return true for set of valid capabilities", {
+            val mockRequest = RequestWrapper(headerV1, body)
+            val app = DialogflowApp(
+                    mockRequest,
+                    mockResponse
+            )
+
+            expect(app.hasAvailableSurfaceCapabilities("cap_one", "cap_two")).to.be.`true`
+        })
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return true for one valid capability", {
+            val mockRequest = RequestWrapper(headerV1, body)
+            val app = DialogflowApp(
+                    mockRequest,
+                    mockResponse
+            )
+
+            expect(app.hasAvailableSurfaceCapabilities("cap_one")).to.be.`true`
+        })
+
+        // Failure case test, when the API returns a valid 200 response with the response object
+        it("Should return false for set of invalid capabilities", {
+            val mockRequest = RequestWrapper(headerV1, body)
+            val app = DialogflowApp(
+                    mockRequest,
+                    mockResponse)
+
+            expect(app.hasAvailableSurfaceCapabilities("cap_one", "cap_three")).to.be.`false`
+        })
+
+        // Failure case test, when the API returns a valid 200 response with the response object
+        it("Should return false for one invalid capability", {
+            val mockRequest = RequestWrapper(headerV1, body)
+            val app = DialogflowApp(
+                    mockRequest,
+                    mockResponse)
+
+            expect(app.hasAvailableSurfaceCapabilities("cap_five")).to.be.`false`
+        })
+
+        // Failure case test
+        it("Should return false for empty assistant available surfaces", {
+            body.originalRequest?.data?.availableSurfaces = null
+            val mockRequest = RequestWrapper(headerV2, body)
+            val app = DialogflowApp(
+                    mockRequest,
+                    mockResponse
+            )
+            expect(app.hasAvailableSurfaceCapabilities()).to.be.`false`
+        })
+    })
 
     /**
      * Describes the behavior for DialogflowApp isPermissionGranted method.
