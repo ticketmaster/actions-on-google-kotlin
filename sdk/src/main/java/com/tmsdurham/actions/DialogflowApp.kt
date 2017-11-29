@@ -1333,6 +1333,46 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
     }
 
     /**
+     * Uses a given intent spec to construct and send a non-TEXT intent response
+     * to Google.
+     *
+     * @param {String} intent Name of the intent to fulfill. One of
+     *     {@link AssistantApp#StandardIntents|StandardIntents}.
+     * @param {String} specType Type of the related intent spec. One of
+     *     {@link AssistantApp#InputValueDataTypes_|InputValueDataTypes_}.
+     * @param {NewSurfaceValueSpec} intentSpec Intent Spec object.
+     * @param {String} promptPlaceholder Some placeholder text for the response
+     *     prompt. Default is "PLACEHOLDER_FOR_INTENT".
+     * @param {MutableMap<String, Any?>?} dialogState JSON object the app uses to hold dialog state that
+     *     will be circulated back by Assistant.
+     * @return {ResponseWrapper<DialogflowResponse>?} HTTP response.
+     * @private
+     * @dialogflow
+     */
+    override fun fulfillSystemIntent(intent: String, specType: String, intentSpec: NewSurfaceValueSpec, promptPlaceholder: String?, dialogState: MutableMap<String, Any?>?): ResponseWrapper<DialogflowResponse>? {
+        debug("fulfillSystemIntent_: intent=$intent, specType=$specType, intentSpec=$intentSpec, " +
+                "promptPlaceholder=$promptPlaceholder dialogState=$dialogState")
+        val response = this.buildResponse(promptPlaceholder ?:
+                "PLACEHOLDER_FOR_INTENT", true)
+        response?.body {
+            data {
+                google {
+                    systemIntent {
+                        this.intent = intent
+                        data {
+                            `@type` = specType
+                            context = intentSpec.context
+                            notificationTitle = intentSpec.notificationTitle
+                            capabilities = intentSpec.capabilities
+                        }
+                    }
+                }
+            }
+        }
+        return doResponse(response, RESPONSE_CODE_OK)
+    }
+
+    /**
      * Extract the session data from the incoming JSON request.
      *
      */

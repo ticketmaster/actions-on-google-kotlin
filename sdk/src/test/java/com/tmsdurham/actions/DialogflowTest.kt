@@ -1517,6 +1517,116 @@ object ActionsTest : Spek({
     })
 
     /**
+     * Describes the behavior for DialogflowApp askForNewSurface method.
+     */
+    describe("#askForNewSurface", {
+        var body: DialogflowRequest = DialogflowRequest()
+        var mockRequest: RequestWrapper<DialogflowRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+        var app: DialogflowApp = DialogflowApp(mockRequest, mockResponse, { false })
+
+        beforeEachTest {
+            body = createLiveSessionApiAppBody()
+            mockRequest = RequestWrapper(headerV2, body)
+            app = DialogflowApp(
+                mockRequest,
+                mockResponse)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON sign in request", {
+            app.askForNewSurface("test context", "test title", mutableListOf("cap_one", "cap_two"))
+            val expectedResponse = responseFromJson("""{
+                "speech": "PLACEHOLDER_FOR_NEW_SURFACE",
+                "data": {
+                "google": {
+                "userStorage": "{\"data\":{}}",
+                "expectUserResponse": true,
+                "isSsml": false,
+                "noInputPrompts": [],
+                "systemIntent": {
+                "intent": "actions.intent.NEW_SURFACE",
+                "data": {
+                "context": "test context",
+                "notificationTitle": "test title",
+                "capabilities": ["cap_one", "cap_two"],
+                "@type": "type.googleapis.com/google.actions.v2.NewSurfaceValueSpec"
+            }
+            }
+            }
+            },
+                "contextOut": [
+                {
+                    "name": "_actions_on_google_",
+                    "lifespan": 100,
+                    "parameters": {}
+                }
+                ]
+            }""")
+
+            expect(mockResponse.body).to.equal(expectedResponse)
+        })
+    })
+
+    /**
+     * Describes the behavior for DialogflowApp isNewSurface method.
+     */
+    describe("#isNewSurface", {
+        var body: DialogflowRequest = DialogflowRequest()
+        var mockRequest: RequestWrapper<DialogflowRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+        var app: DialogflowApp = DialogflowApp(mockRequest, mockResponse, { false })
+
+        beforeEachTest {
+            body = createLiveSessionApiAppBody()
+            mockRequest = RequestWrapper(headerV2, body)
+            app = DialogflowApp(
+                mockRequest,
+                mockResponse)
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should validate when new surface was accepted.", {
+            body?.originalRequest?.data?.inputs!![0]?.arguments = gson.fromJson("""[
+            {
+                "name": "NEW_SURFACE",
+                "extension": {
+                "status": "OK"
+            }
+            }
+            ]""", arrayOf<Arguments>()::class.java).toMutableList()
+
+            val mockRequest = RequestWrapper(headerV1, body)
+
+            val app = DialogflowApp(
+                mockRequest,
+                mockResponse)
+
+            expect(app.isNewSurface()).to.be.`true`
+        })
+
+        // Failure case test
+        it("Should validate when new surface was denied.", {
+            body?.originalRequest?.data?.inputs!![0]?.arguments = gson.fromJson("""[
+            {
+                "name": "NEW_SURFACE",
+                "extension": {
+                "status": "DENIED"
+            }
+            }
+            ]""", arrayOf<Arguments>()::class.java).toMutableList()
+
+            val mockRequest = RequestWrapper(headerV1, body)
+
+            val app = DialogflowApp(
+                mockRequest,
+                mockResponse)
+
+            expect(app.isNewSurface()).to.be.`false`
+        })
+    })
+
+    /**
      * Describes the behavior for DialogflowApp isPermissionGranted method.
      */
     describe("DialogflowApp#isPermissionGranted") {
