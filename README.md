@@ -26,14 +26,14 @@ __Gradle:__
     }
     
     dependencies {
-        compile 'com.tmsdurham.actions:actions-on-google:1.2.15'
+        compile 'com.tmsdurham.actions:actions-on-google:1.5.0'
     }
 __Maven:__
 
     <dependency>
   		<groupId>com.tmsdurham.actions</groupId>
   		<artifactId>actions-on-google</artifactId>
-  		<version>1.2.7</version>
+  		<version>1.5.0</version>
   		<type>pom</type>
     </dependency>
 
@@ -41,14 +41,14 @@ The above artifact should fit the needs of most developers, however, if you are 
 
 __Gradle:__
 
-   	compile 'com.tmsdurham.actions:actions-on-google-core:1.2.15'. //only if not using Servlets
+   	compile 'com.tmsdurham.actions:actions-on-google-core:1.5.0'. //only if not using Servlets
 
 __Maven:__
 
     <dependency>
   		<groupId>com.tmsdurham.actions</groupId>
   		<artifactId>actions-on-google-core</artifactId>		//only if not using Servlets
-  		<version>1.2.15</version>
+  		<version>1.5.0</version>
   		<type>pom</type>
     </dependency>
 
