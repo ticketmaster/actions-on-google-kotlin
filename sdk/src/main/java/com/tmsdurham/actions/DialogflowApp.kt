@@ -9,7 +9,7 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
 
     // Constants
     val RESPONSE_CODE_OK = 200
-    val ACTIONS_API_AI_CONTEXT = "_actions_on_google_"
+    val ACTIONS_DIALOGFLOW_CONTEXT = "_actions_on_google_"
     val MAX_LIFESPAN = 100
     val INPUTS_MAX = 3
     val ORIGINAL_SUFFIX = ".original"
@@ -897,7 +897,7 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
             handleError("No contexts included in request")
             return mutableListOf()
         }
-        return request.body.result.contexts.filter { it.name != ACTIONS_API_AI_CONTEXT }.filterNotNull().toMutableList()
+        return request.body.result.contexts.filter { it.name != ACTIONS_DIALOGFLOW_CONTEXT }.filterNotNull().toMutableList()
     }
 
     /**
@@ -1270,7 +1270,7 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
         if (expectUserResponse) {
             response.contextOut.add(
                     Context(
-                            name = ACTIONS_API_AI_CONTEXT,
+                            name = ACTIONS_DIALOGFLOW_CONTEXT,
                             lifespan = MAX_LIFESPAN,
                             parameters = dialogState["data"] as MutableMap<String, Any>?))
         }
@@ -1323,7 +1323,7 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
         if (expectUserResponse) {
             response.contextOut.add(
                     Context(
-                            name = ACTIONS_API_AI_CONTEXT,
+                            name = ACTIONS_DIALOGFLOW_CONTEXT,
                             lifespan = MAX_LIFESPAN,
                             parameters = dialogState["data"] as MutableMap<String, Any>?))
         }
@@ -1378,7 +1378,7 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
      */
     override fun extractData() {
         debug("extractData")
-        data = request.body.result.contexts.find { it.name == ACTIONS_API_AI_CONTEXT }?.parameters ?: mutableMapOf()
+        data = request.body.result.contexts.find { it.name == ACTIONS_DIALOGFLOW_CONTEXT }?.parameters ?: mutableMapOf()
     }
 
     /**
