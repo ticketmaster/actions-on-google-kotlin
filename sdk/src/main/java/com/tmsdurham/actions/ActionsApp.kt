@@ -2,6 +2,7 @@ package com.tmsdurham.actions
 
 import com.tmsdurham.dialogflow.google.GoogleData
 import com.tmsdurham.actions.actions.*
+import com.tmsdurham.dialogflow.DialogflowResponse
 
 
 // Constants
@@ -970,6 +971,12 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         }
         return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), outDialogState)
     }
+
+
+    override fun fulfillSystemIntent(intent: String, specType: String, intentSpec: NewSurfaceValueSpec, promptPlaceholder: String?, dialogState: MutableMap<String, Any?>?): ResponseWrapper<DialogflowResponse>? {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
 
     /**
      * Builds the ask response to send back to Assistant.

@@ -41,6 +41,16 @@ class StandardIntents(val isNotVersionOne: Boolean) {
     val DATETIME = "actions.intent.DATETIME"
     /** App fires SIGN_IN intent when requesting sign-in from user. */
     val SIGN_IN = "actions.intent.SIGN_IN"
+    /** App fires NO_INPUT intent when user doesn't provide input. */
+    val NO_INPUT = "actions.intent.NO_INPUT"
+    /** App fires CANCEL intent when user exits app mid-dialog. */
+    val CANCEL = "actions.intent.CANCEL"
+    /** App fires NEW_SURFACE intent when requesting handoff to a new surface from user. */
+    val NEW_SURFACE = "actions.intent.NEW_SURFACE"
+    /** App fires REGISTER_UPDATE intent when requesting the user to register for proactive updates. */
+    val REGISTER_UPDATE = "actions.intent.REGISTER_UPDATE"
+    /** App receives CONFIGURE_UPDATES intent to indicate a custom REGISTER_UPDATE intent should be sent. */
+    val CONFIGURE_UPDATES = "actions.intent.CONFIGURE_UPDATES"
 }
 
 class SupportedIntent {
@@ -113,6 +123,10 @@ class InputValueDataTypes {
     val DATETIME = "type.googleapis.com/google.actions.v2.DateTimeValueSpec"
     /** Sign in Value Spec. */
     val SIGN_IN = "type.googleapis.com/google.actions.v2.SignInValueSpec"
+    /** New Surface Value Spec. */
+    val NEW_SURFACE = "type.googleapis.com/google.actions.v2.NewSurfaceValueSpec"
+    /** Register Update Value Spec. */
+    val REGISTER_UPDATE = "type.googleapis.com/google.actions.v2.RegisterUpdateValueSpec"
 }
 
 /**
@@ -508,12 +522,70 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         return fulfillSignInRequest(dialogState)
     }
 
+    /**
+     * Requests the user to switch to another surface during the conversation.
+     *
+     * @example
+     * val app = DialogflowApp(request, response)
+     * val WELCOME_INTENT = 'input.welcome'
+     * val SHOW_IMAGE = 'show.image'
+     *
+     * fun welcomeIntent (app) {
+     *   if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+     *     showPicture(app)
+     *   } else if (app.hasAvailableSurfaceCapabilities(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+     *     app.askForNewSurface("To show you an image",
+     *       "Check out this image",
+     *       mutableListOf(app.SurfaceCapabilities.SCREEN_OUTPUT)
+     *     )
+     *   } else {
+     *     app.tell("This part of the app only works on screen devices. Sorry about that")
+     *   }
+     * }
+     *
+     * fun showImage (app) {
+     *   if (!app.isNewSurface()) {
+     *     app.tell("Ok, I understand. You don't want to see pictures. Bye")
+     *   } else {
+     *     showPicture(app, pictureType)
+     *   }
+     * }
+     *
+     * val actionMap = Map()
+     * actionMap.set(WELCOME_INTENT, welcomeIntent)
+     * actionMap.set(SHOW_IMAGE, showImage)
+     * app.handleRequest(actionMap)
+     *
+     * @param {String} context Context why surface is requested it's the TTS
+     *     prompt prefix (action phrase) we ask the user.
+     * @param {String} notificationTitle Title of the notification appearing on
+     *     surface device.
+     * @param {MutableList<String>} capabilities The list of capabilities required in
+     *     the surface.
+     * @param {MutableMap<String, Any?>?} dialogState JSON object the app uses to hold dialog state that
+     *     will be circulated back by Assistant. Used in {@link ActionsSdkApp}.
+     * @return {ResponseWrapper<DialogflowResponse>?} HTTP response.
+     * @dialogflow
+     * @actionssdk
+     */
+    fun askForNewSurface(context: String, notificationTitle: String, capabilities: MutableList<String>, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<DialogflowResponse>? {
+        debug("askForNewSurface: context=$context, notificationTitle=$notificationTitle, capabilities=$capabilities, dialogState=$dialogState")
+        val newSurfaceValueSpec = NewSurfaceValueSpec(context, notificationTitle, capabilities)
+        return fulfillSystemIntent(this.STANDARD_INTENTS.NEW_SURFACE,
+                this.INPUT_VALUE_DATA_TYPES.NEW_SURFACE, newSurfaceValueSpec,
+                "PLACEHOLDER_FOR_NEW_SURFACE", dialogState)
+    }
 
     internal abstract fun fulfillSignInRequest(dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
     internal abstract fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
     internal abstract fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
+    internal abstract fun fulfillSystemIntent(intent: String, specType: String, intentSpec: NewSurfaceValueSpec, promptPlaceholder: String? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<DialogflowResponse>?
 
     data class ConfirmationValueSpec(var dialogSpec: DialogSpec? = null)
+
+    data class NewSurfaceValueSpec(var context: String? = null,
+                                   var notificationTitle: String? = null,
+                                   var capabilities: MutableList<String>? = null)
 
     data class DialogSpec(var requestConfirmationText: String? = null,
                           var requestDatetimeText: String? = null,
