@@ -1314,12 +1314,21 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
         } else {
             noInputsFinal = mutableListOf()
         }
-        val response = DialogflowResponse(
-                speech = textToSpeech)
-        response.data.google = GoogleData(
-                expectUserResponse = expectUserResponse,
-                isSsml = isSsml(textToSpeech),
-                noInputPrompts = noInputsFinal)
+        val hasDataForAnotherPlatform = response.body?.data != null
+        val response = if (hasDataForAnotherPlatform) {
+            DialogflowResponse(
+                    speech = textToSpeech,
+                    data = response.body?.data!!)
+        } else {
+            DialogflowResponse(
+                    speech = textToSpeech)
+        }
+        if (!hasDataForAnotherPlatform) {
+            response.data.google = GoogleData(
+                    expectUserResponse = expectUserResponse,
+                    isSsml = isSsml(textToSpeech),
+                    noInputPrompts = noInputsFinal)
+        }
         if (expectUserResponse) {
             response.contextOut.add(
                     Context(
