@@ -16,7 +16,7 @@ data class DialogflowRequest(
         val timestamp: String? = null,
         val lang: String? = null,
         var result: Result = Result(),
-        var data: Data = Data.empty,
+        var data: Data = Data(),
         val status: Status? = null,
         val sessionId: String? = null,
         var originalRequest: OriginalRequest? = null) {
@@ -72,10 +72,6 @@ data class Data(val nothing: Nothing? = null) : MutableMap<String, Any?> by muta
             google = GoogleData()
         }
         google?.init()
-    }
-
-    companion object {
-        val empty = Data()
     }
 }
 
