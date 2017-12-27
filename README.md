@@ -17,7 +17,7 @@ __Quick Facts__
 
 ## Setup Instructions
 
-This library is available on jCenter and Maven Central.  If your using gradle simply add the dependency as follows:
+This library is available on jCenter.  If your using gradle simply add the dependency as follows:
 
 __Gradle:__
 
