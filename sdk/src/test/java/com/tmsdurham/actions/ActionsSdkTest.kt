@@ -1970,7 +1970,7 @@ object ActionsSdkTest : Spek({
                     request = mockRequest,
                     response = mockResponse,
                     serializer = serializer)
-            expect(app.getApiVersion()).to.equal("1")
+            expect(app.getApiVersion()).to.equal("v1")
         }
     }
 

@@ -122,7 +122,7 @@ class RequestExtractor<T, S>(val app: AssistantApp<T, S>) {
      * }
      *
      * fun numberIntent (app: DialogflowApp<T>) {
-     *   const number = app.getArgument(NUMBER_ARGUMENT)
+     *   val number = app.getArgument(NUMBER_ARGUMENT)
      *   app.tell("You said " + number)
      * }
      *
@@ -360,5 +360,100 @@ class RequestExtractor<T, S>(val app: AssistantApp<T, S>) {
         debug("isPermissionGranted")
         return getArgumentCommon(app.BUILT_IN_ARG_NAMES.PERMISSION_GRANTED) ?: "" == "true"
     }
+
+    /**
+     * Returns the number of subsequent reprompts related to silent input from the
+     * user. This should be used along with the NO_INPUT intent to reprompt the
+     * user for input in cases where the Google Assistant could not pick up any
+     * speech.
+     *
+     * @example
+     * val app = ActionsSdkApp(request, response)
+     *
+     * func welcome(app: AsstistantApp) {
+     *   app.ask("Welcome to your app!")
+     * }
+     *
+     * fun noInput(app: AssistantApp) {
+     *   if (app.getRepromptCount() == 0) {
+     *     app.ask("What was that?")
+     *   } else if (app.getRepromptCount() == 1) {
+     *     app.ask("Sorry I didn"t catch that. Could you repeat yourself?")
+     *   } else if (app.isFinalReprompt()) {
+     *     app.tell("Okay let"s try this again later.")
+     *   }
+     * }
+     *
+     * val actionMap = mutableMapOf()
+     * actionMap.set(app.StandardIntents.MAIN, welcome)
+     * actionMap.set(app.StandardIntents.NO_INPUT, noInput)
+     * app.handleRequest(actionMap)
+     *
+     * @return {Int?} The current reprompt count. Null if no reprompt count
+     *     available (e.g. not in the NO_INPUT intent).
+     * @dialogflow
+     * @actionssdk
+     */
+    fun getRepromptCount(): Int? {
+        debug("getRepromptCount")
+        val repromptCount = getArgumentCommon(app.BUILT_IN_ARG_NAMES.REPROMPT_COUNT)
+        return (repromptCount as String?)?.toInt()
+    }
+
+
+    /**
+     * Returns true if it is the final reprompt related to silent input from the
+     * user. This should be used along with the NO_INPUT intent to give the final
+     * response to the user after multiple silences and should be an app.tell
+     * which ends the conversation.
+     *
+     * @example
+     * val app = ActionsSdkApp(request, response)
+     *
+     * fun welcome(app: AssistantApp) {
+     *   app.ask("Welcome to your app!")
+     * }
+     *
+     * fun noInput(app: AssistantApp) {
+     *   if (app.getRepromptCount() == 0) {
+     *     app.ask("What was that?")
+     *   } else if (app.getRepromptCount() == 1) {
+     *     app.ask("Sorry I didn't catch that. Could you repeat yourself?")
+     *   } else if (app.isFinalReprompt()) {
+     *     app.tell("Okay let's try this again later.")
+     *   }
+     * }
+     *
+     * val actionMap = mutableMapOf()
+     * actionMap.set(app.STANDARD_INTENTS.MAIN, welcome)
+     * actionMap.set(app.STANDARD_INTENTS.NO_INPUT, noInput)
+     * app.handleRequest(actionMap)
+     *
+     * @return {Boolean} True if in a NO_INPUT intent and this is the final turn
+     *     of dialog.
+     * @dialogflow
+     * @actionssdk
+     */
+    fun isFinalReprompt(): Boolean {
+        debug("isFinalReprompt")
+        val finalReprompt = getArgumentCommon(app.BUILT_IN_ARG_NAMES.IS_FINAL_REPROMPT)
+        return finalReprompt == '1'
+    }
+
+
+    /**
+     * Returns true if user accepted update registration request. Used with
+     * {@link AssistantApp#askToRegisterDailyUpdate}
+     *
+     * @return {Boolean} True if user accepted update registration request.
+     * @dialogflow
+     * @actionssdk
+     */
+    fun isUpdateRegistered(): Boolean {
+        debug("isUpdateRegistered");
+        val argument = this.findArgument(app.BUILT_IN_ARG_NAMES.REGISTER_UPDATE)
+        return argument?.extension?.status == "OK"
+    }
+
 }
 
