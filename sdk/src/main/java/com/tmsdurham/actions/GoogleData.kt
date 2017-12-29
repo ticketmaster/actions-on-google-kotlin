@@ -1,6 +1,7 @@
 package com.tmsdurham.dialogflow.google
 
 import com.tmsdurham.actions.*
+import com.tmsdurham.dialogflow.Arguments
 
 data class GoogleData(
         var isSsml: Boolean = false,
@@ -26,7 +27,9 @@ data class GoogleData(
     data class PermissionsRequest(
             var optContext: String? = null,
             var permissions: MutableList<String>? = null,
-            var expectUserResponse: Boolean = false)
+            var expectUserResponse: Boolean = false,
+            var arguments: MutableList<Arguments>? = null,
+            var intent: String? = null)
 
 
     data class SystemIntent(
@@ -67,7 +70,9 @@ data class GoogleData(
             var paymentOptions: PaymentOptions? = null,
             var addressOptions: AddressOptions? = null,
             var orderOptions: OrderOptions? = null,
-            var dialogSpec: AssistantApp.DialogSpec? = null) {
+            var dialogSpec: AssistantApp.DialogSpec? = null,
+            var triggerContext: AssistantApp.TriggerContext? = null,
+            var arguments: MutableList<Arguments>? = null) {
 
         inline fun paymentOptions(init: PaymentOptions.() -> Unit) {
             if (paymentOptions == null) {

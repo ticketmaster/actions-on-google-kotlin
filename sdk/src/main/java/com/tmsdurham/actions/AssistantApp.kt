@@ -11,7 +11,7 @@ internal val logger = Logger.getAnonymousLogger()
 // Constants
 val ERROR_MESSAGE = "Sorry, I am unable to process your request."
 val API_ERROR_MESSAGE_PREFIX = "Action Error: "
-val CONVERSATION_API_VERSION_HEADER = "google-assistant-api-version"
+val CONVERSATION_API_VERSION_HEADER = "Google-Assistant-API-Version"
 val ACTIONS_CONVERSATION_API_VERSION_HEADER = "Google-Actions-API-Version"
 val ACTIONS_CONVERSATION_API_VERSION_TWO = 2
 val RESPONSE_CODE_OK = 200
@@ -213,6 +213,10 @@ class SupportedPermissions {
      * {@link https://developers.google.com/actions/reference/conversation#Location|Location object}.
      */
     val DEVICE_COARSE_LOCATION = "DEVICE_COARSE_LOCATION"
+    /**
+     * Confirmation to receive proactive content at any time from the app.
+     */
+    val UPDATE = "UPDATE"
 }
 
 class SignInStatus {
@@ -224,6 +228,15 @@ class SignInStatus {
     val CANCELLED = "CANCELLED"
     // System or network error.
     val ERROR = "ERROR"
+}
+
+/**
+ * Possible update trigger time context frequencies.
+ * @readonly
+ * @type {object}
+ */
+class TimeContextFrequency {
+    val DAILY = "DAILY"
 }
 
 
@@ -238,6 +251,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     var INPUT_TYPES: InputTypes
     val SUPPORTED_PERMISSIONS = SupportedPermissions()
     val SIGN_IN_STATUS = SignInStatus()
+    val TIME_CONTEXT_FREQUENCY = TimeContextFrequency()
 
     var responded = false
     var apiVersion_: String = "2"
@@ -378,6 +392,73 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         return fulfillPermissionsRequest(GoogleData.PermissionsRequest(
                 optContext = context,
                 permissions = permissions.toMutableList()), dialogState)
+    }
+
+
+    /**
+     * Prompts the user for permission to send proactive updates at any time.
+     *
+     * @example
+     * val app = new DialogflowApp({request, response})
+     * val REQUEST_PERMISSION_ACTION = "request.permission"
+     * val PERMISSION_REQUESTED = "permission.requested"
+     * val SHOW_IMAGE = "show.image"
+     *
+     * fun requestPermission (app) {
+     *   app.askForUpdatePermission("show.image", [
+     *     {
+     *       name: "image_to_show",
+     *       textValue: "image_type_1"
+     *     }
+     *   ])
+     * }
+     *
+     * fun checkPermission (app) {
+     *   if (app.isPermissionGranted()) {
+     *     app.tell("Great, I"ll send an update whenever I notice a change")
+     *   } else {
+     *     // Response shows that user did not grant permission
+     *     app.tell("Alright, just let me know whenever you need the weather!")
+     *   }
+     * }
+     *
+     * fun showImage (app) {
+     *   showPicture(app.getArgument("image_to_show"))
+     * }
+     *
+     * val actionMap = new Map()
+     * actionMap.set(REQUEST_PERMISSION_ACTION, requestPermission)
+     * actionMap.set(PERMISSION_REQUESTED, checkPermission)
+     * actionMap.set(SHOW_IMAGE, showImage)
+     * app.handleRequest(actionMap)
+     *
+     * @param {String} intent If using Dialogflow, the action name of the intent
+     *     to be triggered when the update is received. If using Actions SDK, the
+     *     intent name to be triggered when the update is received.
+     * @param {Array<IntentArgument>} intentArguments The necessary arguments
+     *     to fulfill the intent triggered on update. These can be retrieved using
+     *     {@link AssistantApp#getArgument}.
+     * @param {MutableMap<String, Any?>} dialogState JSON object the app uses to hold dialog state that
+     *     will be circulated back by Assistant. Used in {@link ActionsSdkApp}.
+     * @return {ResponseWrapper<S>?} A response is sent to Assistant to ask for the user"s permission for any
+     *     invalid input, we return null.
+     * @actionssdk
+     * @dialogflow
+     */
+    fun askForUpdatePermission(intent: String, intentArguments: MutableList<Arguments>? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
+        debug("askForUpdatePermission: intent=$intent, intentArguments=$intentArguments, dialogState=$dialogState")
+        if (intent.isBlank()) {
+            handleError("Name of intent to trigger on update must be specified")
+            return null
+        }
+        val updatePermissionValueSpec = GoogleData.PermissionsRequest(intent = intent)
+        if (intentArguments?.isNotEmpty() == true) {
+            updatePermissionValueSpec.arguments = intentArguments
+        }
+        updatePermissionValueSpec.permissions = mutableListOf(this.SUPPORTED_PERMISSIONS.UPDATE)
+
+        return this.fulfillPermissionsRequest(
+                permissionsSpec = updatePermissionValueSpec, dialogState = dialogState)
     }
 
     /**
@@ -576,16 +657,81 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
                 "PLACEHOLDER_FOR_NEW_SURFACE", dialogState)
     }
 
+
+    /**
+     * Requests the user to register for daily updates.
+     *
+     * @example
+     * val app = DialogflowApp(request, response)
+     * val WELCOME_INTENT = "input.welcome"
+     * val SHOW_IMAGE = "show.image"
+     *
+     * fun welcomeIntent (app) {
+     *   app.askToRegisterDailyUpdate("show.image", mutableListOf(Arguments(
+     *       name: "image_to_show",
+     *       textValue: "image_type_1"))
+     *
+     *
+     * fun showImage (app) {
+     *   showPicture(app.getArgument("image_to_show"))
+     * }
+     *
+     * val actionMap = new Map()
+     * actionMap.set(WELCOME_INTENT, welcomeIntent)
+     * actionMap.set(SHOW_IMAGE, showImage)
+     * app.handleRequest(actionMap)
+     *
+     * @param {String} intent If using Dialogflow, the action name of the intent
+     *     to be triggered when the update is received. If using Actions SDK, the
+     *     intent name to be triggered when the update is received.
+     * @param {Array<IntentArgument>?} intentArguments The necessary arguments
+     *     to fulfill the intent triggered on update. These can be retrieved using
+     *     {@link AssistantApp#getArgument}.
+     * @param {MutableMapOf<String, Any?>?} dialogState JSON object the app uses to hold dialog state that
+     *     will be circulated back by Assistant. Used in {@link ActionsSdkApp}.
+     * @return {ResponseWrapper<S>?} HTTP response.
+     * @dialogflow
+     * @actionssdk
+     */
+    fun askToRegisterDailyUpdate(intent: String, intentArguments: MutableList<Arguments>? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<DialogflowResponse>? {
+        debug("askToRegisterDailyUpdate: intent=$intent, intentArguments=$intentArguments, dialogState=$dialogState")
+        if (intent.isNullOrBlank()) {
+            handleError("Name of intent to trigger on update must be specified")
+            return null
+        }
+        val registerUpdateValueSpec = RegisterUpdateValueSpec(
+                intent = intent,
+                triggerContext = TriggerContext(timeContext = TimeContext(frequency = TIME_CONTEXT_FREQUENCY.DAILY))
+        )
+
+        if (intentArguments?.isNotEmpty() == true) {
+            registerUpdateValueSpec.arguments = intentArguments
+        }
+        return this.fulfillRegisterUpdateIntent(this.STANDARD_INTENTS.REGISTER_UPDATE,
+                INPUT_VALUE_DATA_TYPES.REGISTER_UPDATE, registerUpdateValueSpec,
+                "PLACEHOLDER_FOR_REGISTER_UPDATE", dialogState)
+    }
+
+
     internal abstract fun fulfillSignInRequest(dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
     internal abstract fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
     internal abstract fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
     internal abstract fun fulfillSystemIntent(intent: String, specType: String, intentSpec: NewSurfaceValueSpec, promptPlaceholder: String? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<DialogflowResponse>?
+    internal abstract fun fulfillRegisterUpdateIntent(intent: String, specType: String, intentSpec: RegisterUpdateValueSpec, promptPlaceholder: String? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<DialogflowResponse>?
 
     data class ConfirmationValueSpec(var dialogSpec: DialogSpec? = null)
 
     data class NewSurfaceValueSpec(var context: String? = null,
                                    var notificationTitle: String? = null,
                                    var capabilities: MutableList<String>? = null)
+
+    data class RegisterUpdateValueSpec(var intent: String? = null,
+                                       var arguments: MutableList<Arguments>? = null,
+                                       var triggerContext: TriggerContext? = null)
+
+    data class TriggerContext(var timeContext: TimeContext? = null)
+
+    data class TimeContext(var frequency: String? = null)
 
     data class DialogSpec(var requestConfirmationText: String? = null,
                           var requestDatetimeText: String? = null,
@@ -1150,6 +1296,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         }
         // Don"t call other methods; just do directly
         //TODO revist if response should be sent on all errors - issue with context not set when from other platforms
+        this.response.status(RESPONSE_CODE_BAD_REQUEST)
 //        this.response.status(RESPONSE_CODE_BAD_REQUEST).send(API_ERROR_MESSAGE_PREFIX + text)
 //        this.responded = true
     }
@@ -1200,6 +1347,9 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     fun getSurfaceCapabilities() = requestExtractor.getSurfaceCapabilities()
     fun getInputType() = requestExtractor.getInputType()
     fun isPermissionGranted() = requestExtractor.isPermissionGranted()
+    fun getRepromptCount() = requestExtractor.getRepromptCount()
+    fun isFinalReprompt() = requestExtractor.isFinalReprompt()
+    fun isUpdateRegistered() = requestExtractor.isUpdateRegistered()
 }
 
 /**

@@ -1381,6 +1381,28 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
         return doResponse(response, RESPONSE_CODE_OK)
     }
 
+    override fun fulfillRegisterUpdateIntent(intent: String, specType: String, intentSpec: RegisterUpdateValueSpec, promptPlaceholder: String?, dialogState: MutableMap<String, Any?>?): ResponseWrapper<DialogflowResponse>? {
+        debug("fulfillSystemIntent_: intent=$intent, specType=$specType, intentSpec=$intentSpec, " +
+                "promptPlaceholder=$promptPlaceholder dialogState=$dialogState")
+        val response = this.buildResponse(promptPlaceholder ?:
+                "PLACEHOLDER_FOR_INTENT", true)
+        response?.body {
+            data {
+                google {
+                    systemIntent {
+                        this.intent = intent
+                        data {
+                            `@type` = specType
+                            triggerContext = intentSpec.triggerContext
+                            arguments = intentSpec.arguments
+                        }
+                    }
+                }
+            }
+        }
+        return doResponse(response, RESPONSE_CODE_OK)
+    }
+
     /**
      * Extract the session data from the incoming JSON request.
      *

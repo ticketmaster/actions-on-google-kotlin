@@ -167,7 +167,7 @@ data class TransactionRequirementsCheckResult(
         val `@type`: String = "",
         val resultType: TransactionValues.ResultType = TransactionValues.ResultType.UNSPECIFIED,
         var userDecision: String = "",
-        val status: String = "",
+        var status: String = "",
         var location: Location? = null,
         val order: FinalOrderHolder? = null)
 
