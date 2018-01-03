@@ -4,14 +4,6 @@ apply plugin: 'kotlin2js'
 apply plugin: 'kotlin-dce-js'
 apply plugin: "com.eriwen.gradle.js"
 
-repositories {
-    jcenter()
-    mavenCentral()
-    maven {
-        url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2'
-    }
-}
-
 dependencies {
     compile project(':js')
     compile libraries.kotlin_stdlib_js

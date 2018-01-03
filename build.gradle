@@ -37,3 +37,10 @@ ext {
             kotlin_test_junit: "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion",
     ]
 }
+
+subprojects {
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+}

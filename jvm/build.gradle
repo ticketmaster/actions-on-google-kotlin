@@ -2,14 +2,6 @@ apply plugin: 'kotlin-platform-jvm'
 
 archivesBaseName = 'kotlin-multiplatform-recipes-jvm'
 
-repositories {
-    jcenter()
-    mavenCentral()
-    maven {
-        url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2'
-    }
-}
-
 dependencies {
     expectedBy project(':common')
     compile libraries.kotlin_stdlib
