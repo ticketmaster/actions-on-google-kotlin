@@ -11,9 +11,6 @@ dependencies {
 
 [compileKotlin2Js, compileTestKotlin2Js]*.configure {
     kotlinOptions.moduleKind = "umd"
-}
-
-compileKotlin2Js {
     kotlinOptions.sourceMap = true
     kotlinOptions.sourceMapEmbedSources = "always"
 }
