@@ -1,7 +1,7 @@
 package mp
 
 /**
- * Shows the multi-platform implementation of a class by delegating to a header sub class. Properties:
+ * Shows the multi-platform implementation of a class by delegating to an expected sub class. Properties:
  * 
  * * Adds artificial types to the class hierarchy.
  * * Allows for platform-specific members in the multi-platform sub class.

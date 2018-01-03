@@ -1,8 +1,8 @@
 package mp
 
-import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.Test
 
 /**
  * Shows that tests for common functionality will be run in the multi-platform modules.

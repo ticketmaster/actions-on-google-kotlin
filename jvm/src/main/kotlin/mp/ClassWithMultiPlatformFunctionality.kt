@@ -1,7 +1,7 @@
 package mp
 
-impl class ClassWithMultiPlatformFunctionality {
-    impl fun commonFunctionality() {
+actual class ClassWithMultiPlatformFunctionality {
+    actual fun commonFunctionality() {
         println("This is multi-platform functionality implemented in Java")
     }
     

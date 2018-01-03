@@ -5,10 +5,14 @@ archivesBaseName = 'kotlin-multiplatform-recipes-common'
 repositories {
     jcenter()
     mavenCentral()
+    maven {
+        url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2'
+    }
 }
 
 dependencies {
     compile libraries.kotlin_stdlib_common
+    testCompile libraries.kotlin_test_annotations_common
     testCompile libraries.kotlin_test_common
 }
 

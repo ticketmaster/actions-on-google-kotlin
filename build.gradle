@@ -9,11 +9,14 @@ task wrapper(type: Wrapper) {
 }
 
 buildscript {
-    ext.kotlinVersion = '1.1.51'
+    ext.kotlinVersion = '1.2.0-beta-88'
 
     repositories {
         jcenter()
         mavenCentral()
+        maven {
+            url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2'
+        }
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
@@ -31,8 +34,9 @@ ext {
             kotlin_stdlib: "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion",
             kotlin_stdlib_common: "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlinVersion",
             kotlin_stdlib_js: "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlinVersion",
-            kotlin_test: "org.jetbrains.kotlin:kotlin-test:$kotlinVersion",
+            kotlin_test_annotations_common: "org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlinVersion",
             kotlin_test_common: "org.jetbrains.kotlin:kotlin-test-common:$kotlinVersion",
             kotlin_test_js: "org.jetbrains.kotlin:kotlin-test-js:$kotlinVersion",
+            kotlin_test_junit: "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion",
     ]
 }

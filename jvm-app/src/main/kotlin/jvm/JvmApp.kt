@@ -21,15 +21,15 @@ fun main(arguments: Array<String>) {
 
     val canBeClosed = CanBeClosed()
 
-    header("Common extension function on header interface")
+    header("Common extension function on expected interface")
     canBeClosed.printThis()
     
-    header("Common generic extension function on header interface")
+    header("Common generic extension function on expected interface")
     canBeClosed.mpUse {
         println("Using it through 'mpUse': $it")
     }
 
-    header("Extension function from the standard library on a type-aliased header interface")
+    header("Extension function from the standard library on a type-aliased expected interface")
     canBeClosed.use {
         println("Using it through 'use': $it")
     }
@@ -74,7 +74,7 @@ fun main(arguments: Array<String>) {
 
     val classWithMultiPlatformFunctionality = ClassWithMultiPlatformFunctionality()
 
-    header("Invocation of a function defined by the class header")
+    header("Invocation of a function defined by the expected class")
     classWithMultiPlatformFunctionality.commonFunctionality()
 
     header("Invocation of a function defined by the Java class implementation")
