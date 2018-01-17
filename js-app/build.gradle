@@ -15,25 +15,20 @@ dependencies {
     kotlinOptions.sourceMapEmbedSources = "always"
 }
 
-project.afterEvaluate {
-    unpackDependenciesKotlinJs.dependsOn(':js:assemble')
-    unpackDependenciesTestKotlinJs.dependsOn(':js:assemble')
-}
-
 combineJs {
     source = [
             // The order is important. That's why the documented way with a reference to a source set using wildcards
             // is not used.
-            "${buildDir}/classes/kotlin/main/min/kotlin.js", 
-            "${buildDir}/classes/kotlin/main/min/kotlin-multiplatform-recipes-js.js", 
-            "${buildDir}/classes/kotlin/main/min/js-app.js"
+            "${buildDir}/kotlin-js-min/main/kotlin.js",
+            "${buildDir}/kotlin-js-min/main/kotlin-multiplatform-recipes-js.js",
+            "${buildDir}/kotlin-js-min/main/js-app.js"
     ]
-    dest = file("${buildDir}/classes/kotlin/main/combined/${archivesBaseName}-combined.js")
+    dest = file("${temporaryDir}/${archivesBaseName}-combined.js")
 }
 
 minifyJs {
     source = combineJs
-    dest = file("${buildDir}/classes/kotlin/main/minified/${archivesBaseName}-minified.js")
+    dest = file("${temporaryDir}/${archivesBaseName}-minified.js")
     closure {
         compilerOptions = new CompilerOptions().with {
             setLanguage(CompilerOptions.LanguageMode.ECMASCRIPT5)

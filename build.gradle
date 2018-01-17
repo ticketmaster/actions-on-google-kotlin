@@ -9,7 +9,7 @@ task wrapper(type: Wrapper) {
 }
 
 buildscript {
-    ext.kotlinVersion = '1.2.10'
+    ext.kotlinVersion = '1.2.20'
 
     repositories {
         jcenter()
