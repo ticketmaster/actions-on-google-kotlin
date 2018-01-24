@@ -72,6 +72,7 @@ data class GoogleData(
             var orderOptions: OrderOptions? = null,
             var dialogSpec: AssistantApp.DialogSpec? = null,
             var triggerContext: AssistantApp.TriggerContext? = null,
+            var reason: AddressOptions? = null,
             var arguments: MutableList<Arguments>? = null) {
 
         inline fun paymentOptions(init: PaymentOptions.() -> Unit) {

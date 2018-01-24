@@ -3,6 +3,7 @@ package com.tmsdurham.actions
 import com.tmsdurham.dialogflow.*
 import com.tmsdurham.dialogflow.google.GoogleData
 import java.util.logging.Logger
+import javax.xml.ws.Response
 
 typealias Handler<T, S> = (AssistantApp<T, S>) -> Unit
 
@@ -504,7 +505,6 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         return fulfillConfirmationRequest(confirmationValueSpec, dialogState)
     }
 
-
     /**
      * Asks user for a timezone-agnostic date and time.
      *
@@ -649,7 +649,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @dialogflow
      * @actionssdk
      */
-    fun askForNewSurface(context: String, notificationTitle: String, capabilities: MutableList<String>, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<DialogflowResponse>? {
+    fun askForNewSurface(context: String, notificationTitle: String, capabilities: MutableList<String>, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
         debug("askForNewSurface: context=$context, notificationTitle=$notificationTitle, capabilities=$capabilities, dialogState=$dialogState")
         val newSurfaceValueSpec = NewSurfaceValueSpec(context, notificationTitle, capabilities)
         return fulfillSystemIntent(this.STANDARD_INTENTS.NEW_SURFACE,
@@ -693,7 +693,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
      * @dialogflow
      * @actionssdk
      */
-    fun askToRegisterDailyUpdate(intent: String, intentArguments: MutableList<Arguments>? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<DialogflowResponse>? {
+    fun askToRegisterDailyUpdate(intent: String, intentArguments: MutableList<Arguments>? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>? {
         debug("askToRegisterDailyUpdate: intent=$intent, intentArguments=$intentArguments, dialogState=$dialogState")
         if (intent.isNullOrBlank()) {
             handleError("Name of intent to trigger on update must be specified")
@@ -716,8 +716,8 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     internal abstract fun fulfillSignInRequest(dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
     internal abstract fun fulfillDateTimeRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
     internal abstract fun fulfillConfirmationRequest(confirmationValueSpec: ConfirmationValueSpec, dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
-    internal abstract fun fulfillSystemIntent(intent: String, specType: String, intentSpec: NewSurfaceValueSpec, promptPlaceholder: String? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<DialogflowResponse>?
-    internal abstract fun fulfillRegisterUpdateIntent(intent: String, specType: String, intentSpec: RegisterUpdateValueSpec, promptPlaceholder: String? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<DialogflowResponse>?
+    internal abstract fun fulfillSystemIntent(intent: String, specType: String, intentSpec: NewSurfaceValueSpec, promptPlaceholder: String? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>?
+    internal abstract fun fulfillRegisterUpdateIntent(intent: String, specType: String, intentSpec: RegisterUpdateValueSpec, promptPlaceholder: String? = null, dialogState: MutableMap<String, Any?>? = null): ResponseWrapper<S>?
 
     data class ConfirmationValueSpec(var dialogSpec: DialogSpec? = null)
 
@@ -794,7 +794,6 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
         return fulfillTransactionRequirementsCheck(transactionRequirementsCheckSpec,
                 dialogState)
     }
-
 
     /**
      * Asks user to confirm transaction information.
