@@ -7,12 +7,18 @@ buildscript {
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.0'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
 }
 apply plugin: 'kotlin'
+
+
+repositories {
+    maven { url "http://dl.bintray.com/jetbrains/spek" }
+}
 
 allprojects {
     repositories {
@@ -21,7 +27,8 @@ allprojects {
     project.ext {
         kotlinVersion = '1.2.10'
         gsonVersion = '2.8.1'
-        sdkVersion = '1.6.0' //version of deployed artifacts
+        sdkVersion = '1.6.1' //version of deployed artifacts
+        spekVersion = '1.1.5'
     }
 }
 

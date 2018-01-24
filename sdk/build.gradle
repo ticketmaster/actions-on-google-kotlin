@@ -6,7 +6,6 @@ buildscript {
     }
     dependencies {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
-        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.0-M4'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$project.ext.kotlinVersion"
     }
 }
@@ -112,8 +111,9 @@ dependencies {
     testCompile('org.jetbrains.spek:spek-api:1.1.2',
             "com.winterbe:expekt:0.5.0",
             'com.nhaarman:mockito-kotlin:1.5.0')
-    testRuntime 'org.jetbrains.spek:spek-junit-platform-engine:1.1.2'
-    testRuntime "org.junit.platform:junit-platform-launcher:1.0.0-M4"
+
+    testCompile "org.jetbrains.spek:spek-api:$project.ext.spekVersion"
+    testRuntime "org.jetbrains.spek:spek-junit-platform-engine:$project.ext.spekVersion"
 
     testCompile "com.google.code.gson:gson:$project.ext.gsonVersion"
     testCompile project(':sdk-gson-servlet')

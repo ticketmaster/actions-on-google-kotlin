@@ -1095,6 +1095,67 @@ object ActionsTest : Spek({
 
     }
 
+
+    /**
+     * Describes the behavior for DialogflowApp askForDeliveryAddress method.
+     */
+    describe("#askForDeliveryAddress", {
+        var body: DialogflowRequest = DialogflowRequest()
+        var mockRequest: RequestWrapper<DialogflowRequest> = RequestWrapper(body = body)
+        var mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+        var app: DialogflowApp = DialogflowApp(mockRequest, mockResponse, { false })
+
+        beforeEachTest {
+            body = createLiveSessionApiAppBody()
+            mockRequest = RequestWrapper(headerV2, body)
+            mockResponse = ResponseWrapper()
+            app = DialogflowApp(
+                    request = mockRequest,
+                    response = mockResponse
+            )
+        }
+
+        // Success case test, when the API returns a valid 200 response with the response object
+        it("Should return valid JSON delivery address") {
+            val mockRequest = RequestWrapper(headerV2, dialogflowAppRequestBodyNewSession())
+
+            val app = DialogflowApp(mockRequest, mockResponse)
+
+            app.askForDeliveryAddress("Just because")
+
+            val expectedResponse = responseFromJson("""{
+                "speech": "PLACEHOLDER_FOR_DELIVERY_ADDRESS",
+                "data": {
+                "google": {
+                "userStorage": "{\"data\":{}}",
+                "expectUserResponse": true,
+                "isSsml": false,
+                "noInputPrompts": [],
+                "systemIntent": {
+                "intent": "actions.intent.DELIVERY_ADDRESS",
+                "data": {
+                "@type": "type.googleapis.com/google.actions.v2.DeliveryAddressValueSpec",
+                "addressOptions": {
+                "reason": "Just because"
+            }
+            }
+            }
+            }
+            },
+                "contextOut": [
+                {
+                    "name": "_actions_on_google_",
+                    "lifespan": 100,
+                    "parameters": {}
+                }
+                ]
+            }""")
+
+            expect(mockResponse.body).to.equal(expectedResponse)
+        }
+    })
+
+
     /**
      * Describes the behavior for DialogflowApp askForConfirmation method.
      */

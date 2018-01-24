@@ -114,8 +114,10 @@ data class OriginalRequest(
 
 data class Device(val location: DeviceLocation? = null)
 
-data class DeviceLocation(var coordinates: Coordinates? = null, var formattedAddress: String? = null,
+data class DeviceLocation(var coordinates: Coordinates? = null,
+                          var formattedAddress: String? = null,
                           var zipCode: String? = null, var city: String? = null,
+                          var postalAddress: PostalAddress? = null,
                           var address: String? = null)
 
 data class Coordinates(val latitude: Double? = null, val longitude: Double? = null)
@@ -148,12 +150,18 @@ data class DateTimeValue(var date: Date? = null, var time: Time? = null)
 data class Date(var month: Int? = null, var year: Int? = null, var day: Int? = null)
 data class Time(var hours: Int? = null)
 
-data class PostalAddress(var regionCode: String? = null,
-                         var recipients: MutableList<String>? = null,
-                         var postalCode: String? = null,
-                         var locality: String? = null,
-                         var addressLines: MutableList<String>? = null,
-                         val administrativeArea: String? = null)
+data class PostalAddress(
+        var revision: Int? = null,
+        var regionCode: String? = null,
+        var languageCode: String? = null,
+        var postalCode: String? = null,
+        var sortingCode: String? = null,
+        val administrativeArea: String? = null,
+        var locality: String? = null,
+        var sublocality: String? = null,
+        var addressLines: MutableList<String>? = null,
+        var recipients: MutableList<String>? = null,
+        var organization: String? = null)
 
 data class Location(var zipCode: String? = null,
                     var postalAddress: PostalAddress? = null,

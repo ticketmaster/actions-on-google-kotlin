@@ -973,11 +973,11 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
     }
 
 
-    override fun fulfillSystemIntent(intent: String, specType: String, intentSpec: NewSurfaceValueSpec, promptPlaceholder: String?, dialogState: MutableMap<String, Any?>?): ResponseWrapper<DialogflowResponse>? {
+    override fun fulfillSystemIntent(intent: String, specType: String, intentSpec: NewSurfaceValueSpec, promptPlaceholder: String?, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ActionResponse>? {
         TODO("not implemented for Actions SDK - please make an issue on actions-on-google-kotlin if this is needed")
     }
 
-    override fun fulfillRegisterUpdateIntent(intent: String, specType: String, intentSpec: RegisterUpdateValueSpec, promptPlaceholder: String?, dialogState: MutableMap<String, Any?>?): ResponseWrapper<DialogflowResponse>? {
+    override fun fulfillRegisterUpdateIntent(intent: String, specType: String, intentSpec: RegisterUpdateValueSpec, promptPlaceholder: String?, dialogState: MutableMap<String, Any?>?): ResponseWrapper<ActionResponse>? {
         TODO("not implemented for Actions SDK - please make an issue on actions-on-google-kotlin if this is needed")
     }
 
