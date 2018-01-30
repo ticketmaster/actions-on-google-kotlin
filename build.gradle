@@ -4,12 +4,12 @@ allprojects {
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '4.4.1'
+  gradleVersion = '4.5'
   distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
 }
 
 buildscript {
-    ext.kotlinVersion = '1.2.20'
+    ext.kotlinVersion = '1.2.21'
 
     repositories {
         jcenter()
@@ -25,7 +25,7 @@ buildscript {
 
 ext {
     nodeVersion = '8.9.4'
-    qunitVersion = '2.4.1'
+    qunitVersion = '2.5.0'
     libraries = [
             junit: "junit:junit:4.12",
             kotlin_stdlib: "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion",
