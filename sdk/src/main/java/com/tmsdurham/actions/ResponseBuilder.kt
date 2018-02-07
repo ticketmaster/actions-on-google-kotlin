@@ -240,6 +240,26 @@ data class RichResponse(
 }
 
 
+enum class ImageDisplayOption {
+    /**
+     * Pads the gaps between the image and image frame with a blurred copy of the
+     * same image.
+     */
+    DEFAULT,
+
+    /**
+     * Fill the gap between the image and image container with white bars.
+     */
+    WHITE,
+
+    /**
+     * Image is scaled such that the image width matches the container width. This may crop the top
+     * and bottom of the image if the scaled image height is greater than the container height. This
+     * is similar to "Zoom Mode" on a widescreen TV when playing a 4:3 video..
+     */
+    CROPPED
+}
+
 /**
  * Class for initializing and constructing Basic Cards with chainable interface.
  */
@@ -263,6 +283,7 @@ data class BasicCard(internal var title: String = "",
                      internal var formattedText: String = "",
                      internal var subtitle: String? = null,
                      internal var image: Image? = null,
+                     internal var imageDisplayOptions: ImageDisplayOption = ImageDisplayOption.DEFAULT,
                      internal var buttons: MutableList<Button> = mutableListOf()) {
 
     /**
@@ -359,6 +380,18 @@ data class BasicCard(internal var title: String = "",
                 openUrlAction = OpenUrlAction(
                         url = url))
         )
+        return this
+    }
+
+    /**
+     * Use one of the image display constants. If none is chosen,
+     * ImageDisplays.DEFAULT will be enforced.
+     *
+     * @param {ImageDisplayOption}
+     * @return {BasicCard} Returns current constructed BasicCard.
+     */
+    fun setImageDisplayOptions(imageDisplayOption: ImageDisplayOption): BasicCard {
+        this.imageDisplayOptions = imageDisplayOption
         return this
     }
 }
