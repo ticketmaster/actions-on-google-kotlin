@@ -2762,6 +2762,48 @@ object ActionsTest : Spek({
         })
     })
 
+    describe("#data") {
+        var liveBody = createLiveSessionApiAppBody()
+        var newBody = dialogflowAppRequestBodyNewSession()
+        val mockResponse: ResponseWrapper<DialogflowResponse> = ResponseWrapper()
+
+        beforeEachTest {
+            liveBody = createLiveSessionApiAppBody()
+            newBody = dialogflowAppRequestBodyNewSession()
+        }
+
+        describe("#getLastSeen") {
+            it("Should return null for empty lastSeen v2 proto3 Timestamp for new session") {
+                val mockRequest = RequestWrapper(headerV2, newBody)
+                val app = DialogflowApp(mockRequest, mockResponse)
+                expect(app.getLastSeen()).to.be.`null`
+            }
+
+            it("Should return null for empty lastSeen v2 proto3 Timestamp for live session") {
+                val mockRequest = RequestWrapper(headerV2, liveBody)
+                val app = DialogflowApp(mockRequest, mockResponse)
+                expect(app.getLastSeen()).to.be.`null`
+            }
+
+            it("Should return a Date for lastSeen v2 proto3 Timestamp for new session") {
+                val timestamp = "2017-10-26T23:40:59.742Z"
+                newBody.originalRequest?.data?.user?.lastSeen = timestamp
+                val mockRequest = RequestWrapper(headerV2, newBody)
+                val app = DialogflowApp(mockRequest, mockResponse)
+                val lastSeen = app.getLastSeen()
+                expect(lastSeen).to.equal(timestamp)
+            }
+
+            it("Should return a Date for lastSeen v2 proto3 Timestamp for live session") {
+                val timestamp = "2017-10-26T23:40:59.742Z"
+                liveBody.originalRequest?.data?.user?.lastSeen = timestamp
+                val mockRequest = RequestWrapper(headerV2, liveBody)
+                val app = DialogflowApp (mockRequest, mockResponse)
+                val lastSeen = app.getLastSeen()
+                expect(lastSeen).to.equal(timestamp)
+            }
+        }
+    }
 
     /**
      * Tests parsing parameters with Gson and retrieving parameter values

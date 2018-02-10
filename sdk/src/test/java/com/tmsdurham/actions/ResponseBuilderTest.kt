@@ -393,6 +393,34 @@ object ResponseBuilderTest : Spek({
             }
         }
 
+        describe("#setImageDisplay") {
+            lateinit var basicCard: BasicCard
+
+            beforeEachTest {
+                basicCard = BasicCard()
+            }
+
+            it("constructor should have undefined image options") {
+                expect(basicCard.imageDisplayOptions).to.equal(null)
+            }
+
+            it("should set image display options") {
+                basicCard.setImageDisplay(ImageDisplays.WHITE)
+                expect(basicCard).to.equal(BasicCard(formattedText = "",
+                        buttons = mutableListOf(),
+                        imageDisplayOptions = ImageDisplays.WHITE))
+            }
+
+            it("should overwrite previously set image display") {
+                basicCard.setImageDisplay(ImageDisplays.WHITE)
+                basicCard.setImageDisplay(ImageDisplays.CROPPED)
+                expect(basicCard).to.equal(BasicCard(
+                        formattedText = "",
+                        buttons = mutableListOf(),
+                        imageDisplayOptions = ImageDisplays.CROPPED))
+            }
+        }
+
         describe("#addButton") {
             var basicCard = BasicCard()
 
