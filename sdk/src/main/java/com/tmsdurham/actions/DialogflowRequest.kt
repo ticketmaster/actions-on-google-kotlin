@@ -127,7 +127,8 @@ data class User(
         var userId: String = "",
         var accessToken: String? = null,
         var locale: String? = null,
-        var profile: Profile? = null)
+        var profile: Profile? = null,
+        var lastSeen: String? = null)
 
 data class Profile(var displayName: String? = null, var givenName: String? = null, var familyName: String? = null)
 

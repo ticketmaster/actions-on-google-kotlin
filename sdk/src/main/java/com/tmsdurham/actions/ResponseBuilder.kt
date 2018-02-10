@@ -4,6 +4,32 @@ package com.tmsdurham.actions
 var LIST_ITEM_LIMIT = 30
 var CAROUSEL_ITEM_LIMIT = 10
 
+
+/**
+ * List of possible options to display the image in a BasicCard.
+ * When the aspect ratio of an image is not the same as the surface,
+ * this attribute changes how the image is displayed in the card.
+ */
+enum class ImageDisplays {
+    /**
+     * Pads the gaps between the image and image frame with a blurred copy of the
+     * same image.
+     */
+    DEFAULT,
+
+    /**
+     * Fill the gap between the image and image container with white bars.
+     */
+    WHITE,
+
+    /**
+     * Image is scaled such that the image width matches the container width. This may crop the top
+     * and bottom of the image if the scaled image height is greater than the container height. This
+     * is similar to "Zoom Mode" on a widescreen TV when playing a 4:3 video..
+     */
+    CROPPED
+}
+
 /**
  * Simple Response type.
  * @property {String} speech - Speech to be spoken to user. SSML allowed.
@@ -263,6 +289,7 @@ data class BasicCard(internal var title: String = "",
                      internal var formattedText: String = "",
                      internal var subtitle: String? = null,
                      internal var image: Image? = null,
+                     internal var imageDisplayOptions: ImageDisplays? = null,
                      internal var buttons: MutableList<Button> = mutableListOf()) {
 
     /**
@@ -359,6 +386,19 @@ data class BasicCard(internal var title: String = "",
                 openUrlAction = OpenUrlAction(
                         url = url))
         )
+        return this
+    }
+
+    /**
+     * Sets the display options for the image in this Basic Card.
+     * Use one of the image display constants. If none is chosen,
+     * ImageDisplays.DEFAULT will be enforced.
+     *
+     * @param {ImageDisplays} option The option for displaying the image.
+     * @return {BasicCard} Returns current constructed BasicCard.
+     */
+    fun setImageDisplay(imageDisplayOption: ImageDisplays): BasicCard {
+        this.imageDisplayOptions = imageDisplayOption
         return this
     }
 }

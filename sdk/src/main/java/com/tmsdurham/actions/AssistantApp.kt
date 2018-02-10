@@ -1196,6 +1196,24 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     }
 
     /**
+     * Get the user's last seen time as a Date object.
+     * Not supported in V1.
+     *
+     * @example
+     * const app = new DialogflowApp({request, response});
+     * const lastSeen = app.getLastSeen();
+     *
+     * Returns a String and client can user as they wish.  i.e. ZonedDateTime.parse(app.getLastSeen()), or JodaTime, etc.
+     * @return {String | null} User's last seen date or null if never seen
+     */
+    fun getLastSeen(): String? {
+        debug("getLastSeen");
+        val user = this.getUser()
+        return user?.lastSeen
+    }
+
+
+    /**
      * Returns the set of other available surfaces for the user.
      *
      * @return {Array<Surface>} Empty if no available surfaces.
