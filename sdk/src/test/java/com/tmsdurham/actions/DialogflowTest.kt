@@ -14,9 +14,12 @@ import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 
 val gson = GsonBuilder()
-        .serializeNulls()
+//        .serializeNulls()
         //needed for classes that extend map, such as OrderUpdate
         .registerTypeAdapter(OrderUpdate::class.java, OrderUpdateTypeAdapter(Gson()))
+        .create()
+val gsonWithNulls = GsonBuilder()
+        .serializeNulls()
         .create()
 
 
@@ -1596,6 +1599,7 @@ object ActionsTest : Spek({
 
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should return valid JSON sign in request", {
+            app.ask(speech = "speech", displayText = "text")
             app.askForNewSurface("test context", "test title", mutableListOf("cap_one", "cap_two"))
             val expectedResponse = responseFromJson("""{
                 "speech": "PLACEHOLDER_FOR_NEW_SURFACE",
@@ -2822,6 +2826,30 @@ object ActionsTest : Spek({
         }
     }
 
+    it("Should not have empty displayText field with tell") {
+        val body = createLiveSessionApiAppBody()
+        val mockRequest = RequestWrapper(headerV1, body)
+        val mockResponse = ResponseWrapper<DialogflowResponse>()
+
+        val app = DialogflowApp(request = mockRequest, response = mockResponse)
+
+        app.tell(speech = "Text to speech", displayText = "Text to display")
+
+        expect(mockResponse.body?.displayText).to.be.`null`
+    }
+
+    it("Should not have empty displayText field with ask") {
+        val body = createLiveSessionApiAppBody()
+        val mockRequest = RequestWrapper(headerV1, body)
+        val mockResponse = ResponseWrapper<DialogflowResponse>()
+
+        val app = DialogflowApp(request = mockRequest, response = mockResponse)
+
+        app.ask(speech = "Text to speech", displayText = "Text to display")
+
+        expect(mockResponse.body?.displayText).to.be.`null`
+    }
+
     it("Should allow extending with custom data") {
         val body = createLiveSessionApiAppBody()
         val mockRequest = RequestWrapper(headerV2, body)
@@ -2838,7 +2866,7 @@ object ActionsTest : Spek({
                 "Say any number", "Pick a number", "What is the number?")
 
 
-        val expectedResponse = """{"speech":"Welcome to action snippets! Say a number.","displayText":"","secondDisplayText":"","data":{"customData":{"testString":"test"}},"contextOut":[{"name":"_actions_on_google_","parameters":{},"lifespan":100}],"source":""}"""
+        val expectedResponse = """{"speech":"Welcome to action snippets! Say a number.","data":{"customData":{"testString":"test"}},"contextOut":[{"name":"_actions_on_google_","parameters":{},"lifespan":100}],"source":""}"""
         //json must remain unformatted to match gson output.
         // data class equals() will not match in this case because Data overrides MutableMap
         expect(gson.toJson(mockResponse.body)).to.equal(expectedResponse)

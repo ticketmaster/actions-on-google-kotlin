@@ -319,6 +319,26 @@ class ActionsSdkApp : AssistantApp<ActionRequest, ActionResponse> {
         return buildAskHelper(inputPrompt, mutableListOf(expectedIntent), dialogState)
     }
 
+    fun ask(speech: String, displayText: String?): ResponseWrapper<ActionResponse>? {
+        debug("tell: speech=$speech displayText=$displayText")
+        val simpleResponse = SimpleResponse()
+        val finalResponse = FinalResponse()
+        if (isSsml(speech)) {
+            simpleResponse.ssml = speech
+        } else {
+            simpleResponse.textToSpeech = speech
+        }
+        simpleResponse.displayText = displayText
+        if (displayText.isNullOrBlank()) {
+            finalResponse.speechResponse = simpleResponse
+        } else {
+            finalResponse.richResponse = buildRichResponse().addSimpleResponse(simpleResponse)
+        }
+
+        val response = buildResponseHelper(null, true, null, finalResponse)
+        return this.doResponse(response, RESPONSE_CODE_OK)
+    }
+
     fun ask(init: SimpleResponse.() -> Unit): ResponseWrapper<ActionResponse>? {
         var simpleResponse = SimpleResponse()
         simpleResponse.init()

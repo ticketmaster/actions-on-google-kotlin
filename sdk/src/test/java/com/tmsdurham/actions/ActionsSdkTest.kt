@@ -12,9 +12,9 @@ import org.jetbrains.spek.api.dsl.it
 
 //Serializer to handle serialization of conversation token
 val serializer: Serializer = object : Serializer {
-    override fun <T> serialize(obj: T) = gson.toJson(obj)
+    override fun <T> serialize(obj: T) = gsonWithNulls.toJson(obj)
 
-    override fun <T> deserialize(str: String, clazz: Class<T>) = gson.fromJson(str, clazz)
+    override fun <T> deserialize(str: String, clazz: Class<T>) = gsonWithNulls.fromJson(str, clazz)
 }
 
 object ActionsSdkTest : Spek({

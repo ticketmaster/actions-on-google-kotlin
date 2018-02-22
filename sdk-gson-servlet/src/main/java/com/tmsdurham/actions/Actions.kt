@@ -62,6 +62,9 @@ class ActionsSdkAction(req: HttpServletRequest,
                        val gson: Gson = GsonBuilder()
                                .registerTypeAdapter(OrderUpdate::class.java, OrderUpdateTypeAdapter(Gson()))
                                .create(),
+                       val gsonWithNulls: Gson = GsonBuilder()
+                               .serializeNulls()
+                               .create(),
                        val beforeSending: ((ActionResponse, String) -> Unit)? = null) {
     val app: ActionsSdkApp
 
@@ -82,9 +85,9 @@ class ActionsSdkAction(req: HttpServletRequest,
             resp.characterEncoding = "UTF-8"
             resp.writer.write(bodyStr)
         }), serializer = object : Serializer {
-            override fun <T> serialize(obj: T) = gson.toJson(obj)
+            override fun <T> serialize(obj: T) = gsonWithNulls.toJson(obj)
 
-            override fun <T> deserialize(str: String, clazz: Class<T>) = gson.fromJson(str, clazz)
+            override fun <T> deserialize(str: String, clazz: Class<T>) = gsonWithNulls.fromJson(str, clazz)
 
         })
     }
