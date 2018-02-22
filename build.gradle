@@ -27,7 +27,7 @@ allprojects {
     project.ext {
         kotlinVersion = '1.2.10'
         gsonVersion = '2.8.1'
-        sdkVersion = '1.6.2' //version of deployed artifacts
+        sdkVersion = '1.6.3' //version of deployed artifacts
         spekVersion = '1.1.5'
     }
 }
@@ -36,7 +36,7 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 }
 compileKotlin {
     kotlinOptions {

@@ -99,7 +99,7 @@ publishing {
 dependencies {
     compile('javax.servlet:javax.servlet-api:3.1.0',
             "com.google.code.gson:gson:$project.ext.gsonVersion",
-            "org.jetbrains.kotlin:kotlin-stdlib-jre8:$project.ext.kotlinVersion")
+            "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$project.ext.kotlinVersion")
     compile project(':sdk')
 }
 

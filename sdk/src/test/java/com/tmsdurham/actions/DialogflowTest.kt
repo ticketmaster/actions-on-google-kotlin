@@ -14,7 +14,6 @@ import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 
 val gson = GsonBuilder()
-//        .serializeNulls()
         //needed for classes that extend map, such as OrderUpdate
         .registerTypeAdapter(OrderUpdate::class.java, OrderUpdateTypeAdapter(Gson()))
         .create()
@@ -1599,7 +1598,6 @@ object ActionsTest : Spek({
 
         // Success case test, when the API returns a valid 200 response with the response object
         it("Should return valid JSON sign in request", {
-            app.ask(speech = "speech", displayText = "text")
             app.askForNewSurface("test context", "test title", mutableListOf("cap_one", "cap_two"))
             val expectedResponse = responseFromJson("""{
                 "speech": "PLACEHOLDER_FOR_NEW_SURFACE",
