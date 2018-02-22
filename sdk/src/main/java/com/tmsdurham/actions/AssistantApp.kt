@@ -998,6 +998,7 @@ open abstract class AssistantApp<T, S>(val request: RequestWrapper<T>, val respo
     internal abstract fun fulfillPermissionsRequest(permissionsSpec: GoogleData.PermissionsRequest, dialogState: MutableMap<String, Any?>?): ResponseWrapper<S>?
 
     abstract fun getIntent(): String?
+
     abstract fun tell(speech: String, displayText: String? = null): ResponseWrapper<S>?
     /**
      * One arg function for Convenience from Java

@@ -477,6 +477,23 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
         return doResponse(response, RESPONSE_CODE_OK)
     }
 
+    fun ask(speech: String, displayText: String?): ResponseWrapper<DialogflowResponse>? {
+        debug("ask: speechResponse=$speech displayText=$displayText")
+        if (speech.isNullOrBlank()) {
+            handleError("Invalid speech response")
+            return null
+        }
+        val simpleResponse = SimpleResponse()
+        if (isSsml(speech)) {
+            simpleResponse.ssml = speech
+        } else {
+            simpleResponse.textToSpeech = speech
+        }
+        simpleResponse.displayText = displayText
+        val response = buildResponse(simpleResponse, true)
+        return this.doResponse(response, RESPONSE_CODE_OK)
+    }
+
     fun ask(richResponse: RichResponse) = ask(richResponse, null)
 
     /**
@@ -1235,7 +1252,7 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
             return null
         }
 
-        var speech: String = ""
+        var speech = ""
         with(richResponse.items.first().simpleResponse) {
             if (this?.textToSpeech == null && this?.ssml == null) {
                 handleError("Invalid RichResponse.  Speech must be non null when adding SimpleResponse.")
@@ -1244,7 +1261,7 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
             speech = this.textToSpeech ?: this.ssml!!
         }
         var noInputsFinal = mutableListOf<GoogleData.NoInputPrompts>()
-        val dialogState = mutableMapOf<String, Any?>(
+        val dialogState = mutableMapOf(
                 "state" to state, //TODO (this.state instanceof State ? this.state.getName() : this.state),
                 "data" to data)
         if (noInputs != null) {
