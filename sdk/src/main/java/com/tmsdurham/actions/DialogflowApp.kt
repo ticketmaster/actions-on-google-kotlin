@@ -38,7 +38,7 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
         debug("new == ${CONVERSATION_STAGES.NEW}")
         debug("type == ${request.body.originalRequest?.data?.conversation?.type}")
         if ((request.body.originalRequest?.data?.conversation?.type ==
-                CONVERSATION_STAGES.NEW) && sessionStarted != null) {
+                        CONVERSATION_STAGES.NEW) && sessionStarted != null) {
             sessionStarted()
         }
     }
@@ -483,13 +483,7 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
             handleError("Invalid speech response")
             return null
         }
-        val simpleResponse = SimpleResponse()
-        if (isSsml(speech)) {
-            simpleResponse.ssml = speech
-        } else {
-            simpleResponse.textToSpeech = speech
-        }
-        simpleResponse.displayText = displayText
+        val simpleResponse = SimpleResponse(textToSpeech = speech, displayText = displayText)
         val response = buildResponse(simpleResponse, true)
         return this.doResponse(response, RESPONSE_CODE_OK)
     }
@@ -1378,8 +1372,7 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
     override fun fulfillSystemIntent(intent: String, specType: String, intentSpec: NewSurfaceValueSpec, promptPlaceholder: String?, dialogState: MutableMap<String, Any?>?): ResponseWrapper<DialogflowResponse>? {
         debug("fulfillSystemIntent_: intent=$intent, specType=$specType, intentSpec=$intentSpec, " +
                 "promptPlaceholder=$promptPlaceholder dialogState=$dialogState")
-        val response = this.buildResponse(promptPlaceholder ?:
-                "PLACEHOLDER_FOR_INTENT", true)
+        val response = this.buildResponse(promptPlaceholder ?: "PLACEHOLDER_FOR_INTENT", true)
         response?.body {
             data {
                 google {
@@ -1401,8 +1394,7 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
     override fun fulfillRegisterUpdateIntent(intent: String, specType: String, intentSpec: RegisterUpdateValueSpec, promptPlaceholder: String?, dialogState: MutableMap<String, Any?>?): ResponseWrapper<DialogflowResponse>? {
         debug("fulfillSystemIntent_: intent=$intent, specType=$specType, intentSpec=$intentSpec, " +
                 "promptPlaceholder=$promptPlaceholder dialogState=$dialogState")
-        val response = this.buildResponse(promptPlaceholder ?:
-                "PLACEHOLDER_FOR_INTENT", true)
+        val response = this.buildResponse(promptPlaceholder ?: "PLACEHOLDER_FOR_INTENT", true)
         response?.body {
             data {
                 google {
