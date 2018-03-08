@@ -148,9 +148,9 @@ data class RichResponse(
     fun addSimpleResponse(speech: String) = addSimpleResponse(speech, null)
 
     fun addSimpleResponse(simpleResponse: SimpleResponse) =
-        addSimpleResponse(
-                speech = simpleResponse.textToSpeech ?: "",
-                displayText = simpleResponse.displayText ?: "")
+            addSimpleResponse(
+                    speech = simpleResponse.textToSpeech ?: "",
+                    displayText = simpleResponse.displayText ?: "")
 
 
     /**
@@ -252,15 +252,17 @@ data class RichResponse(
      */
     fun buildSimpleResponseHelper(response: SimpleResponse): SimpleResponse? {
         debug("buildSimpleResponseHelper: response=$response")
-        var simpleResponseObj: SimpleResponse
-        if (response.textToSpeech?.isNotBlank() ?: false) {
-            simpleResponseObj = if (ResponseBuilder.isSsml(response.textToSpeech!!))
-                SimpleResponse(ssml = response.textToSpeech) else SimpleResponse(textToSpeech = response.textToSpeech)
-            simpleResponseObj.displayText = response.displayText
-        } else {
+        if (response.textToSpeech?.isNullOrBlank() == true && response.ssml?.isNullOrBlank() == true) {
             error("SimpleResponse requires a speech parameter.")
             return null
         }
+        val simpleResponseObj = if (response.textToSpeech?.isNotBlank() == true) {
+            if (ResponseBuilder.isSsml(response.textToSpeech!!))
+                SimpleResponse(ssml = response.textToSpeech) else SimpleResponse(textToSpeech = response.textToSpeech)
+        } else {
+            SimpleResponse(ssml = response.textToSpeech)
+        }
+        simpleResponseObj.displayText = response.displayText
         return simpleResponseObj
     }
 }
@@ -364,6 +366,7 @@ data class BasicCard(internal var title: String = "",
      * Two arg function for convenience when calling from Java
      */
     fun setImage(url: String, accessibilityText: String) = setImage(url, accessibilityText, null, null)
+
     /**
      * Adds a button below card.
      *
