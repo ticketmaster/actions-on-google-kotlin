@@ -22,8 +22,7 @@ This library is available on jCenter.  If your using gradle simply add the depen
 __Gradle:__
 
     repositories {
-            jCenter()
-        }
+    	jcenter()
     }
     
     dependencies {
