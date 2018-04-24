@@ -434,7 +434,7 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
      */
     fun ask(inputPrompt: RichResponse, noInputs: MutableList<String>? = null): ResponseWrapper<DialogflowResponse>? {
         debug("ask: inputPrompt=$inputPrompt, noInputs=$noInputs")
-        if (inputPrompt.isEmpty()) {
+        if (inputPrompt.empty()) {
             handleError("Invalid input prompt")
             return null
         }
@@ -655,7 +655,7 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
      */
     fun askWithCarousel(inputPrompt: RichResponse, carousel: Carousel): ResponseWrapper<DialogflowResponse>? {
         debug("askWithCarousel: inputPrompt=$inputPrompt, carousel=$carousel")
-        if (inputPrompt.isEmpty()) {
+        if (inputPrompt.empty()) {
             handleError("Invalid input prompt")
             return null
         }
@@ -774,7 +774,7 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
      */
     override fun tell(richResponse: RichResponse?): ResponseWrapper<DialogflowResponse>? {
         debug("tell: richResponse=$richResponse")
-        if (richResponse == null || richResponse.isEmpty()) {
+        if (richResponse == null || richResponse.empty()) {
             handleError("Invalid rich response")
             return null
         }
@@ -784,7 +784,7 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
 
     override fun tell(simpleResponse: SimpleResponse): ResponseWrapper<DialogflowResponse>? {
         debug("tell: speechResponse=$simpleResponse")
-        if (simpleResponse.isEmpty()) {
+        if (simpleResponse.empty()) {
             handleError("Invalid speech response")
             return null
         }
@@ -1217,7 +1217,7 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
      */
     fun buildResponse(simpleResponse: SimpleResponse, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<DialogflowResponse>? {
         debug("buildResponse_: simpleResponse=$simpleResponse, expectUserResponse=$expectUserResponse, noInputs=$noInputs")
-        if (simpleResponse.isEmpty()) {
+        if (simpleResponse.empty()) {
             handleError("Invalid text to speech")
             return null
         }
@@ -1237,7 +1237,7 @@ class DialogflowApp : AssistantApp<DialogflowRequest, DialogflowResponse> {
      */
     fun buildResponse(richResponse: RichResponse, expectUserResponse: Boolean, noInputs: MutableList<String>? = null): ResponseWrapper<DialogflowResponse>? {
         debug("buildResponse_: textToSpeech=$richResponse, expectUserResponse=$expectUserResponse, noInputs=$noInputs")
-        if (richResponse.isEmpty()) {
+        if (richResponse.empty()) {
             handleError("Invalid text to speech")
             return null
         }

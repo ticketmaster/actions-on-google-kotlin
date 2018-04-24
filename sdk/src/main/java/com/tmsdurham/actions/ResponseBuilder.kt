@@ -39,7 +39,7 @@ data class SimpleResponse(
         var textToSpeech: String? = null,
         var ssml: String? = null,
         var displayText: String? = null) {
-    fun isEmpty() = textToSpeech.isNullOrBlank() && ssml.isNullOrBlank() && displayText.isNullOrBlank()
+    fun empty() = textToSpeech.isNullOrBlank() && ssml.isNullOrBlank() && displayText.isNullOrBlank()
 }
 
 /**
@@ -109,7 +109,7 @@ data class RichResponse(
         var altLinkSuggestion: AltLinkSuggestion? = null,
         var linkOutSuggestion: LinkOutSuggestion? = null) {
 
-    fun isEmpty() = (items.isEmpty() &&
+    fun empty() = (items.isEmpty() &&
             (suggestions == null || suggestions!!.isEmpty()) &&
             (altLinkSuggestion == null) &&
             (linkOutSuggestion == null))
@@ -123,7 +123,7 @@ data class RichResponse(
      */
     fun addSimpleResponse(speech: String, displayText: String? = null): RichResponse {
         val simpleResponse = SimpleResponse(textToSpeech = speech, displayText = displayText)
-        if (simpleResponse.isEmpty()) {
+        if (simpleResponse.empty()) {
             error("Invalid simpleResponse")
             return this
         }
