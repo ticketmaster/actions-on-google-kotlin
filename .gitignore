@@ -2,3 +2,4 @@
 gradle.properties
 js/node_modules
 js/npm-debug.log
+js/package-lock.json
