@@ -3,6 +3,8 @@ apply plugin: 'kotlin'
 dependencies {
     compile project(':jvm')
     compile libraries.kotlin_stdlib
+    compile('javax.servlet:javax.servlet-api:3.1.0', //todo pull into separate module
+            "com.google.code.gson:gson:2.8.1")
 }
 
 task run(dependsOn: classes, type: JavaExec) {

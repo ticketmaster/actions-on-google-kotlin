@@ -13,6 +13,8 @@ import mp.printThis
 import mp.SubClassHeaderDelegatedTo
 
 fun main(arguments: Array<String>) {
+    servlet()
+    /*
     header("Common function")
     println(commonFunction())
     
@@ -88,6 +90,7 @@ fun main(arguments: Array<String>) {
 
     header("Invocation of a base class function that delegates to a multi-platform member function")
     subClassDelegatedTo.execute()
+    */
 }
 
 class CanBeClosed : MpCloseable {

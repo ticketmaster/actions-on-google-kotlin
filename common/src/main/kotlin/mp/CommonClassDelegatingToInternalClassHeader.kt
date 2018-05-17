@@ -13,6 +13,7 @@ class CommonClassDelegatingToInternalClassHeader {
     private val multiPlatformCode = InternalClassHeaderDelegatedTo(this)
     
     fun execute() {
+        mutableMapOf<String,String>()
         multiPlatformCode.doIt()
     }
 
