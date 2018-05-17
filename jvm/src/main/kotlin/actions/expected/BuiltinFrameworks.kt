@@ -15,11 +15,11 @@ actual class BuiltinFrameworks<THandler> : Frameworks<THandler>() {
 }
 
 class ServletFramework<THandler>(val request: HttpServletRequest,
-                                 val response: HttpServletResponse,
-                                 val s): Framework<THandler> {
+                                 val response: HttpServletResponse): Framework<THandler> {
+
    override fun handle(base: StandardHandler): THandler {
-      base.handle(body = ,
-              headers = )
+//      base.handle(body = ,
+//              headers = )
       TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
    }
 

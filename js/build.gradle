@@ -1,7 +1,7 @@
 apply plugin: 'kotlin-platform-js'
 apply plugin: 'com.moowork.node'
 
-archivesBaseName = 'kotlin-multiplatform-recipes-js'
+archivesBaseName = 'actions-on-google-js'
 
 dependencies {
     expectedBy project(':common')

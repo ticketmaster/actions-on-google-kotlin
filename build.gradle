@@ -1,5 +1,5 @@
 allprojects {
-    group 'com.javathinker.research'
+    group 'com.ticketmaster.actions'
     version '1-SNAPSHOT'
 }
 

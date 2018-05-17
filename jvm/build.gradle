@@ -1,6 +1,6 @@
 apply plugin: 'kotlin-platform-jvm'
 
-archivesBaseName = 'kotlin-multiplatform-recipes-jvm'
+archivesBaseName = 'actions-on-google-kotlin'
 
 dependencies {
     expectedBy project(':common')

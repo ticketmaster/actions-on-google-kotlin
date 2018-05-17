@@ -1,6 +1,6 @@
 apply plugin: 'kotlin-platform-common'
 
-archivesBaseName = 'kotlin-multiplatform-recipes-common'
+archivesBaseName = 'actions-on-google-common'
 
 dependencies {
     compile libraries.kotlin_stdlib_common
