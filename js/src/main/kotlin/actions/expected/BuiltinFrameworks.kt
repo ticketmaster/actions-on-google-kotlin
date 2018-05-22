@@ -2,7 +2,7 @@ package actions.expected
 
 import actions.framework.Frameworks
 
-actual class BuiltinFrameworks<THandler> : Frameworks<THandler>() {
+actual class BuiltinFrameworks<TUserStorage>: Frameworks<TUserStorage>() {
     /**
      * Plug and play web framework support for express using body-parser
      * @public

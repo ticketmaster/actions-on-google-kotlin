@@ -2,11 +2,15 @@ package actions.expected
 
 actual object Serializer {
     actual fun stringifyConversationToken(data: Any?): ConversationTokenData {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val token = if (data == null)
+            ConversationTokenData(data = Object())
+        else
+            ConversationTokenData(data)
+        return token
     }
 
     actual fun serialize(any: Any?): String? {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return gson.toJson(any)
     }
 
 }

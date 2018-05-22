@@ -1,16 +1,27 @@
 package actions
 
 import actions.framework.*
+import actions.expected.BuiltinFrameworks
+import actions.expected.Serializer
+import actions.expected.log
+import actions.service.actionssdk.ActionsSdk
+import actions.service.actionssdk.conversation.Conversation
 
 
-interface AppHandler: BaseApp, OmniHandler
+abstract class AppHandler<THandler>: BaseApp<THandler>()
 
 interface AppOptions {
     var debug: Boolean?
 }
 
-interface ServiceBaseApp {
-    var handler: StandardHandler
+abstract class ServiceBaseApp<TUserStorage> {
+    operator fun invoke(vararg args: Any) {
+        omni?.handle(*args)
+    }
+
+    var omni: OmniHandler? = null
+
+    abstract var handler: StandardHandler<TUserStorage>
 }
 
 //interface Plugin<PluginApp<TService, TApp>, PluginResult<TService, TApp, TPlugin>> {
@@ -20,30 +31,31 @@ interface ServiceBaseApp {
 data class SerivcePlugin<TService, TPlugin>(val service: TService,
                                             val pluging: TPlugin)
 
-data class BaseAppPlugin<TPlugin>(val baseApp: BaseApp,
+data class BaseAppPlugin<TPlugin, TUserStorage>(val baseApp: BaseApp<TUserStorage>,
                          val pluging: TPlugin)
 
 
 typealias Plugin<PluginApp, PluginResult> = ((PluginApp) -> PluginResult)
 
-data class PluginApp<TService, TApp>(val app: AppHandler,
+data class PluginApp<TService, TApp, TUserStorage>(val app: AppHandler<TUserStorage>,
                                      val service: TService,
                                      val tApp: TApp)
 
-data class PluginResult<TService, TApp, TPlugin>(val app: AppHandler,
+data class PluginResult<TService, TApp, TPlugin, TUserStorage>(val app: AppHandler<TUserStorage>,
                                                  val service: TService,
                                                  val tApp: TApp,
                                                  val plugin: TPlugin)
 
-interface BaseApp: ServiceBaseApp {
-    var frameworks: BuiltinFrameworks
+abstract class BaseApp<TUserStorage>: ServiceBaseApp<TUserStorage>() {
+    abstract var frameworks: BuiltinFrameworks<TUserStorage>
 
-    fun <TService, TPlugin> use(plugin: Plugin<TService, TPlugin>): BaseAppPlugin<TPlugin>
 
-    var debug: Boolean
+    abstract fun <TService, TPlugin> use(plugin: Plugin<TService, TPlugin>): BaseAppPlugin<TPlugin, TUserStorage>
+
+    abstract var debug: Boolean
 }
 
-fun create(options: AppOptions? = null): BaseApp {
+fun <TUserStorage>create(options: AppOptions? = null): BaseApp<TUserStorage> {
 //    BaseApp(
 //            frameworks: Object. assign ({}, builtin),
 //    handler: () => Promise.reject(new Error('StandardHandler not set')),
@@ -51,15 +63,15 @@ fun create(options: AppOptions? = null): BaseApp {
 //        return plugin(this) || this
 //    },
 //    debug:!!(options && options.debug))
-    return object: BaseApp {
-        override var handler: StandardHandler
+    return object: BaseApp<TUserStorage>() {
+        override var handler: StandardHandler<TUserStorage>
             get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
             set(value) {}
-        override var frameworks: BuiltinFrameworks
+        override var frameworks: BuiltinFrameworks<TUserStorage>
             get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
             set(value) {}
 
-        override fun <TService, TPlugin> use(plugin: Plugin<TService, TPlugin>): BaseAppPlugin<TPlugin> {
+        override fun <TService, TPlugin> use(plugin: Plugin<TService, TPlugin>): BaseAppPlugin<TPlugin, TUserStorage> {
             TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
         }
 
@@ -71,37 +83,50 @@ fun create(options: AppOptions? = null): BaseApp {
 }
 
 //equivalent of (AppHandler & TService) mixin
-data class AttachedAppHandlerService<TService>(val handler: AppHandler,
+data class AttachedAppHandlerService<TService, TUserStorage>(val handler: AppHandler<TUserStorage>,
                            val service: TService)
 
-data class AttachedBaseAppService<TService>(val baseApp: BaseApp,
+data class AttachedBaseAppService<TService, TUserStorage>(val baseApp: BaseApp<TUserStorage>,
                            val service: TService)
 
-data class AttachResult<TService>(val omni: OmniHandler,
-                        val baseApp: BaseApp,
-                        val handler: StandardHandler,
+data class AttachResult<TService, TUserStorage>(
+                        val baseApp: BaseApp<TUserStorage>,
+                        val handler: StandardHandler<TUserStorage>,
                         val service: TService)
 
-interface AppResult: OmniHandler, BaseApp, StandardHandler, ServiceBaseApp {
+abstract class AppResult<TUserStorage>: BaseApp<TUserStorage>(), StandardHandler<TUserStorage> {
 
 }
 
-fun <TService: ServiceBaseApp> attach(
-        service: TService,
-        options: AppOptions? = null): AppResult {
+fun <TService: ServiceBaseApp<TUserStorage>, TConvData, TUserStorage> attach(
+        service: ActionsSdk<TConvData, TUserStorage>,
+        options: AppOptions? = null): AppResult<TUserStorage> {
 
-    val baseApp = create(options)
+    val baseApp = create<TUserStorage>(options)
     val omni = object: OmniHandler {
-        override fun handle(body: JsonObject, headers: Headers): StandardResponse {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        override fun handle(vararg args: Any): Any {
+            for (framework in baseApp.frameworks) {
+                if(framework.check(args)) {
+                    return framework.handle(baseApp.handler).handle(args)
+                }
+            }
+            return baseApp.handler.handle(args[0] as Conversation<TUserStorage>, args[1] as Headers)
         }
     }
 
-    val standardHandler = object: StandardHandler {
-        override fun handle(body: JsonObject, headers: Headers): StandardResponse {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    var handler = baseApp.handler
+    val standard = object: StandardHandler<TUserStorage> {
+        override fun handle(body: Any, headers: Headers): StandardResponse {
+            log("Request", Serializer.serialize(body))
+            log("Headers", Serializer.serialize(headers))
+            val response = /* await */ handler.handle(body, headers)
+            response.headers?.get("content-type")?.add("application/json; charset=utf-8")
+            log("Response", Serializer.serialize(response))
+            return response
         }
     }
+    baseApp.omni = omni
+    baseApp.handler = standard
 
 //    var appResult = object: OmniHandler by omni, actions.BaseApp by baseApp, actions.framework.StandardHandler by standardHandler, actions.ServiceBaseApp by service {
 //
@@ -113,23 +138,19 @@ fun <TService: ServiceBaseApp> attach(
 //            omni = omni,
 //            handler = standardHandler)
 
-    return object: AppResult {
-        override var handler: StandardHandler
-            get() = standardHandler
+    return object: AppResult<TUserStorage>() {
+        override var handler: StandardHandler<TUserStorage>
+            get() = standard
             set(value) {handler = value}
 
-        override fun <TService, TPlugin> use(plugin: Plugin<TService, TPlugin>): BaseAppPlugin<TPlugin> {
+        override fun <TService, TPlugin> use(plugin: Plugin<TService, TPlugin>): BaseAppPlugin<TPlugin, TUserStorage> {
             TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
         }
 
-        override fun handle(body: JsonObject, headers: Headers): StandardResponse = standardHandler.handle(body, headers)
+        override fun handle(body: Any, headers: Headers): StandardResponse = standard.handle(body, headers)
 
-        override var frameworks: BuiltinFrameworks
-            get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
-            set(value) {}
+        override var frameworks: BuiltinFrameworks<TUserStorage> = baseApp.frameworks
 
-        override var debug: Boolean
-            get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
-            set(value) {}
+        override var debug: Boolean = baseApp.debug
     }
 }

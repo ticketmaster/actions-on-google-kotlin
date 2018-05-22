@@ -1,6 +1,5 @@
 package actions.service.actionssdk
 
-import actions.expected.ConversationTokenSerializer
 import actions.expected.Serializer
 import actions.expected.deserialize
 import actions.framework.Headers
@@ -10,7 +9,7 @@ import actions.service.actionssdk.conversation.*
 
 data class ActionsSdkConversationOptions<
         TConvData, TUserStorage>(override var headers: Headers?,
-                                 var body: GoogleActionsV2AppRequest,
+                                 var body: GoogleActionsV2AppRequest? = null,
                                  override var init: ConversationOptionsInit<TConvData, TUserStorage>? = null,
                                  override var debug: Boolean? = null) : ConversationBaseOptions<TConvData, TUserStorage>
 
@@ -19,7 +18,7 @@ data class ActionsSdkConversationOptions<
 class ActionsSdkConversation<TConvData, TUserStorage>(options: ActionsSdkConversationOptions<TConvData, TUserStorage>) :
         Conversation<TUserStorage>(options = ConversationOptions(request = options.body, headers = options.headers)) {
 
-    var body: GoogleActionsV2AppRequest
+    var body: GoogleActionsV2AppRequest?
 
     /**
      * Get the current Actions SDK intent.
@@ -50,28 +49,29 @@ class ActionsSdkConversation<TConvData, TUserStorage>(options: ActionsSdkConvers
      *
      * @public
      */
-    var data: TConvData
+    var data: TConvData?
 
     /** @public */
     init {
-        this.body = options.body
+        this.body = options?.body
 
         val body = options.body
         val init = options
 
-        val inputs = body.inputs ?: mutableListOf()
+        val inputs = body?.inputs ?: mutableListOf()
         val firstInput = inputs.firstOrNull()
 
         val intent = firstInput?.intent ?: ""
-        val conversation = body.conversation
+        val conversation = body?.conversation
         val conversationToken = conversation?.conversationToken
 
         this.intent = intent
 
         this.data = if (conversationToken != null) {
-            deserialize<TConvData>(conversationToken)!!
+            deserialize<TConvData>(conversationToken)
         } else {
-            TODO("Find way to do this in kotlin, or delegate to platform")
+            null
+//            TODO("Find way to do this in kotlin, or delegate to platform")
 //            ((init && init.data) || {})
         }
     }

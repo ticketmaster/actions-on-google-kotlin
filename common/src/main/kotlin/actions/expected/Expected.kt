@@ -27,11 +27,10 @@ expect class OAuth2Client(clientId: String) {
 
 
 
-fun <T> deserialize(json: String?): T? { return null}
+expect fun <T> deserialize(json: String?): T?
 
-fun log(message: String, vararg optionalParameters: Any? ) {
 
-}
+expect fun log(message: String, vararg optionalParameters: Any? )
 
 fun info(message: String) {
 
@@ -53,3 +52,4 @@ expect object Serializer {
     fun stringifyConversationToken(data: Any?): ConversationTokenData
     fun serialize(any: Any?): String?
 }
+

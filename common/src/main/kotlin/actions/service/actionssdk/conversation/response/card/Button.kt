@@ -5,26 +5,25 @@ import actions.service.actionssdk.api.GoogleActionsV2UiElementsOpenUrlAction
 import actions.service.actionssdk.conversation.response.OpenUrlAction
 
 
-/** @public */
-interface ButtonOptions {
+data class ButtonOptions(
     /**
      * Text shown on the button.
      * @public
      */
-    var title: String
+    var title: String,
 
     /**
      * String URL to open.
      * @public
      */
-    var url: String?
+    var url: String? = null,
 
     /**
      * Action to take when selected. Recommended to use the url property for simple web page url open.
      * @public
      */
-    var action: GoogleActionsV2UiElementsOpenUrlAction?
-}
+    var action: GoogleActionsV2UiElementsOpenUrlAction? = null
+)
 
 /**
  * Card Button. Shown below cards. Open a URL when selected.
@@ -43,6 +42,8 @@ data class Button(override var openUrlAction: GoogleActionsV2UiElementsOpenUrlAc
                 options.action != null -> options.action
                 else -> null
             })
+
+    constructor(init: ButtonOptions.() -> Unit): this({val options = ButtonOptions(title = ""); options.init(); options}.invoke())
 
 }
 

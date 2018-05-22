@@ -115,7 +115,9 @@ class RichResponse(override var items: MutableList<GoogleActionsV2RichResponseIt
     }
 
     fun add(vararg items: String) {
-        TODO("Handle adding String to richResponse")
+        items.forEach {
+            this.add(SimpleResponse(it))
+        }
     }
 
     /**
@@ -128,10 +130,8 @@ class RichResponse(override var items: MutableList<GoogleActionsV2RichResponseIt
         }
         items.forEach {
             when (it) {
-//            if (item is String) {
-//                this.add(SimpleResponse(item))
-//                continue
-//            }
+//                is String -> { //Handled in fun add(vararg items: String)}
+
                 is LinkOutSuggestion -> this.linkOutSuggestion = it
 
                 is SimpleResponse -> this.items!!.push { simpleResponse = it }
@@ -214,6 +214,8 @@ data class Image(override var accessibilityText: String? = null,
             accessibilityText = option?.alt,
             height = option?.height,
             width = option?.width)
+
+    constructor(init: ImageOptions.() -> Unit): this({val options = ImageOptions(url = "", alt = ""); options.init(); options}.invoke())
 }
 
 
@@ -228,7 +230,7 @@ data class Suggestions(
      * @param suggestions Texts of the suggestions.
      * @public
      */
-    constructor(vararg suggs: String) : this(suggestions = suggs.map { GoogleActionsV2UiElementsSuggestion(title = it) }.toMutableList())
+    constructor(vararg suggestions: String) : this(suggestions = suggestions.map { GoogleActionsV2UiElementsSuggestion(title = it) }.toMutableList())
 
 
     fun add(vararg suggs: String): Suggestions {
@@ -296,6 +298,7 @@ data class SimpleResponse(override var displayText: String? = null,
      */
     constructor(options: SimpleResponseOptions) : this(textToSpeech = options.speech,
             displayText = options.text)
+    constructor(init: SimpleResponseOptions.() -> Unit): this({val options = SimpleResponseOptions(speech = ""); options.init(); options}.invoke())
 
     constructor(options: String? = null) : this(textToSpeech = options)
 }
@@ -317,6 +320,8 @@ class BasicCard(override var buttons: MutableList<GoogleActionsV2UiElementsButto
             buttons = options.buttons,
             imageDisplayOptions = options.display
     )
+
+    constructor(init: BasicCardOptions.() -> Unit): this({val options = BasicCardOptions(); options}.invoke())
 }
 
 

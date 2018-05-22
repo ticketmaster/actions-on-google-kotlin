@@ -1,29 +1,28 @@
 package actions.service.actionssdk.conversation.response
 
 
-interface ImageOptions {
+data class ImageOptions(
     /**
      * Image source URL.
      * @public
      */
-    var url: String
+    var url: String,
 
     /**
      * Text to replace for image for accessibility.
      * @public
      */
-    var alt: String
+    var alt: String,
 
     /**
      * Height of the image.
      * @public
      */
-    var height: Int?
+    var height: Int? = null,
 
     /**
      * Width of the image.
      * @public
      */
-    var width: Int?
-}
+    var width: Int? = null)
 

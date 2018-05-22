@@ -1,21 +1,20 @@
 package actions.service.actionssdk
 
-import actions.ServiceBaseApp
-import actions.attach
-import actions.expected.ConversationTokenSerializer.Companion.stringify
-import actions.expected.IdToken
-import actions.expected.OAuth2Client
-import actions.expected.log
-import actions.framework.Headers
-import actions.framework.JsonObject
-import actions.framework.StandardHandler
-import actions.framework.StandardResponse
+import actions.*
+import actions.expected.*
+import actions.framework.*
 import actions.service.actionssdk.api.GoogleActionsV2AppRequest
 import actions.service.actionssdk.api.GoogleRpcStatus
 import actions.service.actionssdk.conversation.*
 import actions.service.actionssdk.conversation.argument.Argument
 
-typealias ActionsSdkIntentHandler<TConvData, TUserStorage> = (conv: ActionsSdkConversation<TConvData, TUserStorage>, argument: Any, status: GoogleRpcStatus?) -> Any
+typealias ActionsSdkIntentHandler1<TConvData, TUserStorage> = (conv: ActionsSdkConversation<TConvData, TUserStorage>) -> Any
+typealias ActionsSdkIntentHandler2<TConvData, TUserStorage> = (conv: ActionsSdkConversation<TConvData, TUserStorage>, argument: Any) -> Any
+typealias ActionsSdkIntentHandler3<TConvData, TUserStorage> = (conv: ActionsSdkConversation<TConvData, TUserStorage>, argument: Any, status: GoogleRpcStatus?) -> Any
+
+interface ActionsSdkIntentHandlerTest<TConvData, TUserStorage> {
+    operator fun invoke(conv: ActionsSdkConversation<TConvData, TUserStorage>, argument: Any? = null, status: GoogleRpcStatus? = null)
+}
 
 fun <TConvData, TUserStorage, TConversation : ActionsSdkConversation<TConvData, TUserStorage>, TArgument : Argument> actionsSdkIntentHandler(
         conv: TConversation,
@@ -71,7 +70,7 @@ fun <TConvData, TUserStorage, TConversation : ActionsSdkConversation<TConvData, 
 //    ): Promise<any> | any
 //}
 
-class ActionSdkIntentHandlers<TConvData, TUserStorage> : MutableMap<String, ActionsSdkIntentHandler<TConvData, TUserStorage>?> by mutableMapOf() {
+class ActionSdkIntentHandlers<TConvData, TUserStorage> : MutableMap<String, ActionsSdkIntentHandler3<TConvData, TUserStorage>?> by mutableMapOf() {
 //    [intent: string]: ActionsSdkIntentHandler<
 //    {},
 //    {},
@@ -85,7 +84,7 @@ class ActionSdkIntentHandlers<TConvData, TUserStorage> : MutableMap<String, Acti
 data class ActionsSdkHandlers<TConvData, TUserStorage>(
         var intents: ActionSdkIntentHandlers<TConvData, TUserStorage> = ActionSdkIntentHandlers(),
         var catcher: ExceptionHandler<TUserStorage, ActionsSdkConversation<TConvData, TUserStorage>>? = null, //TODO provide defaults for these nulls
-        var fallback: ActionsSdkIntentHandler<TConvData, TUserStorage>? = null //| string
+        var fallback: ActionsSdkIntentHandler3<TConvData, TUserStorage>? = null //| string
 )
 
 interface ActionsSdkMiddleware
@@ -95,9 +94,9 @@ interface ActionsSdkMiddleware
 //}
 
 /** @public */
-interface ActionsSdkApp<TConvData, TUserStorage> : ConversationApp<TConvData, TUserStorage> {
+abstract class ActionsSdkApp<TConvData, TUserStorage> : ConversationApp<TConvData, TUserStorage>() {
     /** @hidden */
-    var _handlers: ActionsSdkHandlers<TConvData, TUserStorage>
+    abstract var _handlers: ActionsSdkHandlers<TConvData, TUserStorage>
 
     /**
      * Sets the IntentHandler to be executed when the fulfillment is called
@@ -110,7 +109,9 @@ interface ActionsSdkApp<TConvData, TUserStorage> : ConversationApp<TConvData, TU
      *     to the IntentHandler of the redirected intent.
      * @public
      */
-    fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler<TConvData, TUserStorage> /*| Intent,*/): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler1<TConvData, TUserStorage> /*| Intent,*/): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler2<TConvData, TUserStorage> /*| Intent,*/): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler3<TConvData, TUserStorage> /*| Intent,*/): ActionsSdkApp<TConvData, TUserStorage>
 
     /**
      * Sets the IntentHandler to be executed when the fulfillment is called
@@ -123,22 +124,72 @@ interface ActionsSdkApp<TConvData, TUserStorage> : ConversationApp<TConvData, TU
      *     to the IntentHandler of the redirected intent.
      * @public
      */
-    fun intent(vararg intents: String, handler: ActionsSdkIntentHandler<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler1<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler2<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler3<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
 
     /** @public */
-    fun catch(catcher: ExceptionHandler<TUserStorage, ActionsSdkConversation<TConvData, TUserStorage>>): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun catch(catcher: ExceptionHandler<TUserStorage, ActionsSdkConversation<TConvData, TUserStorage>>): ActionsSdkApp<TConvData, TUserStorage>
 
     /** @public */
-    fun fallback(handler: ActionsSdkIntentHandler<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun fallback(handler: ActionsSdkIntentHandler3<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
 
     /** @hidden */
-    var _middlewares: MutableList<ActionsSdkMiddleware>
+    abstract var _middlewares: MutableList<ActionsSdkMiddleware>
 
     /** @public */
-    fun <TConversationPlugin : ActionsSdkConversation<*, *>> middleware(middleware: ActionsSdkMiddleware): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun <TConversationPlugin : ActionsSdkConversation<*, *>> middleware(middleware: ActionsSdkMiddleware): ActionsSdkApp<TConvData, TUserStorage>
 
     /** @public */
-    var verification: ActionsSdkVerification? //| string
+    abstract var verification: ActionsSdkVerification? //| string
+}
+
+abstract class BaseService<THandler, TIntentHandler, TConversation, TMiddleware, TVerification ,TConvData, TUserStorage> : ConversationApp<TConvData, TUserStorage>() {
+    /** @hidden */
+    abstract var _handlers: THandler//<TConvData, TUserStorage>
+
+    /**
+     * Sets the IntentHandler to be executed when the fulfillment is called
+     * with a given Actions SDK intent.
+     *
+     * @param intent The Actions SDK intent to match.
+     *     When given an array, sets the IntentHandler for any intent in the array.
+     * @param handler The IntentHandler to be executed when the intent is matched.
+     *     When given a string instead of a function, the intent fulfillment will be redirected
+     *     to the IntentHandler of the redirected intent.
+     * @public
+     */
+    abstract fun intent(intents: MutableList<IntentEnum>, handler: TIntentHandler/*<TConvData, TUserStorage>*/ /*| Intent,*/): ActionsSdkApp<TConvData, TUserStorage>
+
+    /**
+     * Sets the IntentHandler to be executed when the fulfillment is called
+     * with a given Actions SDK intent.
+     *
+     * @param intent The Actions SDK intent to match.
+     *     When given an array, sets the IntentHandler for any intent in the array.
+     * @param handler The IntentHandler to be executed when the intent is matched.
+     *     When given a string instead of a function, the intent fulfillment will be redirected
+     *     to the IntentHandler of the redirected intent.
+     * @public
+     */
+    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler1<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler2<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler3<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
+
+    /** @public */
+    abstract fun catch(catcher: ExceptionHandler<TUserStorage, ActionsSdkConversation<TConvData, TUserStorage>>): ActionsSdkApp<TConvData, TUserStorage>
+
+    /** @public */
+    abstract fun fallback(handler: ActionsSdkIntentHandler3<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
+
+    /** @hidden */
+    abstract var _middlewares: MutableList<ActionsSdkMiddleware>
+
+    /** @public */
+    abstract fun <TConversationPlugin : ActionsSdkConversation<*, *>> middleware(middleware: ActionsSdkMiddleware): ActionsSdkApp<TConvData, TUserStorage>
+
+    /** @public */
+    abstract var verification: ActionsSdkVerification? //| string
 }
 
 //interface ActionsSdk {
@@ -213,21 +264,63 @@ interface ActionsSdkOptions<TConvData, TUserStorage> : ConversationAppOptions<TC
  */
 
 fun <TConvData, TUserStorage> actionssdk(options: ActionsSdkOptions<TConvData, TUserStorage>? = null): ActionsSdk<TConvData, TUserStorage> {
-//    attach()
+//    return attach<ActionsSdk<TConvData, TUserStorage>, TConvData, TUserStorage>(ActionsSdk(options), options)
     return ActionsSdk(options)
 }
 
-class ActionsSdk<TConvData, TUserStorage>(options: ActionsSdkOptions<TConvData, TUserStorage>? = null) : ActionsSdkApp<TConvData, TUserStorage> {
-    override var _handlers: ActionsSdkHandlers<TConvData, TUserStorage> = ActionsSdkHandlers()
+class ActionsSdk<TConvData, TUserStorage>(options: ActionsSdkOptions<TConvData, TUserStorage>? = null) : ActionsSdkApp<TConvData, TUserStorage>() {
+    override lateinit var frameworks: BuiltinFrameworks<TUserStorage>
 
-    override fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
+    override fun <TService, TPlugin> use(plugin: Plugin<TService, TPlugin>): BaseAppPlugin<TPlugin, TUserStorage> {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override var debug: Boolean = false
+
+
+
+
+    override var _handlers: ActionsSdkHandlers<TConvData, TUserStorage> = ActionsSdkHandlers<TConvData, TUserStorage>(
+            intents = ActionSdkIntentHandlers(),
+            catcher = {conv, e -> throw e}
+    )
+
+    override fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler1<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
+        for (intent in intents) {
+            this._handlers.intents[intent.value] = {conv, status, g -> handler(conv) }
+        }
+        return this
+    }
+
+    override fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler2<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
+        for (intent in intents) {
+            this._handlers.intents[intent.value] = {conv, status, g -> handler(conv, status) }
+        }
+        return this
+    }
+
+    override fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler3<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
         for (intent in intents) {
             this._handlers.intents[intent.value] = handler
         }
         return this
     }
 
-    override fun intent(vararg intents: String, handler: ActionsSdkIntentHandler<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
+    override fun intent(vararg intents: String, handler: ActionsSdkIntentHandler1<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
+        for (intent in intents) {
+            this._handlers.intents[intent] = { conv, status, g -> handler(conv) }
+        }
+        return this
+    }
+
+    override fun intent(vararg intents: String, handler: ActionsSdkIntentHandler2<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
+        for (intent in intents) {
+            this._handlers.intents[intent] = { conv, status, g -> handler(conv, status) }
+        }
+        return this
+    }
+
+    override fun intent(vararg intents: String, handler: ActionsSdkIntentHandler3<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
         for (intent in intents) {
             this._handlers.intents[intent] = handler
         }
@@ -239,14 +332,12 @@ class ActionsSdk<TConvData, TUserStorage>(options: ActionsSdkOptions<TConvData, 
         return this
     }
 
-    override fun fallback(handler: ActionsSdkIntentHandler<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
+    override fun fallback(handler: ActionsSdkIntentHandler3<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
         this._handlers.fallback = handler
         return this
     }
 
-    override var _middlewares: MutableList<ActionsSdkMiddleware>
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
-        set(value) {}
+    override var _middlewares: MutableList<ActionsSdkMiddleware> = mutableListOf()
 
     override fun <TConversationPlugin : ActionsSdkConversation<*, *>> middleware(middleware: ActionsSdkMiddleware): ActionsSdkApp<TConvData, TUserStorage> {
         this._middlewares.push(middleware)
@@ -262,8 +353,9 @@ class ActionsSdk<TConvData, TUserStorage>(options: ActionsSdkOptions<TConvData, 
     override var _client: OAuth2Client? = if (options?.verification != null || options?.clientId != null)
         OAuth2Client(options.clientId!!) else null
 
-    override var handler: StandardHandler = object : StandardHandler {
-        override fun handle(body: JsonObject, headers: Headers): StandardResponse {
+    override var handler: StandardHandler<TUserStorage> = object : StandardHandler<TUserStorage> {
+        override fun handle(body: Any, headers: Headers): StandardResponse {
+            val convBody = body as GoogleActionsV2AppRequest
             val debug: Boolean = options?.debug ?: false
             val init = init
             val verification = verification
@@ -289,7 +381,7 @@ class ActionsSdk<TConvData, TUserStorage>(options: ActionsSdkOptions<TConvData, 
             }
 
             val conv = ActionsSdkConversation(ActionsSdkConversationOptions(
-                    body = body as GoogleActionsV2AppRequest,
+                    body = convBody,
                     headers = headers,
                     init = init?.invoke(), //init && init (),
                     debug = debug))
@@ -310,9 +402,10 @@ class ActionsSdk<TConvData, TUserStorage>(options: ActionsSdkOptions<TConvData, 
             val traversed: Traversed<TConvData, TUserStorage> = Traversed()
             var handler = _handlers.intents[intent]
 //            while (typeof handler !== 'function') {
-            while (true) {
+            while (false) {
+                //TODO why is this loop here? handle intents mapped to a string?
                 if (handler == null) {
-                    if (_handlers.fallback != null) {
+                    if (_handlers.fallback == null) {
                         throw Error("Actions SDK IntentHandler not found for intent: $intent")
                     }
                     handler = _handlers.fallback
@@ -322,7 +415,7 @@ class ActionsSdk<TConvData, TUserStorage>(options: ActionsSdkOptions<TConvData, 
                     throw Error("Circular intent map detected: $handler traversed twice")
                 }
                 traversed[handler] = true
-                handler = _handlers.intents[intent]
+//                handler = _handlers.intents[handler]
             }
             try {
                 /* await */ handler?.invoke(
@@ -341,6 +434,61 @@ class ActionsSdk<TConvData, TUserStorage>(options: ActionsSdkOptions<TConvData, 
                     body = conv.serialize()
             )
         }
+    }
+
+    init {
+        frameworks = BuiltinFrameworks()
+//        val baseApp = create(options)
+        omni = object: OmniHandler {
+            override fun handle(vararg args: Any): Any {
+                log("Args in omniHandler: ${args.map { it.toString() }.joinToString { it }}")
+                for (framework in frameworks) {
+                    if(framework.check(*args)) {
+                        return framework.handle(handler).handle(*args)
+                    }
+                }
+                return handler.handle(args[0] as GoogleActionsV2AppRequest, args[1] as Headers)
+            }
+        }
+
+//        var handler = baseApp.handler
+        val standard = object: StandardHandler<TUserStorage> {
+            override fun handle(body: Any, headers: Headers): StandardResponse {
+                val body = body as GoogleActionsV2AppRequest
+                log("Request", Serializer.serialize(body))
+                log("Headers", Serializer.serialize(headers))
+                val response = /* await */ handler.handle(body, headers)
+                response.headers?.get("content-type")?.add("application/json; charset=utf-8")
+                log("Response", Serializer.serialize(response))
+                return response
+            }
+        }
+//        baseApp.omni = omni
+//        baseApp.handler = standard
+
+//    var appResult = object: OmniHandler by omni, actions.BaseApp by baseApp, actions.framework.StandardHandler by standardHandler, actions.ServiceBaseApp by service {
+//
+//    }
+
+//    var attachedResult = AttachResult(
+//            baseApp = baseApp,
+//            service = service,
+//            omni = omni,
+//            handler = standardHandler)
+
+//        return object: AppResult() {
+//        handler = standard
+
+        fun <TService, TPlugin, TUserStorage> use(plugin: Plugin<TService, TPlugin>): BaseAppPlugin<TPlugin, TUserStorage> {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+
+//            override fun handle(body: JsonObject, headers: Headers): StandardResponse = standard.handle(body, headers)
+//
+//            override var frameworks: BuiltinFrameworks = baseApp.frameworks
+//
+//            override var debug: Boolean = baseApp.debug
+//        }
     }
 
 }

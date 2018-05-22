@@ -4,18 +4,16 @@ import actions.service.actionssdk.api.GoogleActionsV2UiElementsBasicCardImageDis
 import actions.service.actionssdk.api.GoogleActionsV2UiElementsButton
 import actions.service.actionssdk.api.GoogleActionsV2UiElementsImage
 
-interface BasicCardOptions {
+data class BasicCardOptions(
+    var title: String? = null,
 
-    var title: String?
+    var subtitle: String? = null,
 
-    var subtitle: String?
+    var text: String? = null,
 
-    var text: String?
+    var image: GoogleActionsV2UiElementsImage? = null,
 
-    var image: GoogleActionsV2UiElementsImage?
+    var buttons: MutableList<GoogleActionsV2UiElementsButton>? = null,
 
-    var buttons: MutableList<GoogleActionsV2UiElementsButton>?
-
-    var display: GoogleActionsV2UiElementsBasicCardImageDisplayOptions?
-}
+    var display: GoogleActionsV2UiElementsBasicCardImageDisplayOptions? = null)
 

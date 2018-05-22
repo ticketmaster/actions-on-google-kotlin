@@ -2,6 +2,7 @@ package actions.service.actionssdk.conversation
 
 import actions.AppOptions
 import actions.ServiceBaseApp
+import actions.BaseApp
 import actions.expected.OAuth2Client
 import actions.framework.Headers
 import actions.framework.JsonObject
@@ -12,7 +13,7 @@ import actions.service.actionssdk.api.GoogleActionsV2RichResponse
 import actions.service.actionssdk.conversation.argument.Arguments
 import actions.service.actionssdk.conversation.response.*
 import actions.service.actionssdk.push
-import actions.service.actionssdk.ActionsSdkIntentHandler
+import actions.service.actionssdk.ActionsSdkIntentHandler3
 
 
 //TODO test enum vs sealed class
@@ -57,15 +58,6 @@ enum class DialogSpec(val value: String) {
     LinkDialogSpec("type.googleapis.com/google.actions.v2.LinkValueSpec.LinkDialogSpec")
 }
 
-///** @public */
-//typealias Response =
-//RichResponse |
-//RichResponseItem |
-//Image |
-//Suggestions |
-//MediaObject |
-//Question<Intent, JsonObject>
-
 data class ConversationResponse(
         var richResponse: GoogleActionsV2RichResponse? = null,
         var expectUserResponse: Boolean? = null,
@@ -87,12 +79,12 @@ interface ConversationBaseOptions<TConvData, TUserStorage> {
 }
 
 data class ConversationOptions<TUserStorage>(
-        var request: GoogleActionsV2AppRequest,
+        var request: GoogleActionsV2AppRequest? = null,
         var headers: Headers?,
         var init: ConversationOptionsInit<*, TUserStorage>? = null)
 
 abstract class Conversation<TUserStorage> {
-    var request: GoogleActionsV2AppRequest
+    var request: GoogleActionsV2AppRequest?
 
     var headers: Headers?
 
@@ -167,26 +159,26 @@ abstract class Conversation<TUserStorage> {
         this.request = request
         this.headers = headers
 
-        this.sandbox = this.request.isInSandbox ?: false
+        this.sandbox = this.request?.isInSandbox ?: false
 
-        val inputs = this.request.inputs
-        val conversation = this.request.conversation
+        val inputs = this.request?.inputs
+        val conversation = this.request?.conversation
         val input = inputs?.firstOrNull()
         val rawInputs = input?.rawInputs
 
         this.input = Input(rawInputs?.get(0))
-        this.surface = Surface(this.request.surface)
-        this.available = Available(this.request.availableSurfaces)
+        this.surface = Surface(this.request?.surface)
+        this.available = Available(this.request?.availableSurfaces)
 
-        this.user = User(this.request.user/*, init && init.storage*/)
+        this.user = User(this.request?.user/*, init && init.storage*/)
 
         this.arguments = Arguments(input?.arguments)
 
-        this.device = Device(this.request.device)
+        this.device = Device(this.request?.device)
 
         this.id = conversation?.conversationId ?: ""
 
-        this.type = conversation?.type!!
+        this.type = conversation?.type ?: GoogleActionsV2ConversationType.TYPE_UNSPECIFIED
 
         this.screen = this.surface.capabilities?.has(SurfaceCapability.ACTIONS_CAPABILITY_SCREEN_OUTPUT) == true
     }
@@ -328,12 +320,12 @@ abstract class Conversation<TUserStorage> {
         val expectUserResponse = this.expectUserResponse
         var richResponse = RichResponse()
         var expectedIntent: GoogleActionsV2ExpectedIntent? = null
-        for (response in this.responses) {
-//            if (typeof response === 'string') {
-//            richResponse.add(response)
-//            continue
-//        }
 
+        this.strResponses.forEach {
+            richResponse.add(it)
+        }
+
+        for (response in this.responses) {
             when (response) {
 
                 is Question -> {
@@ -385,7 +377,7 @@ typealias ExceptionHandler<TUserStorage, TConversation> = (TConversation, Except
 //    }
 
 /** @hidden */
-class Traversed<TConvData, TUserStorage> : MutableMap<ActionsSdkIntentHandler<TConvData, TUserStorage>, Boolean> by mutableMapOf()
+class Traversed<TConvData, TUserStorage> : MutableMap<ActionsSdkIntentHandler3<TConvData, TUserStorage>, Boolean> by mutableMapOf()
 
 
 /** @hidden */
@@ -404,13 +396,13 @@ data class OAuth2ConfigClient(var id: String? = null)
 
 data class OAuth2Config(var client: OAuth2ConfigClient? = null)
 
-interface ConversationApp<TConvData, TUserStorage> : ServiceBaseApp {
+abstract class ConversationApp<TConvData, TUserStorage> : BaseApp<TUserStorage>() {
     /** @public */
-    var init: (() -> ConversationOptionsInit<TConvData, TUserStorage>)?
+    abstract var init: (() -> ConversationOptionsInit<TConvData, TUserStorage>)?
 
     /** @public */
-    var auth: OAuth2Config?
+    abstract var auth: OAuth2Config?
 
-    var _client: OAuth2Client?
+    abstract var _client: OAuth2Client?
 }
 

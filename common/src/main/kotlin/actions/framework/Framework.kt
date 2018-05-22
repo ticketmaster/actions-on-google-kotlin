@@ -1,19 +1,23 @@
 package actions.framework
 
+import actions.service.actionssdk.conversation.Conversation
+
 //import kotlinx.coroutines.experimental.Deferred
 
 
-abstract class Frameworks<THandler>: MutableMap<String, Framework<THandler>> by mutableMapOf() {
+abstract class Frameworks<TUserStorage>: MutableList<Framework<TUserStorage>> by mutableListOf() {
 }
 
-interface Framework<THandler> {
-    fun handle(base: StandardHandler): THandler
+interface OmniHandler {
+    fun handle(vararg args: Any): Any
+}
+
+interface Framework<TUserStorage> {
+    fun handle(base: StandardHandler<TUserStorage>): OmniHandler
 
     // tslint:disable-next-line:no-any detect if it is the correct framework from any parameter type
     fun check(vararg args: Any): Boolean
 }
-
-interface OmniHandler: StandardHandler/*, ExpressHandler, LambdaHandler*/ //{
 
 //typealias OmniHandler = StandardHandler/*, ExpressHandler, LambdaHandler*/ //{
     // tslint:disable-next-line:no-any allow any inputs and outputs depending on framework
@@ -32,7 +36,7 @@ data class StandardResponse(
     var body: JsonObject? = null,
     var headers: Headers? = null)
 
-typealias Headers = Map<String, List<String>>
+typealias Headers = MutableMap<String, MutableList<String>>
 //interface Headers {
 //    /** @public */
 //    [header: string]: string | string[] | undefined
@@ -40,8 +44,8 @@ typealias Headers = Map<String, List<String>>
 
 //typealias StandardHandler =  (body: JsonObject, headers: Headers) -> StandardResponse //TODO Promise or deferred
 
-interface StandardHandler {
-    fun handle(body: JsonObject, headers: Headers): StandardResponse //TODO Promise or deferred
+interface StandardHandler<TUserStorage> {
+    fun handle(body: Any, headers: Headers): StandardResponse //TODO Promise or deferred
 }
 
 typealias JsonObject = Any

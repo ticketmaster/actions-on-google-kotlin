@@ -1,16 +1,16 @@
 package actions.service.actionssdk.conversation.response
 
 
-interface SimpleResponseOptions {
+data class SimpleResponseOptions(
     /**
      * Speech to be spoken to user. SSML allowed.
      * @public
      */
-    var speech: String
+    var speech: String,
 
     /**
      * Optional text to be shown to user
      * @public
      */
-    var text: String?
-}
+    var text: String? = null
+)

@@ -70,38 +70,39 @@ enum class GoogleActionsV2UiElementsTableCardColumnPropertiesHorizontalAlignment
 enum class GoogleActionsV2UserPermissions { UNSPECIFIED_PERMISSION, NAME, DEVICE_PRECISE_LOCATION, DEVICE_COARSE_LOCATION, UPDATE }
 
 
-data class GoogleActionsV2AppRequest(
-        /**
-         * Surfaces available for cross surface handoff.
-         */
-        var availableSurfaces: MutableList<GoogleActionsV2Surface>? = null,
-        /**
-         * Holds session data like the conversation ID and conversation token.
-         */
-        var conversation: GoogleActionsV2Conversation? = null,
-        /**
-         * Information about the device the user is using to interact with the app.
-         */
-        var device: GoogleActionsV2Device? = null,
-        /**
-         * List of inputs corresponding to the expected inputs specified by the app.
-         * For the initial conversation trigger, the input contains information on
-         * how the user triggered the conversation.
-         */
-        var inputs: MutableList<GoogleActionsV2Input>? = null,
-        /**
-         * Indicates whether the request should be handled in sandbox mode.
-         */
-        var isInSandbox: Boolean? = null,
-        /**
-         * Information about the surface the user is interacting with, e.g. whether it
-         * can output audio or has a screen.
-         */
-        var surface: GoogleActionsV2Surface? = null,
-        /**
-         * User who initiated the conversation.
-         */
-        var user: GoogleActionsV2User? = null)
+open class GoogleActionsV2AppRequest {
+    /**
+     * Surfaces available for cross surface handoff.
+     */
+    var availableSurfaces: MutableList<GoogleActionsV2Surface>? = null
+    /**
+     * Holds session data like the conversation ID and conversation token.
+     */
+    var conversation: GoogleActionsV2Conversation? = null
+    /**
+     * Information about the device the user is using to interact with the app.
+     */
+    var device: GoogleActionsV2Device? = null
+    /**
+     * List of inputs corresponding to the expected inputs specified by the app.
+     * For the initial conversation trigger, the input contains information on
+     * how the user triggered the conversation.
+     */
+    var inputs: MutableList<GoogleActionsV2Input>? = null
+    /**
+     * Indicates whether the request should be handled in sandbox mode.
+     */
+    var isInSandbox: Boolean? = null
+    /**
+     * Information about the surface the user is interacting with, e.g. whether it
+     * can output audio or has a screen.
+     */
+    var surface: GoogleActionsV2Surface? = null
+    /**
+     * User who initiated the conversation.
+     */
+    var user: GoogleActionsV2User? = null
+}
 
 data class GoogleActionsV2AppResponse(
         /**
@@ -434,40 +435,40 @@ data class GoogleActionsV2ExpectedInput(
 )
 
 interface GoogleActionsV2ExpectedIntent {
-        /**
-         * Additional configuration data required by a built-in intent. Possible
-         * values for the built-in intents: `actions.intent.OPTION ->`
-         * [google.actions.v2.OptionValueSpec], `actions.intent.CONFIRMATION ->`
-         * [google.actions.v2.ConfirmationValueSpec],
-         * `actions.intent.TRANSACTION_REQUIREMENTS_CHECK ->`
-         * [google.actions.v2.TransactionRequirementsCheckSpec],
-         * `actions.intent.DELIVERY_ADDRESS ->`
-         * [google.actions.v2.DeliveryAddressValueSpec],
-         * `actions.intent.TRANSACTION_DECISION ->`
-         * [google.actions.v2.TransactionDecisionValueSpec],
-         * `actions.intent.PLACE ->`
-         * [google.actions.v2.PlaceValueSpec],
-         * `actions.intent.Link ->`
-         * [google.actions.v2.LinkValueSpec]
-         */
-        var inputValueData: ApiClientObjectMap<Any>?
-        /**
-         * The built-in intent name, e.g. `actions.intent.TEXT`, or intents
-         * defined in the action package. If the intent specified is not a built-in
-         * intent, it is only used for speech biasing and the input provided by the
-         * Google Assistant will be the `actions.intent.TEXT` intent.
-         */
-        var intent: String?
-        /**
-         * Optionally, a parameter of the intent that is being requested. Only valid
-         * for requested intents. Used for speech biasing.
-         */
-        var parameterName: String?
+    /**
+     * Additional configuration data required by a built-in intent. Possible
+     * values for the built-in intents: `actions.intent.OPTION ->`
+     * [google.actions.v2.OptionValueSpec], `actions.intent.CONFIRMATION ->`
+     * [google.actions.v2.ConfirmationValueSpec],
+     * `actions.intent.TRANSACTION_REQUIREMENTS_CHECK ->`
+     * [google.actions.v2.TransactionRequirementsCheckSpec],
+     * `actions.intent.DELIVERY_ADDRESS ->`
+     * [google.actions.v2.DeliveryAddressValueSpec],
+     * `actions.intent.TRANSACTION_DECISION ->`
+     * [google.actions.v2.TransactionDecisionValueSpec],
+     * `actions.intent.PLACE ->`
+     * [google.actions.v2.PlaceValueSpec],
+     * `actions.intent.Link ->`
+     * [google.actions.v2.LinkValueSpec]
+     */
+    var inputValueData: ApiClientObjectMap<Any>?
+    /**
+     * The built-in intent name, e.g. `actions.intent.TEXT`, or intents
+     * defined in the action package. If the intent specified is not a built-in
+     * intent, it is only used for speech biasing and the input provided by the
+     * Google Assistant will be the `actions.intent.TEXT` intent.
+     */
+    var intent: String?
+    /**
+     * Optionally, a parameter of the intent that is being requested. Only valid
+     * for requested intents. Used for speech biasing.
+     */
+    var parameterName: String?
 }
 
 data class GoogleActionsV2ExpectedIntentData(override var inputValueData: ApiClientObjectMap<Any>? = null,
                                              override var intent: String? = null,
-                                             override var parameterName: String? = null): GoogleActionsV2ExpectedIntent
+                                             override var parameterName: String? = null) : GoogleActionsV2ExpectedIntent
 
 data class GoogleActionsV2FinalResponse(
         /**
@@ -1606,46 +1607,46 @@ interface GoogleActionsV2UiElementsButton {
 }
 
 interface GoogleActionsV2UiElementsCarouselBrowse {
-        /**
-         * Type of image display option.
-         * Optional.
-         */
-        var imageDisplayOptions: GoogleActionsV2UiElementsCarouselBrowseImageDisplayOptions?
-        /**
-         * Min: 2. Max: 10.
-         */
-        var items: MutableList<GoogleActionsV2UiElementsCarouselBrowseItem>?
+    /**
+     * Type of image display option.
+     * Optional.
+     */
+    var imageDisplayOptions: GoogleActionsV2UiElementsCarouselBrowseImageDisplayOptions?
+    /**
+     * Min: 2. Max: 10.
+     */
+    var items: MutableList<GoogleActionsV2UiElementsCarouselBrowseItem>?
 }
 
 interface GoogleActionsV2UiElementsCarouselBrowseItem {
-        /**
-         * Description of the carousel item.
-         * Optional.
-         */
-        var description: String?
-        /**
-         * Footer text for the carousel item, displayed below the description.
-         * Single line of text, truncated with an ellipsis.
-         * Optional.
-         */
-        var footer: String?
-        /**
-         * Hero image for the carousel item.
-         * Optional.
-         */
-        var image: GoogleActionsV2UiElementsImage?
-        /**
-         * URL of the document associated with the carousel item.
-         * The document can contain HTML content or, if \"url_type_hint\" is set to
-         * AMP_CONTENT, AMP content.
-         * Required.
-         */
-        var openUrlAction: GoogleActionsV2UiElementsOpenUrlAction?
-        /**
-         * Title of the carousel item.
-         * Required.
-         */
-        var title: String?
+    /**
+     * Description of the carousel item.
+     * Optional.
+     */
+    var description: String?
+    /**
+     * Footer text for the carousel item, displayed below the description.
+     * Single line of text, truncated with an ellipsis.
+     * Optional.
+     */
+    var footer: String?
+    /**
+     * Hero image for the carousel item.
+     * Optional.
+     */
+    var image: GoogleActionsV2UiElementsImage?
+    /**
+     * URL of the document associated with the carousel item.
+     * The document can contain HTML content or, if \"url_type_hint\" is set to
+     * AMP_CONTENT, AMP content.
+     * Required.
+     */
+    var openUrlAction: GoogleActionsV2UiElementsOpenUrlAction?
+    /**
+     * Title of the carousel item.
+     * Required.
+     */
+    var title: String?
 }
 
 data class GoogleActionsV2UiElementsCarouselSelect(
@@ -1796,36 +1797,36 @@ data class GoogleActionsV2UiElementsSuggestion(
 )
 
 interface GoogleActionsV2UiElementsTableCard {
-        /**
-         * Buttons.
-         * Currently at most 1 button is supported.
-         * Optional.
-         */
-        var buttons: MutableList<GoogleActionsV2UiElementsButton>?
-        /**
-         * Headers and alignment of columns.
-         */
-        var columnProperties: MutableList<GoogleActionsV2UiElementsTableCardColumnProperties>?
-        /**
-         * Image associated with the table. Optional.
-         */
-        var image: GoogleActionsV2UiElementsImage?
-        /**
-         * Row data of the table. The first 3 rows are guaranteed to be shown but
-         * others might be cut on certain surfaces. Please test with the simulator to
-         * see which rows will be shown for a given surface. On surfaces that support
-         * the WEB_BROWSER capability, you can point the user to
-         * a web page with more data.
-         */
-        var rows: MutableList<GoogleActionsV2UiElementsTableCardRow>?
-        /**
-         * Subtitle for the table. Optional.
-         */
-        var subtitle: String?
-        /**
-         * Overall title of the table. Optional but must be set if subtitle is set.
-         */
-        var title: String?
+    /**
+     * Buttons.
+     * Currently at most 1 button is supported.
+     * Optional.
+     */
+    var buttons: MutableList<GoogleActionsV2UiElementsButton>?
+    /**
+     * Headers and alignment of columns.
+     */
+    var columnProperties: MutableList<GoogleActionsV2UiElementsTableCardColumnProperties>?
+    /**
+     * Image associated with the table. Optional.
+     */
+    var image: GoogleActionsV2UiElementsImage?
+    /**
+     * Row data of the table. The first 3 rows are guaranteed to be shown but
+     * others might be cut on certain surfaces. Please test with the simulator to
+     * see which rows will be shown for a given surface. On surfaces that support
+     * the WEB_BROWSER capability, you can point the user to
+     * a web page with more data.
+     */
+    var rows: MutableList<GoogleActionsV2UiElementsTableCardRow>?
+    /**
+     * Subtitle for the table. Optional.
+     */
+    var subtitle: String?
+    /**
+     * Overall title of the table. Optional but must be set if subtitle is set.
+     */
+    var title: String?
 }
 
 data class GoogleActionsV2UiElementsTableCardCell(
@@ -1836,15 +1837,15 @@ data class GoogleActionsV2UiElementsTableCardCell(
 )
 
 interface GoogleActionsV2UiElementsTableCardColumnProperties {
-        /**
-         * Header text for the column.
-         */
-        var header: String?
-        /**
-         * Horizontal alignment of content w.r.t column. If unspecified, content
-         * will be aligned to the leading edge.
-         */
-        var horizontalAlignment: GoogleActionsV2UiElementsTableCardColumnPropertiesHorizontalAlignment?
+    /**
+     * Header text for the column.
+     */
+    var header: String?
+    /**
+     * Horizontal alignment of content w.r.t column. If unspecified, content
+     * will be aligned to the leading edge.
+     */
+    var horizontalAlignment: GoogleActionsV2UiElementsTableCardColumnPropertiesHorizontalAlignment?
 }
 
 data class GoogleActionsV2UiElementsTableCardRow(

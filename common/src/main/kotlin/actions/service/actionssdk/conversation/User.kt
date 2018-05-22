@@ -1,6 +1,7 @@
 package actions.service.actionssdk.conversation
 
 import actions.expected.*
+import actions.expected.Serializer.serialize
 import actions.service.actionssdk.api.GoogleActionsV2PackageEntitlement
 import actions.service.actionssdk.api.GoogleActionsV2User
 import actions.service.actionssdk.api.GoogleActionsV2UserPermissions
@@ -13,11 +14,11 @@ data class Last(
          * Undefined if never seen.
          * @public
          */
-        var seen: Date? = null) {
+        var seen: String? = null) {
 
     /** @hidden */
     constructor(user: GoogleActionsV2User? = null) :
-            this(Date(user?.lastSeen))
+            this(user?.lastSeen)
 
 }
 
@@ -120,12 +121,11 @@ data class Profile(
             this(token = user?.idToken)
 
     /** @hidden */
-    fun async_verify(client: OAuth2Client, id: String): TokenPayload?
-    {
+    fun async_verify(client: OAuth2Client, id: String): TokenPayload? {
         val login = client.verifyIdToken(
                 IdToken(
-            idToken = this.token,
-            audience = id))
+                        idToken = this.token,
+                        audience = id))
 
         this.payload = login.getPayload()
         return this.payload
@@ -264,7 +264,10 @@ data class User<TUserStorage>(
 
     /** @hidden */
     fun _serialize(): String? {
-        return serialize(UserStorage(this.storage))
+        return if (this.storage == null)
+        """{"data":{}}"""
+        else
+            serialize(UserStorage(this.storage))
     }
 
     /** @hidden */
