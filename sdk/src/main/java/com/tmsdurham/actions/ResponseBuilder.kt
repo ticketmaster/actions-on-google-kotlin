@@ -287,12 +287,12 @@ data class RichResponse(
  * Ordered list of buttons to show below card. Optional.
  * @type {Array<Button>}
  */
-data class BasicCard(internal var title: String = "",
-                     internal var formattedText: String = "",
-                     internal var subtitle: String? = null,
-                     internal var image: Image? = null,
-                     internal var imageDisplayOptions: ImageDisplays? = null,
-                     internal var buttons: MutableList<Button> = mutableListOf()) {
+data class BasicCard(var title: String = "",
+                     var formattedText: String = "",
+                     var subtitle: String? = null,
+                     var image: Image? = null,
+                     var imageDisplayOptions: ImageDisplays? = null,
+                     var buttons: MutableList<Button> = mutableListOf()) {
 
     /**
      * Sets the title for this Basic Card.
