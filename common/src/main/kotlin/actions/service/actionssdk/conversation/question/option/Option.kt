@@ -19,31 +19,32 @@ class OptionItems<TOptionItem> {
  * Option item. Used in actions.intent.OPTION intent.
  * @public
  */
-class OptionItem {
+data class OptionItem(
+
     /**
      * Synonyms that can be used by the user to indicate this option if they do not use the key.
      * @public
      */
-    var synonyms: MutableList<String>? = null
+    var synonyms: MutableList<String>? = null,
 
     /**
      * Name of the item.
      * @public
      */
-    var title: String? = null
+    var title: String? = null,
 
     /**
      * Optional text describing the item.
      * @public
      */
-    var description: String? = null
+    var description: String? = null,
 
     /**
      * Square image to show for this item.
      * @public
      */
     var image: GoogleActionsV2UiElementsImage? = null
-}
+)
 
 /** @hidden */
 typealias ApiOptionItem = GoogleActionsV2UiElementsCarouselSelectCarouselItem

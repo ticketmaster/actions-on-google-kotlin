@@ -1,18 +1,17 @@
 package actions.service.actionssdk.conversation.response
 
 
-interface LinkOutSuggestionOptions {
+data class LinkOutSuggestionOptions(
     /**
      * Text shown on the suggestion chip.
      * @public
      */
-    var name: String
+    var name: String,
 
     /**
      * String URL to open.
      * @public
      */
-    var url: String
-}
+    var url: String)
 
 

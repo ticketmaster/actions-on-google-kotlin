@@ -1,0 +1,58 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json; charset=utf-8"
+  },
+  "body": {
+    "expectUserResponse": true,
+    "expectedInputs": [
+      {
+        "inputPrompt": {
+          "richInitialPrompt": {
+            "items": [
+              {
+                "simpleResponse": {
+                  "textToSpeech": "Hi there!",
+                  "displayText": "Hello there!"
+                }
+              },
+              {
+                "simpleResponse": {
+                  "textToSpeech": "I can show you basic cards, lists and carousels as well as suggestions on your phone.",
+                  "displayText": "I can show you basic cards, lists and carousels as well as suggestions."
+                }
+              }
+            ],
+            "suggestions": [
+              {
+                "title": "Basic Card"
+              },
+              {
+                "title": "Browse Carousel"
+              },
+              {
+                "title": "Carousel"
+              },
+              {
+                "title": "List"
+              },
+              {
+                "title": "Media"
+              },
+              {
+                "title": "Suggestions"
+              }
+            ]
+          }
+        },
+        "possibleIntents": [
+          {
+            "intent": "actions.intent.TEXT"
+          }
+        ]
+      }
+    ],
+    "conversationToken": "{\"data\":{}}",
+    "userStorage": "{\"data\":{}}"
+  }
+}

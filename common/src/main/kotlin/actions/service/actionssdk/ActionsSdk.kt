@@ -110,6 +110,7 @@ abstract class ActionsSdkApp<TConvData, TUserStorage> : ConversationApp<TConvDat
      * @public
      */
     abstract fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler1<TConvData, TUserStorage> /*| Intent,*/): ActionsSdkApp<TConvData, TUserStorage>
+
     abstract fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler2<TConvData, TUserStorage> /*| Intent,*/): ActionsSdkApp<TConvData, TUserStorage>
     abstract fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler3<TConvData, TUserStorage> /*| Intent,*/): ActionsSdkApp<TConvData, TUserStorage>
 
@@ -125,6 +126,7 @@ abstract class ActionsSdkApp<TConvData, TUserStorage> : ConversationApp<TConvDat
      * @public
      */
     abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler1<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
+
     abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler2<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
     abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler3<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
 
@@ -144,7 +146,7 @@ abstract class ActionsSdkApp<TConvData, TUserStorage> : ConversationApp<TConvDat
     abstract var verification: ActionsSdkVerification? //| string
 }
 
-abstract class BaseService<THandler, TIntentHandler, TConversation, TMiddleware, TVerification ,TConvData, TUserStorage> : ConversationApp<TConvData, TUserStorage>() {
+abstract class BaseService<THandler, TIntentHandler, TConversation, TMiddleware, TVerification, TConvData, TUserStorage> : ConversationApp<TConvData, TUserStorage>() {
     /** @hidden */
     abstract var _handlers: THandler//<TConvData, TUserStorage>
 
@@ -173,6 +175,7 @@ abstract class BaseService<THandler, TIntentHandler, TConversation, TMiddleware,
      * @public
      */
     abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler1<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
+
     abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler2<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
     abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler3<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
 
@@ -224,24 +227,27 @@ interface ActionsSdkVerification {
     var error: String //| ((error: string) => string)
 }
 
-interface ActionsSdkOptions<TConvData, TUserStorage> : ConversationAppOptions<TConvData, TUserStorage> {
-    /**
-     * Validates whether request is from Google through signature verification.
-     * Uses Google-Auth-Library to verify authorization token against given Google Cloud Project ID.
-     * Auth token is given in request header with key, "authorization".
-     *
-     * HTTP Code 403 will be thrown by default on verification error.
-     *
-     * @example
-     * ```javascript
-     *
-     * const app = actionssdk({ verification: 'nodejs-cloud-test-project-1234' })
-     * ```
-     *
-     * @public
-     */
-    var verification: ActionsSdkVerification? //| string
-}
+data class ActionsSdkOptions<TConvData, TUserStorage>(
+        /**
+         * Validates whether request is from Google through signature verification.
+         * Uses Google-Auth-Library to verify authorization token against given Google Cloud Project ID.
+         * Auth token is given in request header with key, "authorization".
+         *
+         * HTTP Code 403 will be thrown by default on verification error.
+         *
+         * @example
+         * ```javascript
+         *
+         * const app = actionssdk({ verification: 'nodejs-cloud-test-project-1234' })
+         * ```
+         *
+         * @public
+         */
+        var verification: ActionsSdkVerification? = null,
+        override var init: (() -> ConversationOptionsInit<TConvData, TUserStorage>)? = null,
+        override var clientId: String? = null,
+        override var debug: Boolean? = null
+) : ConversationAppOptions<TConvData, TUserStorage>
 
 /**
  * This is the function that creates the app instance which on new requests,
@@ -268,6 +274,12 @@ fun <TConvData, TUserStorage> actionssdk(options: ActionsSdkOptions<TConvData, T
     return ActionsSdk(options)
 }
 
+fun <TConvData, TUserStorage> actionssdk(init: (ActionsSdkOptions<TConvData, TUserStorage>.() -> Unit)? = null): ActionsSdk<TConvData, TUserStorage> {
+    val options = ActionsSdkOptions<TConvData, TUserStorage>()
+    options.init?.invoke()
+    return ActionsSdk(options)
+}
+
 class ActionsSdk<TConvData, TUserStorage>(options: ActionsSdkOptions<TConvData, TUserStorage>? = null) : ActionsSdkApp<TConvData, TUserStorage>() {
     override lateinit var frameworks: BuiltinFrameworks<TUserStorage>
 
@@ -278,23 +290,21 @@ class ActionsSdk<TConvData, TUserStorage>(options: ActionsSdkOptions<TConvData, 
     override var debug: Boolean = false
 
 
-
-
     override var _handlers: ActionsSdkHandlers<TConvData, TUserStorage> = ActionsSdkHandlers<TConvData, TUserStorage>(
             intents = ActionSdkIntentHandlers(),
-            catcher = {conv, e -> throw e}
+            catcher = { conv, e -> throw e }
     )
 
     override fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler1<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
         for (intent in intents) {
-            this._handlers.intents[intent.value] = {conv, status, g -> handler(conv) }
+            this._handlers.intents[intent.value] = { conv, status, g -> handler(conv) }
         }
         return this
     }
 
     override fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler2<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
         for (intent in intents) {
-            this._handlers.intents[intent.value] = {conv, status, g -> handler(conv, status) }
+            this._handlers.intents[intent.value] = { conv, status, g -> handler(conv, status) }
         }
         return this
     }
@@ -439,11 +449,11 @@ class ActionsSdk<TConvData, TUserStorage>(options: ActionsSdkOptions<TConvData, 
     init {
         frameworks = BuiltinFrameworks()
 //        val baseApp = create(options)
-        omni = object: OmniHandler {
+        omni = object : OmniHandler {
             override fun handle(vararg args: Any): Any {
                 log("Args in omniHandler: ${args.map { it.toString() }.joinToString { it }}")
                 for (framework in frameworks) {
-                    if(framework.check(*args)) {
+                    if (framework.check(*args)) {
                         return framework.handle(handler).handle(*args)
                     }
                 }
@@ -452,7 +462,7 @@ class ActionsSdk<TConvData, TUserStorage>(options: ActionsSdkOptions<TConvData, 
         }
 
 //        var handler = baseApp.handler
-        val standard = object: StandardHandler<TUserStorage> {
+        val standard = object : StandardHandler<TUserStorage> {
             override fun handle(body: Any, headers: Headers): StandardResponse {
                 val body = body as GoogleActionsV2AppRequest
                 log("Request", Serializer.serialize(body))

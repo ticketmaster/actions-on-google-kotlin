@@ -5,6 +5,7 @@ import actions.ProtoAny
 import actions.service.actionssdk.api.*
 import actions.service.actionssdk.conversation.InputValueSpec
 import actions.service.actionssdk.conversation.IntentEnum
+import actions.service.actionssdk.conversation.question.option.*
 import actions.service.actionssdk.conversation.response.card.BasicCardOptions
 import actions.service.actionssdk.conversation.response.card.TableOptions
 import actions.service.actionssdk.push
@@ -134,25 +135,24 @@ class RichResponse(override var items: MutableList<GoogleActionsV2RichResponseIt
 
                 is LinkOutSuggestion -> this.linkOutSuggestion = it
 
-                is SimpleResponse -> this.items!!.push { simpleResponse = it }
+                is SimpleResponse -> this.items!!.add { simpleResponse = it }
 
                 is BasicCard ->
-                    this.items!!.push { basicCard = it }
-
+                    this.items!!.add { basicCard = it }
 
                 is Table ->
-                    this.items!!.push { tableCard = it }
+                    this.items!!.add { tableCard = it }
 
 
                 is BrowseCarousel ->
-                    this.items!!.push { carouselBrowse = it }
+                    this.items!!.add { carouselBrowse = it }
 
 
                 is MediaResponse ->
-                    this.items!!.push { mediaResponse = it }
+                    this.items!!.add { mediaResponse = it }
 
                 is OrderUpdate -> {
-                    this.items!!.push { structuredResponse = GoogleActionsV2StructuredResponse(orderUpdate = it) }
+                    this.items!!.add { structuredResponse = GoogleActionsV2StructuredResponse(orderUpdate = it) }
                 }
             }
         }
@@ -230,7 +230,7 @@ data class Suggestions(
      * @param suggestions Texts of the suggestions.
      * @public
      */
-    constructor(vararg suggestions: String) : this(suggestions = suggestions.map { GoogleActionsV2UiElementsSuggestion(title = it) }.toMutableList())
+    constructor(vararg suggestions: String) : this(suggestions = suggestions.map { GoogleActionsV2UiElementsSuggestion(title = it) }.asReversed().toMutableList())
 
 
     fun add(vararg suggs: String): Suggestions {
@@ -321,7 +321,7 @@ class BasicCard(override var buttons: MutableList<GoogleActionsV2UiElementsButto
             imageDisplayOptions = options.display
     )
 
-    constructor(init: BasicCardOptions.() -> Unit): this({val options = BasicCardOptions(); options}.invoke())
+    constructor(init: BasicCardOptions.() -> Unit): this({val options = BasicCardOptions(); options.init();options}.invoke())
 }
 
 
@@ -539,6 +539,8 @@ data class LinkOutSuggestion(override var destinationName: String? = null,
     constructor(options: LinkOutSuggestionOptions): this(
             destinationName = options.name,
             url = options.url)
+
+    constructor(init: LinkOutSuggestionOptions.() -> Unit): this({val options = LinkOutSuggestionOptions(name = "", url = ""); options.init(); options}.invoke())
 }
 
 
@@ -612,4 +614,107 @@ class BrowseCarousel(override var imageDisplayOptions: GoogleActionsV2UiElements
         this.items = [options].concat(items)
     }
     */
+}
+
+class List(init: ListOptions2.() -> Unit): Question(IntentEnum.OPTION) {
+
+    init {
+        val options = ListOptions2()
+        options.init()
+        this._data(InputValueSpec.OptionValueSpec) {
+            listSelect = actions.service.actionssdk.api.GoogleActionsV2UiElementsListSelect(
+                    title = options.title,
+                    items = options.items.toGoogleActionsV2ListItem()
+            )
+        }
+    }
+}
+
+
+
+/**
+ * Asks to collect user"s input with a carousel.
+ *
+ * @example
+ * ```javascript
+ *
+ * // Actions SDK
+ * val app = actionssdk()
+ *
+ * app.intent("actions.intent.MAIN", conv => {
+ *   conv.ask("Which of these looks good?")
+ *   conv.ask(new Carousel({
+ *     items: {
+ *       [SELECTION_KEY_ONE]: {
+ *         title: "Number one",
+ *         description: "Description of number one",
+ *         synonyms: ["synonym of KEY_ONE 1", "synonym of KEY_ONE 2"],
+ *       },
+ *       [SELECTION_KEY_TWO]: {
+ *         title: "Number two",
+ *         description: "Description of number one",
+ *         synonyms: ["synonym of KEY_TWO 1", "synonym of KEY_TWO 2"],
+ *       }
+ *     }
+ *   }))
+ * })
+ *
+ * app.intent("actions.intent.OPTION", (conv, input, option) => {
+ *   if (option === SELECTION_KEY_ONE) {
+ *     conv.close("Number one is a great choice!")
+ *   } else {
+ *     conv.close("Number two is also a great choice!")
+ *   }
+ * })
+ *
+ * // Dialogflow
+ * val app = dialogflow()
+ *
+ * app.intent("Default Welcome Intent", conv => {
+ *   conv.ask("Which of these looks good?")
+ *   conv.ask(new Carousel({
+ *     items: {
+ *       [SELECTION_KEY_ONE]: {
+ *         title: "Number one",
+ *         description: "Description of number one",
+ *         synonyms: ["synonym of KEY_ONE 1", "synonym of KEY_ONE 2"],
+ *       },
+ *       [SELECTION_KEY_TWO]: {
+ *         title: "Number two",
+ *         description: "Description of number one",
+ *         synonyms: ["synonym of KEY_TWO 1", "synonym of KEY_TWO 2"],
+ *       }
+ *     }
+ *   }))
+ * })
+ *
+ * // Create a Dialogflow intent with the `actions_intent_OPTION` event
+ * app.intent("Get Option", (conv, input, option) => {
+ *   if (option === SELECTION_KEY_ONE) {
+ *     conv.close("Number one is a great choice!")
+ *   } else {
+ *     conv.close("Number two is also a great choice!")
+ *   }
+ * })
+ * ```
+ *
+ * @public
+ */
+class Carousel(init: CarouselOptions.() -> Unit): Question(IntentEnum.OPTION) {
+
+    /**
+     * @param options Carousel option
+     * @public
+     */
+    init {
+        val options = CarouselOptions()
+        options.init()
+
+        this._data(actions.service.actionssdk.conversation.InputValueSpec.OptionValueSpec) {
+            carouselSelect = actions.service.actionssdk.api.GoogleActionsV2UiElementsCarouselSelect(
+            items = options.items.toGoogleActionsV2CarouselItem(),
+            imageDisplayOptions = options.display
+            )
+        }
+    }
 }

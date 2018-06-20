@@ -31,7 +31,9 @@ data class ProtoAny(var `@type`: String? = null,
                     var order: GoogleActionsV2OrdersOrder? = null,
                     var userDecision: GoogleActionsV2TransactionDecisionValueUserDecision? = null,
                     var orderOptions: GoogleActionsV2OrdersOrderOptions? = null,
-                    var paymentOptions: GoogleActionsV2OrdersPaymentOptions? = null) {
+                    var paymentOptions: GoogleActionsV2OrdersPaymentOptions? = null,
+                    var listSelect: GoogleActionsV2UiElementsListSelect? = null,
+                    var carouselSelect: GoogleActionsV2UiElementsCarouselSelect? = null) {
 
     fun dialogSpec(init: DialogSpecData.() -> Unit) {
 

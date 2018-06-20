@@ -195,19 +195,22 @@ abstract class Conversation<TUserStorage> {
                     "Is this being used in an async call that was not " +
                     "returned as a promise to the intent handler?")
         }
-        this.responses.addAll(0, responses.toMutableList())
+        this.responses.addAll(responses)
         this._responded = true
         return this
     }
 
     fun add(vararg responses: String): Conversation<TUserStorage> {
-        if (this.digested) {
-            throw Error("Response has already been sent. " +
-                    "Is this being used in an async call that was not " +
-                    "returned as a promise to the intent handler?")
+        responses.forEach {
+            this.add(SimpleResponse(it))
         }
-        this.strResponses.addAll(0, responses.toMutableList())
-        this._responded = true
+//        if (this.digested) {
+//            throw Error("Response has already been sent. " +
+//                    "Is this being used in an async call that was not " +
+//                    "returned as a promise to the intent handler?")
+//        }
+//        this.strResponses.addAll(responses)
+//        this._responded = true
         return this
     }
 
@@ -306,6 +309,11 @@ abstract class Conversation<TUserStorage> {
         return this.add(*responses)
     }
 
+    fun close(vararg responses: String): Conversation<TUserStorage> {
+        this.expectUserResponse = false
+        return this.add(*responses)
+    }
+
     /** @public */
     fun response(): ConversationResponse {
         if (!this._responded) {
@@ -321,9 +329,9 @@ abstract class Conversation<TUserStorage> {
         var richResponse = RichResponse()
         var expectedIntent: GoogleActionsV2ExpectedIntent? = null
 
-        this.strResponses.forEach {
-            richResponse.add(it)
-        }
+//        this.strResponses.forEach {
+//            richResponse.add(it)
+//        }
 
         for (response in this.responses) {
             when (response) {
@@ -339,9 +347,8 @@ abstract class Conversation<TUserStorage> {
                         richResponse.add("PLACEHOLDER")
                     }
                 }
-                is RichResponse -> {
-                    richResponse = response
-                }
+
+                is RichResponse -> richResponse = response
 
                 is Suggestions -> {
                     if (richResponse.suggestions == null || richResponse.suggestions?.isEmpty() == true) {
@@ -350,13 +357,11 @@ abstract class Conversation<TUserStorage> {
                     richResponse.suggestions!!.push(*response.suggestions.toTypedArray())
                 }
 
-                is Image -> {
-                    richResponse.add(BasicCard(image = response))
-                }
+                is Image -> richResponse.add(BasicCard(image = response))
 
-                is MediaObject -> {
-                    richResponse.add(MediaResponse(/*response*/))
-                }
+                is MediaObject -> richResponse.add(MediaResponse(/*response*/))
+
+                is RichResponseItem -> richResponse.add(response)
             }
         }
         val userStorage = this.user._serialize()
