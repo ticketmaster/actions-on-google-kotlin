@@ -28,11 +28,11 @@ const val IMG_URL_GOOGLE_PIXEL = "https://storage.googleapis.com/madebygoog/v1" 
 
 // const valants for selected item responses
 val SELECTED_ITEM_RESPONSES = mapOf(
-    SELECTION_KEY_ONE to "You selected the first item in the list or carousel",
-    SELECTION_KEY_GOOGLE_HOME to "You selected the Google Home!",
-    SELECTION_KEY_GOOGLE_PIXEL to "You selected the Google Home!",
-    SELECTION_KEY_GOOGLE_PIXEL to "You selected the Google Pixel!",
-    SELECTION_KEY_GOOGLE_ALLO to "You selected Google Allo!")
+        SELECTION_KEY_ONE to "You selected the first item in the list or carousel",
+        SELECTION_KEY_GOOGLE_HOME to "You selected the Google Home!",
+        SELECTION_KEY_GOOGLE_PIXEL to "You selected the Google Home!",
+        SELECTION_KEY_GOOGLE_PIXEL to "You selected the Google Pixel!",
+        SELECTION_KEY_GOOGLE_ALLO to "You selected Google Allo!")
 
 val intentSuggestions = arrayOf(
         "Basic Card",
@@ -87,22 +87,21 @@ fun toBeMoved() {
 
 
 // React to list or carousel selection
-        app.intent("actions.intent.OPTION") {conv, params, option ->
-        var response = "You did not select any item from the list or carousel"
-//        if (option != null && SELECTED_ITEM_RESPONSES.containsKey(option)) {
-//            response = SELECTED_ITEM_RESPONSES[option] ?: ""
-//        } else {
-//            response = "You selected an unknown item from the list or carousel"
-//        }
-        conv.ask(response)
-    }
+        app.intent("actions.intent.OPTION") { conv, params, option ->
+            val response = if (option != null && SELECTED_ITEM_RESPONSES.containsKey(option.textValue)) {
+                SELECTED_ITEM_RESPONSES[option.textValue] ?: ""
+            } else {
+                "You selected an unknown item from the list or carousel"
+            }
+            conv.ask(response)
+        }
     }
 }
 
 /**
  * Test
  */
-fun <TUserStorage>test(conv: Conversation<TUserStorage>) {
+fun <TUserStorage> test(conv: Conversation<TUserStorage>) {
 //    conv.data.lastResponse = "This was the last response"
 //    conv.user.storage.name = "fred"
     conv.ask("Can you hear me?")
@@ -112,7 +111,7 @@ fun <TUserStorage>test(conv: Conversation<TUserStorage>) {
  * Normal Ask
  * @param {object} conv - The conversation object.
  */
-fun <TUserStorage>normalAsk(conv: Conversation<TUserStorage>) {
+fun <TUserStorage> normalAsk(conv: Conversation<TUserStorage>) {
     conv.ask("Ask me to show you a list, carousel, or basic card.")
 }
 
@@ -120,26 +119,26 @@ fun <TUserStorage>normalAsk(conv: Conversation<TUserStorage>) {
  * Suggestions
  * @param {object} conv - The conversation object.
  */
-fun <TUserStorage>suggestions(conv: Conversation<TUserStorage>) {
+fun <TUserStorage> suggestions(conv: Conversation<TUserStorage>) {
     if (!conv.hasScreen()) {
         conv.ask("Sorry, try this on a screen device or select the " +
                 "phone surface in the simulator.")
         return
     }
     conv.ask("This is a simple response for suggestions.")
-    conv.ask(Suggestions ("Suggestion Chips"))
-    conv.ask(Suggestions (*intentSuggestions))
-    conv.ask(LinkOutSuggestion ({
+    conv.ask(Suggestions("Suggestion Chips"))
+    conv.ask(Suggestions(*intentSuggestions))
+    conv.ask(LinkOutSuggestion {
         name = "Suggestion Link"
         url = "https://assistant.google.com/"
-    }))
+    })
 }
 
 /**
  * Basic Card
  * @param {object} conv - The conversation object.
  */
-fun <TUserStorage>basicCard(conv: Conversation<TUserStorage>) {
+fun <TUserStorage> basicCard(conv: Conversation<TUserStorage>) {
     if (!conv.hasScreen()) {
         conv.ask("Sorry, try this on a screen device or select the " +
                 "phone surface in the simulator.")
@@ -163,7 +162,8 @@ fun <TUserStorage>basicCard(conv: Conversation<TUserStorage>) {
         })
         image = Image {
             url = IMG_URL_AOG
-            alt = "Image alternate text" }
+            alt = "Image alternate text"
+        }
     })
     conv.ask(SimpleResponse {
         speech = "This is the second simple response."
@@ -175,74 +175,68 @@ fun <TUserStorage>basicCard(conv: Conversation<TUserStorage>) {
  * List
  * @param {object} conv - The conversation object.
  */
-fun <TUserStorage>list(conv: Conversation<TUserStorage>) {
+fun <TUserStorage> list(conv: Conversation<TUserStorage>) {
     if (!conv.hasScreen()) {
         conv.ask("Sorry, try this on a screen device or select the " +
                 "phone surface in the simulator.")
         return
     }
     conv.ask("This is a simple response for a list.")
-    conv.ask(Suggestions (*intentSuggestions))
+    conv.ask(Suggestions(*intentSuggestions))
     // Create a list
-    conv.ask(List {
-        title = "test"
-        items = mutableMapOf(
-                item("test") {synonyms = mutableListOf("")}
-        )
-    })
     conv.ask(List {
         title = "List Title"
         items = mutableMapOf(
-        // Add the first item to the list
-        SELECTION_KEY_ONE to OptionItem(
-        synonyms = mutableListOf(
-        "synonym of title 1",
-        "synonym of title 2",
-        "synonym of title 3"),
+                // Add the first item to the list
+                SELECTION_KEY_ONE to OptionItem(
+                        synonyms = mutableListOf(
+                                "synonym of title 1",
+                                "synonym of title 2",
+                                "synonym of title 3"),
 
-        title = "Title of First List Item",
-        description = "This is a description of a list item.",
-        image = Image {
-            url = IMG_URL_AOG
-            alt = "Image alternate text"
-        }),
+                        title = "Title of First List Item",
+                        description = "This is a description of a list item.",
+                        image = Image {
+                            url = IMG_URL_AOG
+                            alt = "Image alternate text"
+                        }),
 
-        // Add the second item to the list
-        SELECTION_KEY_GOOGLE_HOME to OptionItem(
-        synonyms = mutableListOf(
-        "Google Home Assistant",
-        "Assistant on the Google Home"),
+                // Add the second item to the list
+                SELECTION_KEY_GOOGLE_HOME to OptionItem(
+                        synonyms = mutableListOf(
+                                "Google Home Assistant",
+                                "Assistant on the Google Home"),
 
-        title= "Google Home",
-        description = "Google Home is a voice-activated speaker powered by "+
-        "the Google Assistant.",
-        image = Image {
-            url = IMG_URL_GOOGLE_HOME
-            alt = "Google Home"
-        }),
-        // Add the third item to the list
-        SELECTION_KEY_GOOGLE_PIXEL to OptionItem(
-        synonyms = mutableListOf(
-        "Google Pixel XL",
-        "Pixel",
-        "Pixel XL"),
-        title = "Google Pixel",
-        description = "Pixel. Phone by Google.",
-        image = Image {
-            url = IMG_URL_GOOGLE_PIXEL
-            alt = "Google Pixel"
-        }),
-        // Add the last item to the list
-        SELECTION_KEY_GOOGLE_ALLO to OptionItem(
-        title = "Google Allo",
-        synonyms = mutableListOf("Allo"),
-        description = "Introducing Google Allo, a smart messaging app that "+
-        "helps you say more and do more.",
-        image = Image {
-            url = IMG_URL_GOOGLE_ALLO
-            alt = "Google Allo Logo"
-        })
-    )
+                        title = "Google Home",
+                        description = "Google Home is a voice-activated speaker powered by " +
+                                "the Google Assistant.",
+                        image = Image {
+                            url = IMG_URL_GOOGLE_HOME
+                            alt = "Google Home"
+                        }),
+                // Add the third item to the list
+                SELECTION_KEY_GOOGLE_PIXEL to OptionItem(
+                        synonyms = mutableListOf(
+                                "Google Pixel XL",
+                                "Pixel",
+                                "Pixel XL"),
+                        title = "Google Pixel",
+                        description = "Pixel. Phone by Google.",
+                        image = Image {
+                            url = IMG_URL_GOOGLE_PIXEL
+                            alt = "Google Pixel"
+                        }),
+                // Add the last item to the list
+                SELECTION_KEY_GOOGLE_ALLO to OptionItem(
+                        title = "Google Allo",
+                        synonyms = mutableListOf("Allo"),
+                        description = "Introducing Google Allo, a smart messaging app that " +
+                                "helps you say more and do more.",
+                        image = Image {
+                            url = IMG_URL_GOOGLE_ALLO
+                            alt = "Google Allo Logo"
+                        })
+        )
 
     })
 }
@@ -251,65 +245,65 @@ fun <TUserStorage>list(conv: Conversation<TUserStorage>) {
  * Carousel
  * @param {object} conv - The conversation object.
  */
-fun <TUserStorage>carousel(conv: Conversation<TUserStorage>) {
+fun <TUserStorage> carousel(conv: Conversation<TUserStorage>) {
     if (!conv.hasScreen()) {
         conv.ask("Sorry, try this on a screen device or select the " +
                 "phone surface in the simulator.")
         return
     }
     conv.ask("This is a simple response for a carousel.")
-//    conv.ask(Suggestions (intentSuggestions))
+    conv.ask(Suggestions(*intentSuggestions))
     // Create a carousel
     conv.ask(Carousel {
         items = mutableMapOf(
-        // Add the first item to the carousel
-        SELECTION_KEY_ONE to OptionItem(
-        synonyms = mutableListOf(
-        "synonym of title 1",
-        "synonym of title 2",
-        "synonym of title 3"),
+                // Add the first item to the carousel
+                SELECTION_KEY_ONE to OptionItem(
+                        synonyms = mutableListOf(
+                                "synonym of title 1",
+                                "synonym of title 2",
+                                "synonym of title 3"),
 
-        title = "Title of First Carousel Item",
-        description = "This is a description of a carousel item.",
-        image = Image {
-            url = IMG_URL_AOG
-            alt = "Image alternate text"
-        }),
-        // Add the second item to the carousel
-        SELECTION_KEY_GOOGLE_HOME to OptionItem(
-        synonyms = mutableListOf(
-        "Google Home Assistant",
-        "Assistant on the Google Home"),
-        title = "Google Home",
-        description = "Google Home is a voice-activated speaker powered by "+
-        "the Google Assistant.",
-        image = Image {
-        url = IMG_URL_GOOGLE_HOME
-        alt = "Google Home"
-    }),
-        // Add third item to the carousel
-        SELECTION_KEY_GOOGLE_PIXEL to OptionItem(
-        synonyms = mutableListOf(
-        "Google Pixel XL",
-        "Pixel",
-        "Pixel XL"),
-        title = "Google Pixel",
-        description = "Pixel. Phone by Google.",
-        image = Image {
-        url = IMG_URL_GOOGLE_PIXEL
-        alt = "Google Pixel"
-    }),
-        // Add last item of the carousel
-        SELECTION_KEY_GOOGLE_ALLO to OptionItem(
-        title = "Google Allo",
-        synonyms = mutableListOf(
-        "Allo"),
-        description = "Introducing Google Allo, a smart messaging app that "+
-        "helps you say more and do more.",
-        image = Image {
-        url = IMG_URL_GOOGLE_ALLO
-        alt = "Google Allo Logo"
-    })
+                        title = "Title of First Carousel Item",
+                        description = "This is a description of a carousel item.",
+                        image = Image {
+                            url = IMG_URL_AOG
+                            alt = "Image alternate text"
+                        }),
+                // Add the second item to the carousel
+                SELECTION_KEY_GOOGLE_HOME to OptionItem(
+                        synonyms = mutableListOf(
+                                "Google Home Assistant",
+                                "Assistant on the Google Home"),
+                        title = "Google Home",
+                        description = "Google Home is a voice-activated speaker powered by " +
+                                "the Google Assistant.",
+                        image = Image {
+                            url = IMG_URL_GOOGLE_HOME
+                            alt = "Google Home"
+                        }),
+                // Add third item to the carousel
+                SELECTION_KEY_GOOGLE_PIXEL to OptionItem(
+                        synonyms = mutableListOf(
+                                "Google Pixel XL",
+                                "Pixel",
+                                "Pixel XL"),
+                        title = "Google Pixel",
+                        description = "Pixel. Phone by Google.",
+                        image = Image {
+                            url = IMG_URL_GOOGLE_PIXEL
+                            alt = "Google Pixel"
+                        }),
+                // Add last item of the carousel
+                SELECTION_KEY_GOOGLE_ALLO to OptionItem(
+                        title = "Google Allo",
+                        synonyms = mutableListOf(
+                                "Allo"),
+                        description = "Introducing Google Allo, a smart messaging app that " +
+                                "helps you say more and do more.",
+                        image = Image {
+                            url = IMG_URL_GOOGLE_ALLO
+                            alt = "Google Allo Logo"
+                        })
         )
     })
 }
@@ -318,7 +312,7 @@ fun <TUserStorage>carousel(conv: Conversation<TUserStorage>) {
  * Leave conversation with card
  * @param {object} conv - The conversation object.
  */
-fun <TUserStorage>byeCard(conv: Conversation<TUserStorage>) {
+fun <TUserStorage> byeCard(conv: Conversation<TUserStorage>) {
     if (!conv.hasScreen()) {
         conv.ask("Sorry, try this on a screen device or select the phone " +
                 "surface in the simulator.")
@@ -334,7 +328,7 @@ fun <TUserStorage>byeCard(conv: Conversation<TUserStorage>) {
  * Leave conversation with SimpleResponse
  * @param {object} conv - The conversation object.
  */
-fun <TUserStorage>byeResponse(conv: Conversation<TUserStorage>) {
+fun <TUserStorage> byeResponse(conv: Conversation<TUserStorage>) {
     conv.close(SimpleResponse {
         speech = "Okay see you later"
         text = "OK see you later!"
@@ -345,7 +339,7 @@ fun <TUserStorage>byeResponse(conv: Conversation<TUserStorage>) {
  * Leave conversation
  * @param {object} conv - The conversation object.
  */
-fun <TUserStorage>normalBye(conv: Conversation<TUserStorage>) {
+fun <TUserStorage> normalBye(conv: Conversation<TUserStorage>) {
     conv.close("Okay see you later!")
 }
 

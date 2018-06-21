@@ -264,18 +264,22 @@ class MediaObject(override var contentUrl: String? = null,
 }
 
 abstract class Question(intent: IntentEnum) : GoogleActionsV2ExpectedIntent, Response() {
-    override var inputValueData: ApiClientObjectMap<Any>? = null
+    override var inputValueData: ProtoAny? = null
 
     override var intent: String? = null
 
     override var parameterName: String? = null
 
-    //TODO is this needed?
+    init {
+        this.intent = intent.value
+    }
 
     fun _data(type: InputValueSpec, init: ProtoAny.() -> Unit) {
-        val protoAny = ProtoAny()
-        protoAny.`@type` = type.value
-        protoAny.init()
+        if (inputValueData == null) {
+            inputValueData = ProtoAny()
+        }
+        inputValueData?.`@type` = type.value
+        inputValueData?.init()
     }
 }
 

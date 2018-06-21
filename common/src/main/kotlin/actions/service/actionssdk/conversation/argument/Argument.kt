@@ -169,6 +169,8 @@ class ArgumentsRaw : MutableMap<String, GoogleActionsV2Argument> by mutableMapOf
 }
 
 fun getValue(arg: GoogleActionsV2Argument): GoogleActionsV2Argument? {
+    return arg
+
 //    for (key in arg) {
 //        if (key === 'name' || key === 'textValue' || key === 'status') {
 //            continue
@@ -180,7 +182,7 @@ fun getValue(arg: GoogleActionsV2Argument): GoogleActionsV2Argument? {
 //        return !!arg.boolValue
 //    }
 //    return arg.textValue
-    return null
+//    return null
 
 }
 
@@ -192,12 +194,14 @@ class Parsed(raw: MutableList<GoogleActionsV2Argument>? = null) {
     var input: ArgumentsParsed? = null
 
     init {
-//        this.list = raw.map((arg, i) => {
-//            const value = getValue (arg)
-//            const name = arg . name !
-//            this.input[name] = value
-//            return value
-//        })
+        input = ArgumentsParsed()
+        this.list = raw?.mapNotNull {
+            val value = getValue(it)
+            val name = it.name
+            if (name != null && value != null)
+                this.input?.put(name, value)
+            value
+        }?.toMutableList()
     }
 
     /** @public */
@@ -217,12 +221,14 @@ class Status(raw: MutableList<GoogleActionsV2Argument>? = null) {
     var input: ArgumentsStatus? = null
 
     init {
-//        this.list = raw.map((arg, i) => {
-//            const name = arg . name !
-//            const status = arg . status
-//                    this.input[name] = status
-//            return status
-//        })
+        input = ArgumentsStatus()
+        this.list = raw?.mapNotNull {
+            val name = it.name
+            val status = it.status
+            if (name != null && status != null)
+                this.input?.put(name, status)
+            status
+        }?.toMutableList()
     }
 
     fun get(name: String): GoogleRpcStatus? {
@@ -235,10 +241,10 @@ class Raw(list: MutableList<GoogleActionsV2Argument>? = null) {
     var input: ArgumentsRaw? = null
 
     init {
-//        this.input = list.reduce((o, arg) => {
-//            o[arg.name!] = arg
-//            return o
-//        }, {} as ArgumentsRaw)
+        input = ArgumentsRaw()
+        list?.forEach {
+            input?.put(it.name ?: "", it)
+        }
     }
 
     fun get(name: String): GoogleActionsV2Argument? {

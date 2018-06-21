@@ -14,6 +14,7 @@ import actions.service.actionssdk.conversation.argument.Arguments
 import actions.service.actionssdk.conversation.response.*
 import actions.service.actionssdk.push
 import actions.service.actionssdk.ActionsSdkIntentHandler3
+import actions.service.actionssdk.ActionsSdkIntentHandler4
 
 
 //TODO test enum vs sealed class
@@ -382,7 +383,7 @@ typealias ExceptionHandler<TUserStorage, TConversation> = (TConversation, Except
 //    }
 
 /** @hidden */
-class Traversed<TConvData, TUserStorage> : MutableMap<ActionsSdkIntentHandler3<TConvData, TUserStorage>, Boolean> by mutableMapOf()
+class Traversed<TConvData, TUserStorage> : MutableMap<ActionsSdkIntentHandler4<TConvData, TUserStorage>, Boolean> by mutableMapOf()
 
 
 /** @hidden */

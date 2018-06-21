@@ -1,6 +1,7 @@
 package actions.service.actionssdk.api
 
 import actions.ApiClientObjectMap
+import actions.ProtoAny
 import actions.service.actionssdk.conversation.response.GoogleActionsV2RichResponseItem
 
 
@@ -451,7 +452,7 @@ interface GoogleActionsV2ExpectedIntent {
      * `actions.intent.Link ->`
      * [google.actions.v2.LinkValueSpec]
      */
-    var inputValueData: ApiClientObjectMap<Any>?
+    var inputValueData: ProtoAny?
     /**
      * The built-in intent name, e.g. `actions.intent.TEXT`, or intents
      * defined in the action package. If the intent specified is not a built-in
@@ -466,7 +467,7 @@ interface GoogleActionsV2ExpectedIntent {
     var parameterName: String?
 }
 
-data class GoogleActionsV2ExpectedIntentData(override var inputValueData: ApiClientObjectMap<Any>? = null,
+data class GoogleActionsV2ExpectedIntentData(override var inputValueData: ProtoAny? = null,
                                              override var intent: String? = null,
                                              override var parameterName: String? = null) : GoogleActionsV2ExpectedIntent
 
