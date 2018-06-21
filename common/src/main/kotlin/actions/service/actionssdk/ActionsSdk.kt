@@ -4,9 +4,9 @@ import actions.*
 import actions.expected.*
 import actions.framework.*
 import actions.service.actionssdk.api.GoogleActionsV2AppRequest
+import actions.service.actionssdk.api.GoogleActionsV2Argument
 import actions.service.actionssdk.api.GoogleRpcStatus
 import actions.service.actionssdk.conversation.*
-import actions.service.actionssdk.conversation.argument.Argument
 
 typealias ActionsSdkIntentHandler1<TConvData, TUserStorage> = (conv: ActionsSdkConversation<TConvData, TUserStorage>) -> Any
 typealias ActionsSdkIntentHandler2<TConvData, TUserStorage> = (conv: ActionsSdkConversation<TConvData, TUserStorage>, argument: Any) -> Any
@@ -16,7 +16,7 @@ interface ActionsSdkIntentHandlerTest<TConvData, TUserStorage> {
     operator fun invoke(conv: ActionsSdkConversation<TConvData, TUserStorage>, argument: Any? = null, status: GoogleRpcStatus? = null)
 }
 
-fun <TConvData, TUserStorage, TConversation : ActionsSdkConversation<TConvData, TUserStorage>, TArgument : Argument> actionsSdkIntentHandler(
+fun <TConvData, TUserStorage, TConversation : ActionsSdkConversation<TConvData, TUserStorage>, TArgument : GoogleActionsV2Argument> actionsSdkIntentHandler(
         conv: TConversation,
         /**
          * The user's raw input query.

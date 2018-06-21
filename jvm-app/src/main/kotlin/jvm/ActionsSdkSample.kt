@@ -42,7 +42,7 @@ val intentSuggestions = arrayOf(
         "Media",
         "Suggestions")
 
-val app = actionssdk<UserStorage, ConversationData>({ debug = true })
+val app = actionssdk<ConversationData, UserStorage>({ debug = true })
 
 fun toBeMoved() {
 //    app.middleware((conv) => {
@@ -53,17 +53,17 @@ fun toBeMoved() {
 //    })
 
 // Welcome
-    app.intent("actions.intent.MAIN") { conv ->
-        conv.ask(SimpleResponse({
+    app.intent("actions.intent.MAIN", "input.unknown") { conv ->
+        conv.ask(SimpleResponse {
             speech = "Hi there!"
             text = "Hello there!"
-        }))
-        conv.ask(SimpleResponse({
+        })
+        conv.ask(SimpleResponse {
             speech = "I can show you basic cards, lists and carousels " +
                     "as well as suggestions on your phone."
             text = "I can show you basic cards, lists and carousels as " +
                     "well as suggestions."
-        }))
+        })
         conv.ask(Suggestions(*intentSuggestions))
     }
 
@@ -146,29 +146,29 @@ fun <TUserStorage>basicCard(conv: Conversation<TUserStorage>) {
         return
     }
     conv.ask("This is the first simple response for a basic card.")
-    conv.ask(*intentSuggestions)
+    conv.ask(Suggestions(*intentSuggestions))
     // Create a basic card
-    conv.ask(BasicCard ({
+    conv.ask(BasicCard {
         text = """This is a basic card.  Text in a basic card can include "quotes" and
-        most other unicode characters including emoji 📱.  Basic cards also support
-                some markdown formatting like * emphasis * or _italics_, **strong** or
-        __bold__, and ***bold itallic*** or ___strong emphasis___ as well as other
-        things like line  \nbreaks""" // Note the two spaces before "\n" required for
+    most other unicode characters including emoji 📱.  Basic cards also support
+            some markdown formatting like * emphasis * or _italics_, **strong** or
+    __bold__, and ***bold itallic*** or ___strong emphasis___ as well as other
+    things like line  \nbreaks""" // Note the two spaces before "\n" required for
         // a line break to be rendered in the card.
         subtitle = "This is a subtitle"
         title = "Title: this is a title"
-        buttons = mutableListOf(Button({
-        title = "This is a button"
-        url = "https://assistant.google.com/"
-    }))
-        image = Image({
-        url = IMG_URL_AOG
-        alt = "Image alternate text" })
-    }))
-    conv.ask(SimpleResponse ({
+        buttons = mutableListOf(Button {
+            title = "This is a button"
+            url = "https://assistant.google.com/"
+        })
+        image = Image {
+            url = IMG_URL_AOG
+            alt = "Image alternate text" }
+    })
+    conv.ask(SimpleResponse {
         speech = "This is the second simple response."
         text = "This is the 2nd simple response."
-    }))
+    })
 }
 
 /**
@@ -325,9 +325,9 @@ fun <TUserStorage>byeCard(conv: Conversation<TUserStorage>) {
         return
     }
     conv.ask("Goodbye, World!")
-    conv.close(BasicCard ({
+    conv.close(BasicCard {
         text = "This is a goodbye card."
-    }))
+    })
 }
 
 /**
@@ -335,10 +335,10 @@ fun <TUserStorage>byeCard(conv: Conversation<TUserStorage>) {
  * @param {object} conv - The conversation object.
  */
 fun <TUserStorage>byeResponse(conv: Conversation<TUserStorage>) {
-    conv.close(SimpleResponse ({
+    conv.close(SimpleResponse {
         speech = "Okay see you later"
         text = "OK see you later!"
-    }))
+    })
 }
 
 /**

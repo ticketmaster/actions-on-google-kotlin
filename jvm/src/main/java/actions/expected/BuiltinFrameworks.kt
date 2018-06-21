@@ -7,6 +7,7 @@ import actions.service.actionssdk.ActionsSdkOptions
 import actions.service.actionssdk.api.GoogleActionsV2AppRequest
 import actions.service.actionssdk.api.GoogleActionsV2AppResponse
 import com.google.gson.Gson
+import java.io.InputStream
 import java.io.InputStreamReader
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -26,9 +27,14 @@ class ServletHandler<TConvData, TUserStorage>(val standardHandler: StandardHandl
         log("Servlet Handler: handle $args")
         val req = args[0] as HttpServletRequest
         val headers = req.getAoGHeaders()
-        val body: GoogleActionsV2AppRequest = requestToActionsSdkRequest(req)
+        //TODO check for debug flag for logging
+        val copies = ServletUtils.copyBuffer(req.inputStream)
+        logger.info(ServletUtils.getBody(copies[0], null))
+
+        val body: GoogleActionsV2AppRequest = requestToActionsSdkRequest(copies[1])
         log("Request: $body")
         val resp = args[1] as HttpServletResponse
+
 
         val standardResponse = standardHandler.handle(body, headers)
         resp.status = standardResponse.status!!
@@ -45,9 +51,9 @@ class ServletHandler<TConvData, TUserStorage>(val standardHandler: StandardHandl
         return this
     }
 
-    fun requestToActionsSdkRequest(request: HttpServletRequest): GoogleActionsV2AppRequest {
+    fun requestToActionsSdkRequest(inputStream: InputStream): GoogleActionsV2AppRequest {
 //        val options = ActionsSdkConversationOptions<TConvData, TUserStorage>(body = GoogleActionsV2AppRequest(), headers = null)
-        return gson.fromJson(InputStreamReader(request.inputStream), GoogleActionsV2AppRequest::class.java)
+        return gson.fromJson(InputStreamReader(inputStream), GoogleActionsV2AppRequest::class.java)
     }
 
     fun StandardResponse.serialize(): String? {

@@ -13,6 +13,7 @@ import actions.service.actionssdk.conversation.question.transaction.DeliveryAddr
 import actions.service.actionssdk.conversation.question.transaction.TransactionDecisionArgument
 import actions.service.actionssdk.conversation.question.transaction.TransactionRequirementsArgument
 
+/*  commented out because this is duplicate of GoogleActionsV2Argument
 data class Argument(
         var boolValue: Boolean? = null,
         var datetimeValue: GoogleActionsV2DateTime? = null,
@@ -26,6 +27,7 @@ data class Argument(
         var status: GoogleRpcStatus? = null,
         var structuredValue: ApiClientObjectMap<Any>? = null,
         var textValue: String? = null)
+        */
 
 class ArgumentsNamed {
     /**
@@ -152,10 +154,10 @@ class ArgumentsNamed {
     var MEDIA_STATUS: MediaStatusArgument? = null
 }
 
-class ArgumentsParsed : MutableMap<String, Argument> by mutableMapOf() {
+class ArgumentsParsed : MutableMap<String, GoogleActionsV2Argument> by mutableMapOf() {
 }
 
-class ArgumentsIndexable : MutableMap<String, Argument> by mutableMapOf() {
+class ArgumentsIndexable : MutableMap<String, GoogleActionsV2Argument> by mutableMapOf() {
 }
 
 class ArgumentsStatus : MutableMap<String, GoogleRpcStatus> by mutableMapOf() {
@@ -166,7 +168,7 @@ class ArgumentsRaw : MutableMap<String, GoogleActionsV2Argument> by mutableMapOf
 //    [name: string]: Api.GoogleActionsV2Argument
 }
 
-fun getValue(arg: GoogleActionsV2Argument): Argument? {
+fun getValue(arg: GoogleActionsV2Argument): GoogleActionsV2Argument? {
 //    for (key in arg) {
 //        if (key === 'name' || key === 'textValue' || key === 'status') {
 //            continue
@@ -184,7 +186,7 @@ fun getValue(arg: GoogleActionsV2Argument): Argument? {
 
 class Parsed(raw: MutableList<GoogleActionsV2Argument>? = null) {
     /** @public */
-    var list: MutableList<Argument>? = null
+    var list: MutableList<GoogleActionsV2Argument>? = null
 
     /** @public */
     var input: ArgumentsParsed? = null
@@ -202,7 +204,7 @@ class Parsed(raw: MutableList<GoogleActionsV2Argument>? = null) {
 //    get<TName extends keyof ArgumentsNamed>(name: TName): ArgumentsNamed[TName]
     /** @public */
 //    get(name: string): Argument
-    fun get(name: String): Argument? {
+    fun get(name: String): GoogleActionsV2Argument? {
         return this.input?.get(name)
     }
 }
@@ -290,7 +292,7 @@ class Arguments(raw: MutableList<GoogleActionsV2Argument>? = null) {
 //    get<TName extends keyof ArgumentsNamed>(name: TName): ArgumentsNamed[TName]
     /** @public */
 //    get(name: string): Argument
-    fun get(name: String): Argument? {
+    fun get(name: String): GoogleActionsV2Argument? {
         return this.parsed?.get(name)
     }
 
