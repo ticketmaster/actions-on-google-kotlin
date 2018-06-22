@@ -15,6 +15,7 @@ import actions.service.actionssdk.conversation.response.*
 import actions.service.actionssdk.push
 import actions.service.actionssdk.ActionsSdkIntentHandler3
 import actions.service.actionssdk.ActionsSdkIntentHandler4
+import actions.service.dialogflow.DialogflowIntentHandler4
 
 
 //TODO test enum vs sealed class
@@ -71,12 +72,12 @@ interface ConversationOptionsInit<TConvData, TUserStorage> {
     var storage: TUserStorage?
 }
 
-interface ConversationBaseOptions<TConvData, TUserStorage> {
-    var headers: Headers?
+open class ConversationBaseOptions<TConvData, TUserStorage> {
+    var headers: Headers? = null
 
-    var init: ConversationOptionsInit<TConvData, TUserStorage>?
+    var init: ConversationOptionsInit<TConvData, TUserStorage>? = null
 
-    var debug: Boolean?
+    var debug: Boolean? = null
 }
 
 data class ConversationOptions<TUserStorage>(
@@ -383,8 +384,10 @@ typealias ExceptionHandler<TUserStorage, TConversation> = (TConversation, Except
 //    }
 
 /** @hidden */
-class Traversed<TConvData, TUserStorage> : MutableMap<ActionsSdkIntentHandler4<TConvData, TUserStorage>, Boolean> by mutableMapOf()
+class TraversedActionsHandlers<TConvData, TUserStorage> : MutableMap<ActionsSdkIntentHandler4<TConvData, TUserStorage>, Boolean> by mutableMapOf()
 
+/** @hidden */
+class TraversedDialogflowHandlers<TConvData, TUserStorage, TParameters, TArgument> : MutableMap<DialogflowIntentHandler4<TConvData, TUserStorage, TParameters, TArgument>, Boolean> by mutableMapOf()
 
 /** @hidden */
 interface ConversationAppOptions<TConvData, TUserStorage> : AppOptions {

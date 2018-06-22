@@ -11,6 +11,15 @@
         <url-pattern>/aog</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>DialogflowWebhook</servlet-name>
+        <servlet-class>jvm.DialogflowWebhook</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DialogflowWebhook</servlet-name>
+        <url-pattern>/df</url-pattern>
+    </servlet-mapping>
 
 
     <security-constraint>

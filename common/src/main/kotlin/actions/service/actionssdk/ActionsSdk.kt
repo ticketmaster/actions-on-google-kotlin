@@ -17,6 +17,7 @@ interface ActionsSdkIntentHandlerTest<TConvData, TUserStorage> {
     operator fun invoke(conv: ActionsSdkConversation<TConvData, TUserStorage>, argument: Any? = null, status: GoogleRpcStatus? = null)
 }
 
+/*
 fun <TConvData, TUserStorage, TConversation : ActionsSdkConversation<TConvData, TUserStorage>, TArgument : GoogleActionsV2Argument> actionsSdkIntentHandler(
         conv: TConversation,
         /**
@@ -41,6 +42,7 @@ fun <TConvData, TUserStorage, TConversation : ActionsSdkConversation<TConvData, 
 ): Any {
     return Any()
 }
+*/
 //
 ///** @public */
 //interface ActionsSdkIntentHandler<
@@ -287,7 +289,6 @@ fun <TConvData, TUserStorage> actionssdk(init: (ActionsSdkOptions<TConvData, TUs
 class ActionsSdk<TConvData, TUserStorage>(options: ActionsSdkOptions<TConvData, TUserStorage>? = null) : ActionsSdkApp<TConvData, TUserStorage>() {
 
 
-
     override lateinit var frameworks: BuiltinFrameworks<TUserStorage>
 
     override fun <TService, TPlugin> use(plugin: Plugin<TService, TPlugin>): BaseAppPlugin<TPlugin, TUserStorage> {
@@ -323,13 +324,16 @@ class ActionsSdk<TConvData, TUserStorage>(options: ActionsSdkOptions<TConvData, 
         return this
     }
 
-override fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler4<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler4<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
+        for (intent in intents) {
+            this._handlers.intents[intent.value] = { conv, status, g, arg -> handler(conv, status, g, arg) }
+        }
+        return this
     }
 
     override fun intent(vararg intents: String, handler: ActionsSdkIntentHandler1<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
         for (intent in intents) {
-            this._handlers.intents[intent] = { conv, status, g, arg-> handler(conv) }
+            this._handlers.intents[intent] = { conv, status, g, arg -> handler(conv) }
         }
         return this
     }
@@ -361,7 +365,7 @@ override fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentH
     }
 
     override fun fallback(handler: ActionsSdkIntentHandler3<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
-        this._handlers.fallback = {conv, status, g, arg -> handler.invoke(conv, status, g) }
+        this._handlers.fallback = { conv, status, g, arg -> handler.invoke(conv, status, g) }
         return this
     }
 
@@ -427,7 +431,7 @@ override fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentH
 //                        body: null,
 //                    }))
             val intent = conv.intent
-            val traversed: Traversed<TConvData, TUserStorage> = Traversed()
+            val traversedActionsHandlers: TraversedActionsHandlers<TConvData, TUserStorage> = TraversedActionsHandlers()
             var handler = _handlers.intents[intent]
 //            while (typeof handler !== 'function') {
             while (false) {
@@ -439,10 +443,10 @@ override fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentH
                     handler = _handlers.fallback
                     break
                 }
-                if (traversed[handler] == true) {
+                if (traversedActionsHandlers[handler] == true) {
                     throw Error("Circular intent map detected: $handler traversed twice")
                 }
-                traversed[handler] = true
+                traversedActionsHandlers[handler] = true
 //                handler = _handlers.intents[handler]
             }
             try {
