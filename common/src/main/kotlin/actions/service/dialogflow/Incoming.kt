@@ -40,7 +40,7 @@ JsonObject
 fun toImage(imageUri: String?): Image? {
     if (!imageUri.isNullOrBlank()) {
         return Image {
-            url = imageUri!!,
+            url = imageUri!!
             alt = ""
         }
     }
@@ -73,7 +73,7 @@ class Incoming {
                 }
                 if (type == "3") {
                     val assumed = message as DialogflowV1MessageImage
-                    this.parsed?.push(toImage(assumed.imageUrl))
+//                    this.parsed?.push(toImage(assumed.imageUrl))
                     continue
                 }
                 if (type == "1") {
@@ -85,7 +85,7 @@ class Incoming {
                             image = toImage(assumed.imageUrl),
                             buttons = buttons?.map {
                                 Button {
-                                    title = it.text
+                                    title = it.text ?: ""
                                     url = it.postback
                                 }
                             }.toMutableList()))
@@ -114,6 +114,7 @@ class Incoming {
                     val assumed = message as DialogflowV1MessageBasicCard
                     val image = assumed.image
                     val buttons = assumed.buttons
+                    /*
                     this.parsed?.push(BasicCard(
                         title = assumed.title,
                         subtitle = assumed.subtitle,
@@ -126,24 +127,27 @@ class Incoming {
                             }
                         }.toMutableList()
                     ))
+                    */
                     continue
                 }
                 if (type == "list_card") {
                     val assumed = message as DialogflowV1MessageList
+                    /*
                     this.parsed?.push(List ({ title: assumed.title,
                                                  items: assumed.items!,
                     }))
+                    */
                     continue
                 }
                 if (type == "suggestion_chips") {
                     val assumed = message as DialogflowV1MessageSuggestions
-                    this.parsed?.push(Suggestions (assumed.suggestions!.map(s => s . title !)))
+//                    this.parsed?.push(Suggestions (assumed.suggestions!.map(s => s . title !)))
                     continue
                 }
                 if (type == "carousel_card") {
                     val assumed = message as DialogflowV1MessageCarousel
                     this.parsed?.push(Carousel {
-                        items = assumed.items
+//                        items = assumed.items
                     })
                     continue
                 }
@@ -167,6 +171,7 @@ class Incoming {
 
     /** @hidden */
     constructor(fulfillment: MutableList<GoogleCloudDialogflowV2IntentMessage>) {
+        /*
         // Dialogflow v2
         for (val message of fulfillment) {
             val { text,
@@ -259,6 +264,7 @@ class Incoming {
                 continue
             }
         }
+        */
     }
 
     /**
@@ -319,6 +325,7 @@ class Incoming {
      * @public
      */
 // tslint:disable-next-line:no-any allow constructors with any type of arguments
+    /*
     get<TMessage extends IncomingMessage>(type: new (...args: any[]) => TMessage): TMessage
     /** @public */
     get(type: "string"): string
@@ -368,5 +375,6 @@ class Incoming {
         // suppose to be Array.prototype.values(), but can"t use because of bug:
         // https://bugs.chromium.org/p/chromium/issues/detail?id=615873
     }
+    */
 }
 

@@ -1,6 +1,9 @@
 package actions.service.dialogflow.api
 
 import actions.ApiClientObjectMap
+import actions.service.actionssdk.api.GoogleActionsV2AppRequest
+import actions.service.dialogflow.GoogleAssistantResponse
+import actions.service.dialogflow.PayloadGoogle
 
 /**
  * Copyright 2018 Google Inc. All Rights Reserved.
@@ -65,210 +68,214 @@ enum class GoogleCloudDialogflowV2IntentWebhookState {
 //TESTING IF COMMON CONTEXT model will work for both.  Using V1Contexts for internal logic now.
 
 data class GoogleCloudDialogflowV2Context(
-    var name: String,
-    var lifespanCount: Int,
-    var parameters: ApiClientObjectMap<Any>
+        var name: String,
+        var lifespanCount: Int,
+//    var parameters: ApiClientObjectMap<Any>
+        var parameters: DialogflowV1Parameters? = null
 )
 
-interface GoogleCloudDialogflowV2EventInput {
-    var name: String
-    var parameters: ApiClientObjectMap<Any>
-    var languageCode: String
-}
+data class GoogleCloudDialogflowV2EventInput(
+        var name: String? = null,
+        var parameters: ApiClientObjectMap<Any>? = null,
+        var languageCode: String? = null
+)
 
-interface GoogleCloudDialogflowV2Intent {
-    var name: String
-    var displayName: String
-    var webhookState: GoogleCloudDialogflowV2IntentWebhookState
-    var priority: Int
-    var isFallback: Boolean
-    var mlDisabled: Boolean
-    var inputContextNames: MutableList<String>
-    var events: MutableList<String>
-    var trainingPhrases: MutableList<GoogleCloudDialogflowV2IntentTrainingPhrase>
-    var action: String
-    var outputContexts: MutableList<DialogflowV1Context>
-    var resetContexts: Boolean
-    var parameters: MutableList<GoogleCloudDialogflowV2IntentParameter>
-    var messages: MutableList<GoogleCloudDialogflowV2IntentMessage>
-    var defaultResponsePlatforms: MutableList<GoogleCloudDialogflowV2IntentDefaultResponsePlatforms>
-    var rootFollowupIntentName: String
-    var parentFollowupIntentName: String
-    var followupIntentInfo: MutableList<GoogleCloudDialogflowV2IntentFollowupIntentInfo>
-}
+data class GoogleCloudDialogflowV2Intent(
+        var name: String? = null,
+        var displayName: String? = null,
+        var webhookState: GoogleCloudDialogflowV2IntentWebhookState? = null,
+        var priority: Int? = null,
+        var isFallback: Boolean? = null,
+        var mlDisabled: Boolean? = null,
+        var inputContextNames: MutableList<String>? = null,
+        var events: MutableList<String>? = null,
+        var trainingPhrases: MutableList<GoogleCloudDialogflowV2IntentTrainingPhrase>? = null,
+        var action: String? = null,
+        var outputContexts: MutableList<DialogflowV1Context>? = null,
+        var resetContexts: Boolean? = null,
+        var parameters: MutableList<GoogleCloudDialogflowV2IntentParameter>? = null,
+        var messages: MutableList<GoogleCloudDialogflowV2IntentMessage>? = null,
+        var defaultResponsePlatforms: MutableList<GoogleCloudDialogflowV2IntentDefaultResponsePlatforms>? = null,
+        var rootFollowupIntentName: String? = null,
+        var parentFollowupIntentName: String? = null,
+        var followupIntentInfo: MutableList<GoogleCloudDialogflowV2IntentFollowupIntentInfo>? = null
+)
 
-interface GoogleCloudDialogflowV2IntentFollowupIntentInfo {
-    var followupIntentName: String
-    var parentFollowupIntentName: String
-}
+data class GoogleCloudDialogflowV2IntentFollowupIntentInfo(
+        var followupIntentName: String? = null,
+        var parentFollowupIntentName: String? = null
+)
 
-interface GoogleCloudDialogflowV2IntentMessage {
-    var text: GoogleCloudDialogflowV2IntentMessageText
-    var image: GoogleCloudDialogflowV2IntentMessageImage
-    var quickReplies: GoogleCloudDialogflowV2IntentMessageQuickReplies
-    var card: GoogleCloudDialogflowV2IntentMessageCard
-    var payload: ApiClientObjectMap<Any>
-    var simpleResponses: GoogleCloudDialogflowV2IntentMessageSimpleResponses
-    var basicCard: GoogleCloudDialogflowV2IntentMessageBasicCard
-    var suggestions: GoogleCloudDialogflowV2IntentMessageSuggestions
-    var linkOutSuggestion: GoogleCloudDialogflowV2IntentMessageLinkOutSuggestion
-    var listSelect: GoogleCloudDialogflowV2IntentMessageListSelect
-    var carouselSelect: GoogleCloudDialogflowV2IntentMessageCarouselSelect
-    var platform: GoogleCloudDialogflowV2IntentMessagePlatform
-}
+data class GoogleCloudDialogflowV2IntentMessage(
+        var text: GoogleCloudDialogflowV2IntentMessageText? = null,
+        var image: GoogleCloudDialogflowV2IntentMessageImage? = null,
+        var quickReplies: GoogleCloudDialogflowV2IntentMessageQuickReplies? = null,
+        var card: GoogleCloudDialogflowV2IntentMessageCard? = null,
+        var payload: ApiClientObjectMap<Any>? = null,
+        var simpleResponses: GoogleCloudDialogflowV2IntentMessageSimpleResponses? = null,
+        var basicCard: GoogleCloudDialogflowV2IntentMessageBasicCard? = null,
+        var suggestions: GoogleCloudDialogflowV2IntentMessageSuggestions? = null,
+        var linkOutSuggestion: GoogleCloudDialogflowV2IntentMessageLinkOutSuggestion? = null,
+        var listSelect: GoogleCloudDialogflowV2IntentMessageListSelect? = null,
+        var carouselSelect: GoogleCloudDialogflowV2IntentMessageCarouselSelect? = null,
+        var platform: GoogleCloudDialogflowV2IntentMessagePlatform? = null
+)
 
-interface GoogleCloudDialogflowV2IntentMessageBasicCard {
-    var title: String
-    var subtitle: String
-    var formattedText: String
-    var image: GoogleCloudDialogflowV2IntentMessageImage
-    var buttons: MutableList<GoogleCloudDialogflowV2IntentMessageBasicCardButton>
-}
+data class GoogleCloudDialogflowV2IntentMessageBasicCard(
+    var title: String? = null,
+    var subtitle: String? = null,
+    var formattedText: String? = null,
+    var image: GoogleCloudDialogflowV2IntentMessageImage? = null,
+    var buttons: MutableList<GoogleCloudDialogflowV2IntentMessageBasicCardButton>? = null
+)
 
-interface GoogleCloudDialogflowV2IntentMessageBasicCardButton {
-    var title: String
-    var openUriAction: GoogleCloudDialogflowV2IntentMessageBasicCardButtonOpenUriAction
-}
+data class GoogleCloudDialogflowV2IntentMessageBasicCardButton(
+    var title: String? = null,
+    var openUriAction: GoogleCloudDialogflowV2IntentMessageBasicCardButtonOpenUriAction? = null
+)
 
-interface GoogleCloudDialogflowV2IntentMessageBasicCardButtonOpenUriAction {
-    var uri: String
-}
+data class GoogleCloudDialogflowV2IntentMessageBasicCardButtonOpenUriAction(
+    var uri: String? = null
+)
 
-interface GoogleCloudDialogflowV2IntentMessageCard {
-    var title: String
-    var subtitle: String
-    var imageUri: String
-    var buttons: MutableList<GoogleCloudDialogflowV2IntentMessageCardButton>
-}
+data class GoogleCloudDialogflowV2IntentMessageCard(
+    var title: String? = null,
+    var subtitle: String? = null,
+    var imageUri: String? = null,
+    var buttons: MutableList<GoogleCloudDialogflowV2IntentMessageCardButton>? = null
+)
 
-interface GoogleCloudDialogflowV2IntentMessageCardButton {
-    var text: String
-    var postback: String
-}
+data class GoogleCloudDialogflowV2IntentMessageCardButton (
+    var text: String? = null,
+    var postback: String? = null
+)
 
-interface GoogleCloudDialogflowV2IntentMessageCarouselSelect {
-    var items: MutableList<GoogleCloudDialogflowV2IntentMessageCarouselSelectItem>
-}
+data class GoogleCloudDialogflowV2IntentMessageCarouselSelect(
+    var items: MutableList<GoogleCloudDialogflowV2IntentMessageCarouselSelectItem>? = null
+)
 
-interface GoogleCloudDialogflowV2IntentMessageCarouselSelectItem {
-    var info: GoogleCloudDialogflowV2IntentMessageSelectItemInfo
-    var title: String
-    var description: String
-    var image: GoogleCloudDialogflowV2IntentMessageImage
-}
+data class GoogleCloudDialogflowV2IntentMessageCarouselSelectItem(
+    var info: GoogleCloudDialogflowV2IntentMessageSelectItemInfo? = null,
+    var title: String? = null,
+    var description: String? = null,
+    var image: GoogleCloudDialogflowV2IntentMessageImage? = null
+)
 
-interface GoogleCloudDialogflowV2IntentMessageImage {
-    var imageUri: String
-    var accessibilityText: String
-}
+data class GoogleCloudDialogflowV2IntentMessageImage(
+    var imageUri: String? = null,
+    var accessibilityText: String? = null
+)
 
-interface GoogleCloudDialogflowV2IntentMessageLinkOutSuggestion {
-    var destinationName: String
-    var uri: String
-}
+data class GoogleCloudDialogflowV2IntentMessageLinkOutSuggestion(
+    var destinationName: String? = null,
+    var uri: String? = null
+)
 
-interface GoogleCloudDialogflowV2IntentMessageListSelect {
-    var title: String
-    var items: MutableList<GoogleCloudDialogflowV2IntentMessageListSelectItem>
-}
+data class GoogleCloudDialogflowV2IntentMessageListSelect(
+    var title: String? = null,
+    var items: MutableList<GoogleCloudDialogflowV2IntentMessageListSelectItem>? = null
+)
 
-interface GoogleCloudDialogflowV2IntentMessageListSelectItem {
-    var info: GoogleCloudDialogflowV2IntentMessageSelectItemInfo
-    var title: String
-    var description: String
-    var image: GoogleCloudDialogflowV2IntentMessageImage
-}
+data class GoogleCloudDialogflowV2IntentMessageListSelectItem(
+    var info: GoogleCloudDialogflowV2IntentMessageSelectItemInfo? = null,
+    var title: String? = null,
+    var description: String? = null,
+    var image: GoogleCloudDialogflowV2IntentMessageImage? = null
+)
 
-interface GoogleCloudDialogflowV2IntentMessageQuickReplies {
-    var title: String
-    var quickReplies: MutableList<String>
-}
+data class GoogleCloudDialogflowV2IntentMessageQuickReplies(
+    var title: String? = null,
+    var quickReplies: MutableList<String>? = null
+)
 
-interface GoogleCloudDialogflowV2IntentMessageSelectItemInfo {
-    var key: String
-    var synonyms: MutableList<String>
-}
+data class GoogleCloudDialogflowV2IntentMessageSelectItemInfo(
+    var key: String? = null,
+    var synonyms: MutableList<String>? = null
+)
 
-interface GoogleCloudDialogflowV2IntentMessageSimpleResponse {
-    var textToSpeech: String
-    var ssml: String
-    var displayText: String
-}
+data class GoogleCloudDialogflowV2IntentMessageSimpleResponse(
+    var textToSpeech: String? = null,
+    var ssml: String? = null,
+    var displayText: String? = null
+)
 
-interface GoogleCloudDialogflowV2IntentMessageSimpleResponses {
-    var simpleResponses: MutableList<GoogleCloudDialogflowV2IntentMessageSimpleResponse>
-}
+data class GoogleCloudDialogflowV2IntentMessageSimpleResponses(
+    var simpleResponses: MutableList<GoogleCloudDialogflowV2IntentMessageSimpleResponse>? = null
+)
 
-interface GoogleCloudDialogflowV2IntentMessageSuggestion {
-    var title: String
-}
+data class GoogleCloudDialogflowV2IntentMessageSuggestion(
+    var title: String? = null
+)
 
-interface GoogleCloudDialogflowV2IntentMessageSuggestions {
-    var suggestions: MutableList<GoogleCloudDialogflowV2IntentMessageSuggestion>
-}
+data class GoogleCloudDialogflowV2IntentMessageSuggestions(
+    var suggestions: MutableList<GoogleCloudDialogflowV2IntentMessageSuggestion>? = null
+)
 
-interface GoogleCloudDialogflowV2IntentMessageText {
-    var text: MutableList<String>
-}
+data class GoogleCloudDialogflowV2IntentMessageText(
+        var text: MutableList<String>? = null
+)
 
-interface GoogleCloudDialogflowV2IntentParameter {
-    var name: String
-    var displayName: String
-    var value: String
-    var defaultValue: String
-    var entityTypeDisplayName: String
-    var mandatory: Boolean
-    var prompts: MutableList<String>
-    var isList: Boolean
-}
+data class GoogleCloudDialogflowV2IntentParameter(
+    var name: String? = null,
+    var displayName: String? = null,
+    var value: String? = null,
+    var defaultValue: String? = null,
+    var entityTypeDisplayName: String? = null,
+    var mandatory: Boolean? = null,
+    var prompts: MutableList<String>? = null,
+    var isList: Boolean? = null
+)
 
-interface GoogleCloudDialogflowV2IntentTrainingPhrase {
-    var name: String
-    var type: GoogleCloudDialogflowV2IntentTrainingPhraseType
-    var parts: MutableList<GoogleCloudDialogflowV2IntentTrainingPhrasePart>
-    var timesAddedCount: Int
-}
+data class GoogleCloudDialogflowV2IntentTrainingPhrase (
+    var name: String? = null,
+    var type: GoogleCloudDialogflowV2IntentTrainingPhraseType? = null,
+    var parts: MutableList<GoogleCloudDialogflowV2IntentTrainingPhrasePart>? = null,
+    var timesAddedCount: Int? = null
+)
 
-interface GoogleCloudDialogflowV2IntentTrainingPhrasePart {
-    var text: String
-    var entityType: String
-    var alias: String
-    var userDefined: Boolean
-}
+data class GoogleCloudDialogflowV2IntentTrainingPhrasePart (
+    var text: String? = null,
+    var entityType: String? = null,
+    var alias: String? = null,
+    var userDefined: Boolean? = null
+)
 
-interface GoogleCloudDialogflowV2OriginalDetectIntentRequest {
-    var source: String
-    var payload: ApiClientObjectMap<Any>
-}
+data class GoogleCloudDialogflowV2OriginalDetectIntentRequest(
+        var source: String? = null,
+        var payload: GoogleActionsV2AppRequest? = null
+//    var payload: ApiClientObjectMap<Any>
+)
 
-interface GoogleCloudDialogflowV2QueryResult {
-    var queryText: String
-    var languageCode: String
-    var speechRecognitionConfidence: Int
-    var action: String
-    var parameters: ApiClientObjectMap<Any>
-    var allRequiredParamsPresent: Boolean
-    var fulfillmentText: String
-    var fulfillmentMessages: MutableList<GoogleCloudDialogflowV2IntentMessage>
-    var webhookSource: String
-    var webhookPayload: ApiClientObjectMap<Any>
-    var outputContexts: MutableList<DialogflowV1Context>
-    var intent: GoogleCloudDialogflowV2Intent
-    var intentDetectionConfidence: Int
-    var diagnosticInfo: ApiClientObjectMap<Any>
-}
+data class GoogleCloudDialogflowV2QueryResult(
+        var queryText: String? = null,
+        var languageCode: String? = null,
+        var speechRecognitionConfidence: Int? = null,
+        var action: String? = null,
+        var parameters: DialogflowV1Parameters? = null,
+//    var parameters: ApiClientObjectMap<Any>
+        var allRequiredParamsPresent: Boolean? = null,
+        var fulfillmentText: String? = null,
+        var fulfillmentMessages: MutableList<GoogleCloudDialogflowV2IntentMessage>? = null,
+        var webhookSource: String? = null,
+        var webhookPayload: ApiClientObjectMap<Any>? = null,
+        var outputContexts: MutableList<DialogflowV1Context>? = null,
+        var intent: GoogleCloudDialogflowV2Intent? = null,
+        var intentDetectionConfidence: Int? = null,
+        var diagnosticInfo: ApiClientObjectMap<Any>? = null
+)
 
-interface GoogleCloudDialogflowV2WebhookRequest {
-    var session: String
-    var responseId: String
-    var queryResult: GoogleCloudDialogflowV2QueryResult
-    var originalDetectIntentRequest: GoogleCloudDialogflowV2OriginalDetectIntentRequest
-}
+data class GoogleCloudDialogflowV2WebhookRequest(
+        var session: String? = null,
+        var responseId: String? = null,
+        var queryResult: GoogleCloudDialogflowV2QueryResult? = null,
+        var originalDetectIntentRequest: GoogleCloudDialogflowV2OriginalDetectIntentRequest? = null
+)
 
 data class GoogleCloudDialogflowV2WebhookResponse(
-    var fulfillmentText: String? = null,
-    var fulfillmentMessages: MutableList<GoogleCloudDialogflowV2IntentMessage>? = null,
-    var source: String? = null,
-    var payload: ApiClientObjectMap<Any>? = null,
-    var outputContexts: MutableList<DialogflowV1Context>? = null,
-    var followupEventInput: GoogleCloudDialogflowV2EventInput? = null)
+        var fulfillmentText: String? = null,
+        var fulfillmentMessages: MutableList<GoogleCloudDialogflowV2IntentMessage>? = null,
+        var source: String? = null,
+        var payload: PayloadGoogle? = null,
+//    var payload: ApiClientObjectMap<Any>? = null,
+        var outputContexts: MutableList<GoogleCloudDialogflowV2Context>? = null,
+        var followupEventInput: GoogleCloudDialogflowV2EventInput? = null)

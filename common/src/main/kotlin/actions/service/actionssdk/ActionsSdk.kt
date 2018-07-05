@@ -113,7 +113,6 @@ abstract class ActionsSdkApp<TConvData, TUserStorage> : ConversationApp<TConvDat
      * @public
      */
     abstract fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler1<TConvData, TUserStorage> /*| Intent,*/): ActionsSdkApp<TConvData, TUserStorage>
-
     abstract fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler2<TConvData, TUserStorage> /*| Intent,*/): ActionsSdkApp<TConvData, TUserStorage>
     abstract fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler3<TConvData, TUserStorage> /*| Intent,*/): ActionsSdkApp<TConvData, TUserStorage>
     abstract fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler4<TConvData, TUserStorage> /*| Intent,*/): ActionsSdkApp<TConvData, TUserStorage>
@@ -130,7 +129,6 @@ abstract class ActionsSdkApp<TConvData, TUserStorage> : ConversationApp<TConvDat
      * @public
      */
     abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler1<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
-
     abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler2<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
     abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler3<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
     abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler4<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>

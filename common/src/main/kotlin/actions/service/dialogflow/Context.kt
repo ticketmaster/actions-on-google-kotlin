@@ -1,6 +1,7 @@
 package actions.service.dialogflow
 
 import actions.service.dialogflow.api.DialogflowV1Context
+import actions.service.dialogflow.api.DialogflowV1Parameters
 import actions.service.dialogflow.api.GoogleCloudDialogflowV2Context
 
 /**
@@ -20,7 +21,7 @@ import actions.service.dialogflow.api.GoogleCloudDialogflowV2Context
  */
 
 /** @public */
-typealias Parameters = MutableMap<String, Any?>
+//typealias Parameters = MutableMap<String, Any?>
 
 /** @public */
 class Contexts : MutableMap<String, DialogflowV1Context> by mutableMapOf() {}
@@ -31,13 +32,13 @@ class Contexts : MutableMap<String, DialogflowV1Context> by mutableMapOf() {}
 //}
 
 /** @public */
-class OutputContexts<TParameter> : MutableMap<String, OutputContext<TParameter>> by mutableMapOf() {
+class OutputContexts : MutableMap<String, OutputContext> by mutableMapOf() {
     /** @public */
 //    [context: string]: OutputContext<Parameters> | undefined
 }
 
 /** @public */
-class Context<TParameters>(
+class Context(
         /**
          * Full name of the context.
          * @public
@@ -77,31 +78,32 @@ class Context<TParameters>(
          *
          * @public
          */
-        parameters: TParameters? = null
-) : OutputContext<TParameters>(lifespan = lifespan, parameters = parameters)
+        parameters: DialogflowV1Parameters? = null
+) : OutputContext(lifespan = lifespan, parameters = parameters)
 
 /** @public */
-open class OutputContext<TParameters>(
+open class OutputContext(
         /** @public */
         var lifespan: Int?,
 
         /** @public */
-        var parameters: TParameters?
+        var parameters: DialogflowV1Parameters?
 )
 
 //typeof (context as ApiV1.DialogflowV1Context).lifespan === "number"
 
-class ContextValues<TParameter> {
+class ContextValues {
     /** @public */
     var input: Contexts? = null
 
     /** @public */
-    var output: OutputContexts<TParameter>? = null
+    var output: OutputContexts? = null
 
     private var _session: String? = null
 
     constructor(outputContexts: MutableList<GoogleCloudDialogflowV2Context>?, session: String? = null, flag: Boolean) {
         this.input = Contexts()
+        this._session = session
         outputContexts?.forEach {
             val name = it.name
             val parameters = it.parameters
@@ -109,17 +111,18 @@ class ContextValues<TParameter> {
             //TODO test this regex
             val find = "/([^/]+)?$/".toRegex().find(name)
             val first = find?.next()?.value ?: name
-            this.input[first] = Context<TParameter>(name = name,
+            this.input?.put(first, DialogflowV1Context(name = name,
                     lifespan = lifespanCount,
-                    parameters = parameters)
+                    parameters = parameters))
         }
 
         this.output = OutputContexts()
     }
 
     /** @hidden */
-    constructor(outputContexts: MutableList<DialogflowV1Context>?, _session: String? = null) {
+    constructor(outputContexts: MutableList<DialogflowV1Context>?, session: String? = null) {
         this.input = Contexts()
+        this._session = session
         outputContexts?.forEach {
             val name = it.name
             val parameters = it.parameters
@@ -136,13 +139,13 @@ class ContextValues<TParameter> {
 
     /** @hidden */
     fun _serialize(): MutableList<GoogleCloudDialogflowV2Context> {
-        return this.output.map {
+        return this.output?.map {
             GoogleCloudDialogflowV2Context(
                     name = "${this._session}/contexts/${it.key}",
-                    lifespanCount = it.value?.lifespan ?: 0,
-                    parameters = it.value?.parameters
+                    lifespanCount = it.value.lifespan ?: 0,
+                    parameters = it.value.parameters
             )
-        }.toMutableList()
+        }?.toMutableList() ?: mutableListOf()
         /*).map((name): Api.GoogleCloudDialogflowV2Context => {
             val { lifespan, parameters } = this.output[name]!
             return {
@@ -156,13 +159,13 @@ class ContextValues<TParameter> {
 
     /** @hidden */
     fun _serializeV1(): MutableList<DialogflowV1Context> {
-        return this.output.map {
+        return this.output?.map {
             DialogflowV1Context(
                     name = it.key,
                     lifespan = it.value.lifespan ?: 0,
                     parameters = it.value.parameters
             )
-        }.toMutableList()
+        }?.toMutableList() ?: mutableListOf()
 
         /*
             (name): ApiV1.DialogflowV1Context => {
@@ -204,8 +207,8 @@ class ContextValues<TParameter> {
      * @return Context value matching name or undefined if no matching context.
      * @public
      */
-    fun get(name: String) {
-        return this.input[name]
+    fun get(name: String): DialogflowV1Context? {
+        return this.input?.get(name)
     }
 
     /**
@@ -236,10 +239,10 @@ class ContextValues<TParameter> {
      * @param parameters Context parameters.
      * @public
      */
-    fun set(name: String, lifespan: Int, parameters: Parameters? = null) {
-        this.output[name] = OutputContext(
+    fun set(name: String, lifespan: Int, parameters: DialogflowV1Parameters? = null) {
+        output?.put(name, OutputContext(
                 lifespan,
-                parameters)
+                parameters))
     }
 
     /** @public */
@@ -276,7 +279,7 @@ class ContextValues<TParameter> {
      */
 
 //todo see if we can implement 'in' function to closely match js.
-    inline fun forEach(action: (ContextValues<TContexts, TParameter>) -> Unit) {
+    inline fun forEach(action: (ContextValues) -> Unit) {
 //    [Symbol.iterator]() {
         TODO("iterate through Context - fix generic contexts through base class or intermediate types")
 //        val contexts = values(this.input) as Context<Parameters>[]

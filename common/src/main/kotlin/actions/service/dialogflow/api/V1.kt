@@ -4,6 +4,7 @@ import actions.ApiClientObjectMap
 import actions.framework.JsonObject
 import actions.service.actionssdk.api.GoogleActionsV2AppRequest
 import actions.service.dialogflow.DialogflowV1Message
+import actions.service.dialogflow.PayloadGoogle
 
 /**
  * Copyright 2018 Google Inc. All Rights Reserved.
@@ -23,11 +24,11 @@ import actions.service.dialogflow.DialogflowV1Message
 
 /* tslint:disable:no-any max-line-length written like auto generated types from protobufs */
 
-interface DialogflowV1OriginalRequest {
-    var source: String
-    var version: String
-    var data: GoogleActionsV2AppRequest
-}
+data class DialogflowV1OriginalRequest(
+    var source: String? = null,
+    var version: String? = null,
+    var data: GoogleActionsV2AppRequest? = null
+)
 
 class DialogflowV1Parameters: MutableMap<String, Any?> by mutableMapOf() {
 //    [parameter: String]: String | Object | undefined
@@ -39,18 +40,18 @@ data class DialogflowV1Context(
     var lifespan: Int? = null
 )
 
-interface DialogflowV1Metadata {
-    var intentId: String
-    var webhookUsed: String
-    var webhookForSlotFillingUsed: String
-    var nluResponseTime: Int
-    var intentName: String
-}
+data class DialogflowV1Metadata(
+    var intentId: String? = null,
+    var webhookUsed: String? = null,
+    var webhookForSlotFillingUsed: String? = null,
+    var nluResponseTime: Int? = null,
+    var intentName: String? = null
+)
 
-interface DialogflowV1Button {
-    var text: String
-    var postback: String
-}
+data class DialogflowV1Button(
+    var text: String? = null,
+    var postback: String? = null
+)
 
 
 /*
@@ -69,51 +70,52 @@ DialogflowV1MessageLinkOut |
 DialogflowV1MessageGooglePayload
 */
 
-interface DialogflowV1Fulfillment {
-    var speech: String?
-    var messages: MutableList<DialogflowV1Message>?
-}
+data class DialogflowV1Fulfillment(
+    var speech: String? = null,
+    var messages: MutableList<DialogflowV1Message>? = null
+)
 
-interface DialogflowV1Result {
-    var source: String
-    var resolvedQuery: String
-    var speech: String
-    var action: String
-    var actionIncomplete: Boolean
-    var parameters: DialogflowV1Parameters
-    var contexts: MutableList<DialogflowV1Context>
-    var metadata: DialogflowV1Metadata
-    var fulfillment: DialogflowV1Fulfillment
-    var score: Int
-}
+data class DialogflowV1Result(
+    var source: String? = null,
+    var resolvedQuery: String? = null,
+    var speech: String? = null,
+    var action: String? = null,
+    var actionIncomplete: Boolean? = null,
+    var parameters: DialogflowV1Parameters? = null,
+    var contexts: MutableList<DialogflowV1Context>? = null,
+    var metadata: DialogflowV1Metadata? = null,
+    var fulfillment: DialogflowV1Fulfillment? = null,
+    var score: Int? = null
+)
 
-interface DialogflowV1Status {
-    var code: Int
-    var errorType: String
-    var webhookTimedOut: Boolean
-}
+data class DialogflowV1Status(
+    var code: Int? = null,
+    var errorType: String? = null,
+    var webhookTimedOut: Boolean? = null
+)
 
-interface DialogflowV1WebhookRequest {
-    var originalRequest: DialogflowV1OriginalRequest
-    var id: String
-    var sessionId: String
-    var timestamp: String
-    var timezone: String
-    var lang: String
-    var result: DialogflowV1Result
-    var status: DialogflowV1Status
-}
+data class DialogflowV1WebhookRequest(
+    var originalRequest: DialogflowV1OriginalRequest? = null,
+    var id: String? = null,
+    var sessionId: String? = null,
+    var timestamp: String? = null,
+    var timezone: String? = null,
+    var lang: String? = null,
+    var result: DialogflowV1Result? = null,
+    var status: DialogflowV1Status? = null
+)
 
-interface DialogflowV1FollowupEvent {
-    var name: String
-    var data: DialogflowV1Parameters
-}
+data class DialogflowV1FollowupEvent(
+    var name: String? = null,
+    var data: DialogflowV1Parameters? = null
+)
 
 data class DialogflowV1WebhookResponse(
     var speech: String? = null,
     var displayText: String? = null,
     var messages: MutableList<DialogflowV1Message>? = null,
-    var data: ApiClientObjectMap<Any>? = null,
+    var data: PayloadGoogle? = null,
+//    var data: ApiClientObjectMap<Any>? = null,
     var contextOut: MutableList<DialogflowV1Context>? = null,
     var source: String? = null,
     var followupEvent: DialogflowV1FollowupEvent? = null)

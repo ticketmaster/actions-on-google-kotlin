@@ -17,13 +17,13 @@ class DialogflowWebhook : HttpServlet() {
     override fun doPost(req: HttpServletRequest, resp: HttpServletResponse) {
         logger.info("here")
         if (!hasAddedFramework) {
-            app.frameworks.add(ServletFramework<ConversationData, UserStorage>())
+            dfApp.frameworks.add(ServletFramework<ConversationData, UserStorage>())
             hasAddedFramework = true
         }
 
-        toBeMoved()
+        initDfApp()
 
-        app(req, resp)
+        dfApp(req, resp)
     }
 
 

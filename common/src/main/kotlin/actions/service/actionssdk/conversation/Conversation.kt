@@ -72,12 +72,11 @@ interface ConversationOptionsInit<TConvData, TUserStorage> {
     var storage: TUserStorage?
 }
 
-open class ConversationBaseOptions<TConvData, TUserStorage> {
-    var headers: Headers? = null
+interface ConversationBaseOptions<TConvData, TUserStorage> {
+    var headers: Headers?
+    var init: ConversationOptionsInit<TConvData, TUserStorage>?
 
-    var init: ConversationOptionsInit<TConvData, TUserStorage>? = null
-
-    var debug: Boolean? = null
+    var debug: Boolean?
 }
 
 data class ConversationOptions<TUserStorage>(
@@ -387,7 +386,7 @@ typealias ExceptionHandler<TUserStorage, TConversation> = (TConversation, Except
 class TraversedActionsHandlers<TConvData, TUserStorage> : MutableMap<ActionsSdkIntentHandler4<TConvData, TUserStorage>, Boolean> by mutableMapOf()
 
 /** @hidden */
-class TraversedDialogflowHandlers<TConvData, TUserStorage, TParameters, TArgument> : MutableMap<DialogflowIntentHandler4<TConvData, TUserStorage, TParameters, TArgument>, Boolean> by mutableMapOf()
+class TraversedDialogflowHandlers<TConvData, TUserStorage, TArgument> : MutableMap<DialogflowIntentHandler4<TConvData, TUserStorage, TArgument>, Boolean> by mutableMapOf()
 
 /** @hidden */
 interface ConversationAppOptions<TConvData, TUserStorage> : AppOptions {

@@ -13,4 +13,9 @@ actual object Serializer {
         return gson.toJson(any)
     }
 
+    actual fun <T> deserialize(json: String): T {
+//        return gson.fromJson<T>(json)
+        return Any() as T
+    }
+
 }

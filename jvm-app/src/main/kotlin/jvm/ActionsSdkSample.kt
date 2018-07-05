@@ -4,10 +4,12 @@ import actions.expected.logger
 import actions.service.actionssdk.conversation.response.List
 import actions.service.actionssdk.actionssdk
 import actions.service.actionssdk.conversation.Conversation
+import actions.service.actionssdk.conversation.ConversationApp
 import actions.service.actionssdk.conversation.question.option.OptionItem
 import actions.service.actionssdk.conversation.question.option.item
 import actions.service.actionssdk.conversation.response.*
 import actions.service.actionssdk.conversation.response.card.Button
+import actions.service.dialogflow.dialogflow
 import javax.swing.text.html.Option
 
 
@@ -43,6 +45,66 @@ val intentSuggestions = arrayOf(
         "Suggestions")
 
 val app = actionssdk<ConversationData, UserStorage>({ debug = true })
+
+data class MyConversation(val temp: String? = null)
+data class MyArgument(val temp: String? = null)
+
+val dfApp = dialogflow<ConversationData, UserStorage, MyConversation, MyArgument>({ debug = true })
+
+fun initDfApp() {
+//    app.middleware((conv) => {
+//        conv.hasScreen =
+//                conv.surface.capabilities.has("actions.capability.SCREEN_OUTPUT")
+//        conv.hasAudioPlayback =
+//                conv.surface.capabilities.has("actions.capability.AUDIO_OUTPUT")
+//    })
+
+// Welcome
+
+    dfApp.intent("input.welcome") { conv, storage, arg ->
+        conv.ask(SimpleResponse {
+            speech = "Hi there!"
+            text = "Hello there!"
+        })
+        conv.ask(SimpleResponse {
+            speech = "I can show you basic cards, lists and carousels " +
+                    "as well as suggestions on your phone."
+            text = "I can show you basic cards, lists and carousels as " +
+                    "well as suggestions."
+        })
+        conv.ask(Suggestions(*intentSuggestions))
+    }
+
+// React to a text intent
+    dfApp.intent("actions.intent.TEXT") { conv, input ->
+        val rawInput = (input as String).toLowerCase()
+        logger.info("USER SAID " + rawInput)
+        when (rawInput) {
+            "basic card" -> basicCard(conv)
+            "list" -> list(conv)
+            "carousel" -> carousel(conv)
+            "normal ask" -> normalAsk(conv)
+            "normal bye" -> normalBye(conv)
+            "bye card" -> byeCard(conv)
+            "bye response" -> byeResponse(conv)
+            "suggestions", "suggestion chips" -> suggestions(conv)
+            "test" -> test(conv)
+            else -> normalAsk(conv)
+
+        }
+
+
+// React to list or carousel selection
+        dfApp.intent("actions.intent.OPTION") { conv, params, option ->
+            val response = if (option != null && SELECTED_ITEM_RESPONSES.containsKey(option.textValue)) {
+                SELECTED_ITEM_RESPONSES[option.textValue] ?: ""
+            } else {
+                "You selected an unknown item from the list or carousel"
+            }
+            conv.ask(response)
+        }
+    }
+}
 
 fun toBeMoved() {
 //    app.middleware((conv) => {

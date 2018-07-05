@@ -1,17 +1,16 @@
 package actions.service.dialogflow
 
-import actions.ApiClientObjectMap
 import actions.ProtoAny
+import actions.expected.Serializer
 import actions.framework.Headers
+import actions.service.actionssdk.api.GoogleActionsV2AppRequest
 import actions.service.actionssdk.api.GoogleActionsV2RichResponse
 import actions.service.actionssdk.api.GoogleActionsV2SimpleResponse
 import actions.service.actionssdk.conversation.Conversation
 import actions.service.actionssdk.conversation.ConversationBaseOptions
 import actions.service.actionssdk.conversation.ConversationOptions
-import actions.service.dialogflow.api.DialogflowV1WebhookRequest
-import actions.service.dialogflow.api.DialogflowV1WebhookResponse
-import actions.service.dialogflow.api.GoogleCloudDialogflowV2WebhookRequest
-import actions.service.dialogflow.api.GoogleCloudDialogflowV2WebhookResponse
+import actions.service.actionssdk.conversation.ConversationOptionsInit
+import actions.service.dialogflow.api.*
 
 /**
  * Copyright 2018 Google Inc. All Rights Reserved.
@@ -53,12 +52,16 @@ data class PayloadGoogle(
 
 /** @public */
 data class DialogflowConversationOptions<TConvData, TUserStorage>(var body: GoogleCloudDialogflowV2WebhookRequest? = null,
-                                                                  var bodyV1: DialogflowV1WebhookRequest? = null
-): ConversationBaseOptions<TConvData, TUserStorage>() {
+                                                                  var bodyV1: DialogflowV1WebhookRequest? = null,
+                                                                  override var headers: Headers? = null,
+                                                                  override var init: ConversationOptionsInit<TConvData, TUserStorage>?,
+                                                                  override var debug: Boolean?
+                                                                  ): ConversationBaseOptions<TConvData, TUserStorage> {
     fun isV1(): Boolean = bodyV1 != null
 
-    fun getRequest(): ApiClientObjectMap<Any>? {
+    fun getRequest(): GoogleActionsV2AppRequest? {
         return if (isV1()) {
+            bodyV1?.originalRequest?.data
             null
         } else {
             body?.originalDetectIntentRequest!!.payload
@@ -79,13 +82,14 @@ data class DialogflowConversationOptions<TConvData, TUserStorage>(var body: Goog
 //}
 
 /** @public */
-class DialogflowConversation<TConvData, TUserStorage, TContexts, TParameters>(options: DialogflowConversationOptions<TConvData, TUserStorage>) : Conversation<TUserStorage>(
+class DialogflowConversation<TConvData, TUserStorage>(options: DialogflowConversationOptions<TConvData, TUserStorage>) : Conversation<TUserStorage>(
         ConversationOptions<TUserStorage>(request = options.getRequest(),
                 headers = options.headers,
                 init = options.init)) {
 
     /** @public */
     var body: GoogleCloudDialogflowV2WebhookRequest?
+    var bodyV1: DialogflowV1WebhookRequest?
 
     /**
      * Get the current Dialogflow action name.
@@ -147,10 +151,10 @@ class DialogflowConversation<TConvData, TUserStorage, TContexts, TParameters>(op
      *
      * @public
      */
-    var parameters: Parameters
+    var parameters: DialogflowV1Parameters? = null
 
     /** @public */
-    var contexts: ContextValues<TParameters>
+    var contexts: ContextValues
 
     /** @public */
     var incoming: Incoming
@@ -191,22 +195,16 @@ class DialogflowConversation<TConvData, TUserStorage, TContexts, TParameters>(op
 
     /** @public */
     init {
-//        super({
-//            request: getRequest(options.body),
-//            headers: options.headers,
-//            init: options.init,
-//        })
 
-//        val { body, init } = options
-        val body = options.body
         val init = options
 
-        this.body = options.getRequest()
+        this.body = options.body
+        this.bodyV1 = options.bodyV1
 
         if (options.isV1()) {
             this.version = 1
 
-            val result = options.bodyV1?.result
+            val result = bodyV1?.result
 
             val action = result?.action ?: ""
             val parameters = result?.parameters
@@ -220,7 +218,7 @@ class DialogflowConversation<TConvData, TUserStorage, TContexts, TParameters>(op
             this.intent = intentName ?: ""
             this.parameters = parameters
             this.contexts = ContextValues(contexts)
-            this.incoming = Incoming(fulfillment)
+            this.incoming = Incoming(fulfillment!!)
             this.query = resolvedQuery ?: ""
         } else {
             this.version = 2
@@ -237,13 +235,13 @@ class DialogflowConversation<TConvData, TUserStorage, TContexts, TParameters>(op
 
             this.action = action ?: ""
             this.intent = displayName ?: ""
-            this.parameters = parameters ?: ""
+            this.parameters = parameters
             this.contexts = ContextValues(outputContexts = outputContexts, session =  this.body?.session)
-            this.incoming = Incoming(fulfillmentMessages)
+            this.incoming = Incoming(fulfillmentMessages!!)
             this.query = queryText ?: ""
         }
 
-        for (key in this.parameters) {
+        parameters?.forEach {
             //Not needed for kotlin SDK
 //            val value = this.parameters[key]
 //            if (typeof value !== "object") {
@@ -255,11 +253,11 @@ class DialogflowConversation<TConvData, TUserStorage, TContexts, TParameters>(op
         //TODO find a way to do this in kotlin
 //        this.data = (init && init.data) || {} as TConvData
 
-        val context = this.contexts.input[APP_DATA_CONTEXT]
-        if (context) {
-            val data = context.parameters?.data
-            if (typeof data === "string") {
-                this.data = JSON.parse(data)
+        val context = this.contexts.input?.get(APP_DATA_CONTEXT)
+        if (context != null) {
+            val data = context!!.parameters?.get("data")//?.data
+            if (data is String) {
+                this.data = Serializer.deserialize<TConvData>(data)
             }
         }
     }
@@ -292,7 +290,8 @@ class DialogflowConversation<TConvData, TUserStorage, TContexts, TParameters>(op
      *     By default, it is the languageCode sent with Dialogflow"s queryResult.languageCode
      * @public
      */
-    fun followup(event: String, parameters: Parameters?, lang: String?) {
+    fun followup(event: String, parameters: DialogflowV1Parameters?, lang: String?) {
+        /*
         if (this.version === 1) {
             return this.json<DialogflowV1WebhookResponse>({
                 followupEvent: { name: event,
@@ -308,6 +307,7 @@ class DialogflowConversation<TConvData, TUserStorage, TContexts, TParameters>(op
             languageCode: lang || body.queryResult!.languageCode,
         },
         })
+        */
     }
 
 
@@ -347,9 +347,9 @@ class DialogflowConversation<TConvData, TUserStorage, TContexts, TParameters>(op
 
         val payload = commonPayload()
 
-        this.contexts.set(APP_DATA_CONTEXT, APP_DATA_CONTEXT_LIFESPAN, {
-            data: JSON.stringify(this.data),
-        })
+        val data = DialogflowV1Parameters()
+        data["data"] = Serializer.serialize(this.data)
+        this.contexts.set(APP_DATA_CONTEXT, APP_DATA_CONTEXT_LIFESPAN, data)
 
         val outputContexts = this.contexts._serialize()
         val response = GoogleCloudDialogflowV2WebhookResponse(payload = payload,

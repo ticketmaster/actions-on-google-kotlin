@@ -51,5 +51,6 @@ data class ConversationTokenData(var data: Any? = null)
 expect object Serializer {
     fun stringifyConversationToken(data: Any?): ConversationTokenData
     fun serialize(any: Any?): String?
+    fun <T>deserialize(json: String): T
 }
 
