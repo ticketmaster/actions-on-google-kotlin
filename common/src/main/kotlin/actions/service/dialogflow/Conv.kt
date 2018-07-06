@@ -33,7 +33,7 @@ const val APP_DATA_CONTEXT_LIFESPAN = 99
 
 /** @hidden */
 data class SystemIntent(
-        var intent: String,
+        var intent: String? = null,
         var data: ProtoAny)
 
 /** @hidden */
@@ -56,7 +56,7 @@ data class DialogflowConversationOptions<TConvData, TUserStorage>(var body: Goog
                                                                   override var headers: Headers? = null,
                                                                   override var init: ConversationOptionsInit<TConvData, TUserStorage>?,
                                                                   override var debug: Boolean?
-                                                                  ): ConversationBaseOptions<TConvData, TUserStorage> {
+) : ConversationBaseOptions<TConvData, TUserStorage> {
     fun isV1(): Boolean = bodyV1 != null
 
     fun getRequest(): GoogleActionsV2AppRequest? {
@@ -236,7 +236,7 @@ class DialogflowConversation<TConvData, TUserStorage>(options: DialogflowConvers
             this.action = action ?: ""
             this.intent = displayName ?: ""
             this.parameters = parameters
-            this.contexts = ContextValues(outputContexts = outputContexts, session =  this.body?.session)
+            this.contexts = ContextValues(outputContexts = outputContexts, session = this.body?.session)
             this.incoming = Incoming(fulfillmentMessages!!)
             this.query = queryText ?: ""
         }
@@ -317,13 +317,18 @@ class DialogflowConversation<TConvData, TUserStorage>(options: DialogflowConvers
         val expectUserResponse = response.expectUserResponse ?: true
         val userStorage = response.userStorage
         val expectedIntent = response.expectedIntent
+        val systemIntent = if (expectedIntent?.intent != null)
+            SystemIntent(
+                    intent = expectedIntent?.intent,
+                    data = expectedIntent?.inputValueData ?: ProtoAny())
+        else
+            null
+
         return PayloadGoogle(GoogleAssistantResponse(
                 expectUserResponse = expectUserResponse,
                 richResponse = richResponse!!,
                 userStorage = userStorage,
-                systemIntent = SystemIntent(
-                        intent = expectedIntent?.intent ?: "",
-                        data = expectedIntent?.inputValueData ?: ProtoAny())
+                systemIntent = systemIntent
         ))
     }
 

@@ -91,7 +91,7 @@ class ActionsSdkConversation<TConvData, TUserStorage>(options: ActionsSdkConvers
         val inputPrompt = GoogleActionsV2InputPrompt(richInitialPrompt = richResponse)
 
         val possibleIntents = if (expectedIntent != null) {
-            mutableListOf<GoogleActionsV2ExpectedIntent>(expectedIntent)
+            mutableListOf(expectedIntent)
         } else {
             mutableListOf<GoogleActionsV2ExpectedIntent>(GoogleActionsV2ExpectedIntentData(intent = IntentEnum.TEXT.value))
         }
