@@ -2,51 +2,51 @@ package actions.service.actionssdk.conversation.response
 
 import actions.service.actionssdk.api.*
 
-interface BrowseCarouselOptions {
-    /**
-     * Sets the display options for the images in this carousel.
-     * @public
-     */
-    var display: GoogleActionsV2UiElementsCarouselBrowseImageDisplayOptions?
+data class BrowseCarouselOptions(
+        /**
+         * Sets the display options for the images in this carousel.
+         * @public
+         */
+        var display: GoogleActionsV2UiElementsCarouselBrowseImageDisplayOptions? = null,
 
-    /**
-     * List of 2-20 items to show in this carousel. Required.
-     * @public
-     */
-    var items: MutableList<GoogleActionsV2UiElementsCarouselBrowseItem>
-}
+        /**
+         * List of 2-20 items to show in this carousel. Required.
+         * @public
+         */
+        var items: MutableList<GoogleActionsV2UiElementsCarouselBrowseItem>? = null
+)
 
-interface BrowseCarouselItemOptions {
-    /**
-     * Title of the option item. Required.
-     * @public
-     */
-    var title: String
+data class BrowseCarouselItemOptions(
+        /**
+         * Title of the option item. Required.
+         * @public
+         */
+        var title: String? = null,
 
-    /**
-     * The URL of the link opened by clicking the BrowseCarouselItem. Optional.
-     * @public
-     */
-    var url: String
+        /**
+         * The URL of the link opened by clicking the BrowseCarouselItem. Optional.
+         * @public
+         */
+        var url: String? = null,
 
-    /**
-     * Description text of the item. Optional.
-     * @public
-     */
-    var description: String?
+        /**
+         * Description text of the item. Optional.
+         * @public
+         */
+        var description: String? = null,
 
-    /**
-     * Footer text of the item. Optional.
-     * @public
-     */
-    var footer: String?
+        /**
+         * Footer text of the item. Optional.
+         * @public
+         */
+        var footer: String? = null,
 
-    /**
-     * Image to show on item. Optional.
-     * @public
-     */
-    var image: GoogleActionsV2UiElementsImage?
-}
+        /**
+         * Image to show on item. Optional.
+         * @public
+         */
+        var image: GoogleActionsV2UiElementsImage? = null
+)
 
 /**
  * Class for initializing and constructing BrowseCarousel Items
@@ -61,13 +61,16 @@ class BrowseCarouselItem(override var description: String? = null,
      * @param options BrowseCarouselItem options
      * @public
      */
-    constructor(options: BrowseCarouselItemOptions): this(
-        title = options.title,
+    constructor(init: BrowseCarouselItemOptions.() -> Unit) : this() {
+        val options = BrowseCarouselItemOptions()
+        options.init()
+        title = options.title
         openUrlAction = OpenUrlAction(
-            url = options.url),
-        description = options.description,
-        footer = options.footer,
-        image = options.image)
+                url = options.url)
+        description = options.description
+        footer = options.footer
+        image = options.image
+    }
 }
 
 //const isOptions = (

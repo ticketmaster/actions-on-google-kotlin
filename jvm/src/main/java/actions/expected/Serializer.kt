@@ -10,6 +10,7 @@ actual object Serializer {
     }
 
     actual fun serialize(any: Any?): String? {
+        if (any == null) return "{}"
         return gson.toJson(any)
     }
 

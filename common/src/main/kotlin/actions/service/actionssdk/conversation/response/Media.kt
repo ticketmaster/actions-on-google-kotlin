@@ -4,33 +4,33 @@ import actions.service.actionssdk.api.GoogleActionsV2MediaResponseMediaType
 import actions.service.actionssdk.api.GoogleActionsV2UiElementsImage
 import actions.service.actionssdk.conversation.response.MediaObject
 
-interface MediaObjectOptions {
+data class MediaObjectOptions(
     /**
      * MediaObject URL.
      * @public
      */
-    var url: String
+    var url: String? = null,
 
-    var description: String?
+    var description: String? = null,
 
     /**
      * Name of the MediaObject.
      * @public
      */
-    var name: String?
+    var name: String? = null,
 
     /**
      * Icon image.
      * @public
      */
-    var icon: GoogleActionsV2UiElementsImage
+    var icon: GoogleActionsV2UiElementsImage? = null,
 
     /**
      * Large image.
      * @public
      */
-    var image: GoogleActionsV2UiElementsImage
-}
+    var image: GoogleActionsV2UiElementsImage? = null
+)
 
 fun String.toMediaObject(): MediaObject = MediaObject(contentUrl = this)
 

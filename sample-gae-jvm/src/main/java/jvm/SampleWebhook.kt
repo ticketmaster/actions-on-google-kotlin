@@ -21,7 +21,7 @@ class SampleWebhook : HttpServlet() {
             hasAddedFramework = true
         }
 
-        toBeMoved()
+        initActionsApp()
 
         app(req, resp)
     }

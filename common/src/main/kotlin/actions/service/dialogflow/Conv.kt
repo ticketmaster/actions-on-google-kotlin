@@ -353,7 +353,8 @@ class DialogflowConversation<TConvData, TUserStorage>(options: DialogflowConvers
         val payload = commonPayload()
 
         val data = DialogflowV1Parameters()
-        data["data"] = Serializer.serialize(this.data)
+        data["data"] = Serializer.serialize(this.data) ?: Any()
+
         this.contexts.set(APP_DATA_CONTEXT, APP_DATA_CONTEXT_LIFESPAN, data)
 
         val outputContexts = this.contexts._serialize()

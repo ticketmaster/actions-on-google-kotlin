@@ -10,6 +10,7 @@ import actions.service.dialogflow.api.DialogflowV1WebhookRequest
 import actions.service.dialogflow.api.GoogleCloudDialogflowV2WebhookRequest
 import actions.service.dialogflow.api.GoogleCloudDialogflowV2WebhookResponse
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import java.io.InputStream
 import java.io.InputStreamReader
 import javax.servlet.http.HttpServletRequest
@@ -22,7 +23,7 @@ actual class BuiltinFrameworks<TUserStorage> : Frameworks<TUserStorage>() {
     }
 }
 
-val gson = Gson() //TODO make param or other solution
+val gson = GsonBuilder().create() //TODO make param or other solution
 
 class ServletHandler<TConvData, TUserStorage>(val standardHandler: StandardHandler<TUserStorage>) : OmniHandler {
 

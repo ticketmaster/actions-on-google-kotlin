@@ -21,7 +21,7 @@ class DialogflowWebhook : HttpServlet() {
             hasAddedFramework = true
         }
 
-        initDfApp()
+        initDf()
 
         dfApp(req, resp)
     }

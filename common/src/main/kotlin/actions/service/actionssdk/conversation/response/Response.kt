@@ -28,7 +28,7 @@ Api.GoogleActionsV2RichResponseItem
 
  *  String type is handled in separate functions
  */
-sealed class RichResponseItem: Response()
+sealed class RichResponseItem : Response()
 
 
 /**
@@ -215,7 +215,7 @@ data class Image(override var accessibilityText: String? = null,
             height = option?.height,
             width = option?.width)
 
-    constructor(init: ImageOptions.() -> Unit): this({val options = ImageOptions(url = "", alt = ""); options.init(); options}.invoke())
+    constructor(init: ImageOptions.() -> Unit) : this({ val options = ImageOptions(url = "", alt = ""); options.init(); options }.invoke())
 }
 
 
@@ -232,6 +232,7 @@ data class Suggestions(
      */
     constructor(vararg suggestions: String) : this(suggestions = suggestions.map { GoogleActionsV2UiElementsSuggestion(title = it) }.asReversed().toMutableList())
 
+//    constructor(suggestions: Array<String>) : this(suggestions = suggestions.map { GoogleActionsV2UiElementsSuggestion(title = it) }.asReversed().toMutableList())
 
     fun add(vararg suggs: String): Suggestions {
         this.suggestions = suggs.map { GoogleActionsV2UiElementsSuggestion(title = it) }.toMutableList()
@@ -253,12 +254,15 @@ class MediaObject(override var contentUrl: String? = null,
      * @param options MediaObject options or just a string for the url
      * @public
      */
-    constructor(options: MediaObjectOptions) : this(
-            contentUrl = options.url,
-            description = options.description,
-            icon = options.icon,
-            largeImage = options.image,
-            name = options.name)
+    constructor(init: MediaObjectOptions.() -> Unit) : this() {
+        val options = MediaObjectOptions()
+        options.init()
+        contentUrl = options.url
+        description = options.description
+        icon = options.icon
+        largeImage = options.image
+        name = options.name
+    }
 
     constructor(options: String) : this(contentUrl = options)
 }
@@ -283,9 +287,7 @@ abstract class Question(intent: IntentEnum) : GoogleActionsV2ExpectedIntent, Res
     }
 }
 
-abstract class SoloQuestion(intent: IntentEnum): Question(intent)
-
-
+abstract class SoloQuestion(intent: IntentEnum) : Question(intent)
 
 
 /**
@@ -302,11 +304,11 @@ data class SimpleResponse(override var displayText: String? = null,
      */
     constructor(options: SimpleResponseOptions) : this(textToSpeech = options.speech,
             displayText = options.text)
-    constructor(init: SimpleResponseOptions.() -> Unit): this({val options = SimpleResponseOptions(speech = ""); options.init(); options}.invoke())
+
+    constructor(init: SimpleResponseOptions.() -> Unit) : this({ val options = SimpleResponseOptions(speech = ""); options.init(); options }.invoke())
 
     constructor(options: String? = null) : this(textToSpeech = options)
 }
-
 
 
 class BasicCard(override var buttons: MutableList<GoogleActionsV2UiElementsButton>? = null,
@@ -325,9 +327,8 @@ class BasicCard(override var buttons: MutableList<GoogleActionsV2UiElementsButto
             imageDisplayOptions = options.display
     )
 
-    constructor(init: BasicCardOptions.() -> Unit): this({val options = BasicCardOptions(); options.init();options}.invoke())
+    constructor(init: BasicCardOptions.() -> Unit) : this({ val options = BasicCardOptions(); options.init();options }.invoke())
 }
-
 
 
 /**
@@ -399,10 +400,8 @@ data class Table(override var buttons: MutableList<GoogleActionsV2UiElementsButt
                  override var subtitle: String? = null,
                  override var title: String? = null) : GoogleActionsV2UiElementsTableCard, RichResponseItem() {
 
-    constructor(options: TableOptions) : this(
-            title = options.title,
-            subtitle = options.subtitle,
-            image = options.image
+    constructor(init: TableOptions.() -> Unit) : this(
+
 //            rows = options.rows.map(row => Array.isArray(row) ? {
 //        cells: row.map(text => ({ text })),
 //        dividerAfter: options.dividers,
@@ -430,7 +429,13 @@ data class Table(override var buttons: MutableList<GoogleActionsV2UiElementsButt
 //    this.buttons = if (options.buttons)
 //}
 //}
-    )
+    ) {
+        val options = TableOptions()
+        options.init()
+        title = options.title
+        subtitle = options.subtitle
+        image = options.image
+    }
 }
 
 
@@ -438,7 +443,7 @@ data class Table(override var buttons: MutableList<GoogleActionsV2UiElementsButt
  * Class for initializing and constructing MediaResponse.
  * @public
  */
-class MediaResponse(): GoogleActionsV2MediaResponse, RichResponseItem() {
+class MediaResponse() : GoogleActionsV2MediaResponse, RichResponseItem() {
     override var mediaObjects: MutableList<GoogleActionsV2MediaObject>?
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
         set(value) {}
@@ -540,11 +545,11 @@ data class LinkOutSuggestion(override var destinationName: String? = null,
      * @param options LinkOutSuggestion options
      * @public
      */
-    constructor(options: LinkOutSuggestionOptions): this(
+    constructor(options: LinkOutSuggestionOptions) : this(
             destinationName = options.name,
             url = options.url)
 
-    constructor(init: LinkOutSuggestionOptions.() -> Unit): this({val options = LinkOutSuggestionOptions(name = "", url = ""); options.init(); options}.invoke())
+    constructor(init: LinkOutSuggestionOptions.() -> Unit) : this({ val options = LinkOutSuggestionOptions(name = "", url = ""); options.init(); options }.invoke())
 }
 
 
@@ -573,7 +578,7 @@ data class GoogleActionsV2RichResponseItem(
          * Table card.
          */
         var tableCard: GoogleActionsV2UiElementsTableCard? = null
-): RichResponseItem()
+) : RichResponseItem()
 
 
 /**
@@ -582,45 +587,46 @@ data class GoogleActionsV2RichResponseItem(
  */
 class BrowseCarousel(override var imageDisplayOptions: GoogleActionsV2UiElementsCarouselBrowseImageDisplayOptions? = null,
                      override var items: MutableList<GoogleActionsV2UiElementsCarouselBrowseItem>? = null) : GoogleActionsV2UiElementsCarouselBrowse, RichResponseItem() {
-    /*
-    /**
-     * @param options BrowseCarousel options
-     * @public
-     */
-    constructor(options: BrowseCarouselOptions)
+
     /**
      * @param items BrowseCarousel items
      * @public
      */
-    constructor(vararg items: GoogleActionsV2UiElementsCarouselBrowseItem)
-    /**
-     * @param items BrowseCarousel items
-     * @public
-     */
-    constructor(
-            options?: BrowseCarouselOptions |
-            GoogleActionsV2UiElementsCarouselBrowseItem[] |
-    GoogleActionsV2UiElementsCarouselBrowseItem,
-    var arg items: GoogleActionsV2UiElementsCarouselBrowseItem): this() {
-        if (!options) {
-            this.items = []
-            return
-        }
-        if (Array.isArray(options)) {
-            this.items = options
-            return
-        }
-        if (isOptions(options)) {
-            this.imageDisplayOptions = options.display
-            this.items = options.items
-            return
-        }
-        this.items = [options].concat(items)
+    constructor(vararg items: GoogleActionsV2UiElementsCarouselBrowseItem?) : this() {
+        this.items = items.filterNotNull().toMutableList()
     }
-    */
+
+    /**
+     * @param item BrowseCarousel item
+     * @public
+     */
+    constructor(item: GoogleActionsV2UiElementsCarouselBrowseItem?) : this() {
+        if (item == null) {
+            this.items = mutableListOf()
+        } else {
+            items?.add(item)
+        }
+    }
+
+    /**
+     * @param options BrowseCarouselOptions
+     * @public
+     */
+    constructor(init: BrowseCarouselOptions.() -> Unit) : this() {
+        val options = BrowseCarouselOptions()
+        options.init()
+        if (options == null) {
+            this.items = mutableListOf()
+            return
+        }
+
+        this.imageDisplayOptions = options.display
+        this.items = options.items
+        return
+    }
 }
 
-class List(init: ListOptions2.() -> Unit): Question(IntentEnum.OPTION) {
+class List(init: ListOptions2.() -> Unit) : Question(IntentEnum.OPTION) {
 
     init {
         val options = ListOptions2()
@@ -633,7 +639,6 @@ class List(init: ListOptions2.() -> Unit): Question(IntentEnum.OPTION) {
         }
     }
 }
-
 
 
 /**
@@ -704,7 +709,7 @@ class List(init: ListOptions2.() -> Unit): Question(IntentEnum.OPTION) {
  *
  * @public
  */
-class Carousel(init: CarouselOptions.() -> Unit): Question(IntentEnum.OPTION) {
+class Carousel(init: CarouselOptions.() -> Unit) : Question(IntentEnum.OPTION) {
 
     /**
      * @param options Carousel option
@@ -716,8 +721,8 @@ class Carousel(init: CarouselOptions.() -> Unit): Question(IntentEnum.OPTION) {
 
         this._data(actions.service.actionssdk.conversation.InputValueSpec.OptionValueSpec) {
             carouselSelect = actions.service.actionssdk.api.GoogleActionsV2UiElementsCarouselSelect(
-            items = options.items.toGoogleActionsV2CarouselItem(),
-            imageDisplayOptions = options.display
+                    items = options.items.toGoogleActionsV2CarouselItem(),
+                    imageDisplayOptions = options.display
             )
         }
     }
