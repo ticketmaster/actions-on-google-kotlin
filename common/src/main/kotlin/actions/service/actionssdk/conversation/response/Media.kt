@@ -2,7 +2,6 @@ package actions.service.actionssdk.conversation.response
 
 import actions.service.actionssdk.api.GoogleActionsV2MediaResponseMediaType
 import actions.service.actionssdk.api.GoogleActionsV2UiElementsImage
-import actions.service.actionssdk.conversation.response.MediaObject
 
 data class MediaObjectOptions(
     /**
@@ -37,19 +36,19 @@ fun String.toMediaObject(): MediaObject = MediaObject(contentUrl = this)
 
 //typealias MediaObjectString = GoogleActionsV2MediaObject | string
 
-interface MediaResponseOptions {
+data class MediaResponseOptions(
     /**
      * Array of MediaObject held in the MediaResponse.
      * @public
      */
-    var objects: MutableList<MediaObject>
+    var objects: MutableList<MediaObject>? = null,
     /**
      * Type of the media within this MediaResponse.
      * Defaults to 'AUDIO'
      * @public
      */
-    var type: GoogleActionsV2MediaResponseMediaType?
-}
+    var type: GoogleActionsV2MediaResponseMediaType? = null
+)
 
 //const isOptions = (
 //options: MediaResponseOptions | MediaObjectString,

@@ -6,32 +6,7 @@
         "items": [
           {
             "simpleResponse": {
-              "textToSpeech": "This is the first simple response for a basic card."
-            }
-          },
-          {
-            "basicCard": {
-              "title": "Title: this is a title",
-              "subtitle": "This is a subtitle",
-              "formattedText": "This is a basic card.  Text in a basic card can include \"quotes\" and\n    most other unicode characters including emoji 📱.  Basic cards also support\n    some markdown formatting like *emphasis* or _italics_, **strong** or\n    __bold__, and ***bold itallic*** or ___strong emphasis___ as well as other\n    things like line  \nbreaks",
-              "image": {
-                "url": "https://developers.google.com/actions/images/badges/XPM_BADGING_GoogleAssistant_VER.png",
-                "accessibilityText": "Image alternate text"
-              },
-              "buttons": [
-                {
-                  "title": "This is a button",
-                  "openUrlAction": {
-                    "url": "https://assistant.google.com/"
-                  }
-                }
-              ]
-            }
-          },
-          {
-            "simpleResponse": {
-              "textToSpeech": "This is the second simple response.",
-              "displayText": "This is the 2nd simple response."
+              "textToSpeech": "This is a simple response for a carousel."
             }
           }
         ],
@@ -62,12 +37,83 @@
           }
         ]
       },
-      "userStorage": "{\"data\":{}}"
+      "userStorage": "{\"data\":{}}",
+      "systemIntent": {
+        "intent": "actions.intent.OPTION",
+        "data": {
+          "@type": "type.googleapis.com/google.actions.v2.OptionValueSpec",
+          "carouselSelect": {
+            "items": [
+              {
+                "optionInfo": {
+                  "key": "title",
+                  "synonyms": [
+                    "synonym of title 1",
+                    "synonym of title 2",
+                    "synonym of title 3"
+                  ]
+                },
+                "description": "This is a description of a carousel item.",
+                "image": {
+                  "url": "https://developers.google.com/actions/images/badges/XPM_BADGING_GoogleAssistant_VER.png",
+                  "accessibilityText": "Image alternate text"
+                },
+                "title": "Title of First Carousel Item"
+              },
+              {
+                "optionInfo": {
+                  "key": "googleHome",
+                  "synonyms": [
+                    "Google Home Assistant",
+                    "Assistant on the Google Home"
+                  ]
+                },
+                "description": "Google Home is a voice-activated speaker powered by the Google Assistant.",
+                "image": {
+                  "url": "https://lh3.googleusercontent.com/Nu3a6F80WfixUqf_ec_vgXy_c0-0r4VLJRXjVFF_X_CIilEu8B9fT35qyTEj_PEsKw",
+                  "accessibilityText": "Google Home"
+                },
+                "title": "Google Home"
+              },
+              {
+                "optionInfo": {
+                  "key": "googlePixel",
+                  "synonyms": [
+                    "Google Pixel XL",
+                    "Pixel",
+                    "Pixel XL"
+                  ]
+                },
+                "description": "Pixel. Phone by Google.",
+                "image": {
+                  "url": "https://storage.googleapis.com/madebygoog/v1/Pixel/Pixel_ColorPicker/Pixel_Device_Angled_Black-720w.png",
+                  "accessibilityText": "Google Pixel"
+                },
+                "title": "Google Pixel"
+              },
+              {
+                "optionInfo": {
+                  "key": "googleAllo",
+                  "synonyms": [
+                    "Allo"
+                  ]
+                },
+                "description": "Introducing Google Allo, a smart messaging app that helps you say more and do more.",
+                "image": {
+                  "url": "https://allo.google.com/images/allo-logo.png",
+                  "accessibilityText": "Google Allo Logo"
+                },
+                "title": "Google Allo"
+              }
+            ]
+          }
+        }
+      }
     }
   },
   "outputContexts": [
     {
-      "name": "projects/df-sample-v2/agent/sessions/1530842303910/contexts/_actions_on_google",
+      "name": "projects/df-sample-v2/agent/sessions/1531012494339/contexts/_actions_on_google",
       "lifespanCount": 99,
       "parameters": {
         "data": "{}"

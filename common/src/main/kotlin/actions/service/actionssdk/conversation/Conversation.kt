@@ -355,12 +355,12 @@ abstract class Conversation<TUserStorage> {
                     if (richResponse.suggestions == null || richResponse.suggestions?.isEmpty() == true) {
                         richResponse.suggestions = mutableListOf()
                     }
-                    richResponse.suggestions!!.push(*response.suggestions.toTypedArray())
+                    richResponse.suggestions!!.addAll(response.suggestions)
                 }
 
                 is Image -> richResponse.add(BasicCard(image = response))
 
-                is MediaObject -> richResponse.add(MediaResponse(/*response*/))
+                is MediaObject -> richResponse.add(MediaResponse(response))
 
                 is RichResponseItem -> richResponse.add(response)
             }

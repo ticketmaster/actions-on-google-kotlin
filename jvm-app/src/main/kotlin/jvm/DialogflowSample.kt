@@ -249,7 +249,7 @@ fun initDf() {
             conv.ask("Sorry, try this on a screen device or select the " +
                     "phone surface in the simulator.")
         } else {
-            conv.ask("""This is an example of a " Browse Carousel"""")
+            conv.ask("""This is an example of a "Browse Carousel"""")
             // Create a browse carousel
             conv.ask(BrowseCarousel {
                 items = mutableListOf(

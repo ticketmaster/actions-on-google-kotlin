@@ -230,7 +230,7 @@ data class Suggestions(
      * @param suggestions Texts of the suggestions.
      * @public
      */
-    constructor(vararg suggestions: String) : this(suggestions = suggestions.map { GoogleActionsV2UiElementsSuggestion(title = it) }.asReversed().toMutableList())
+    constructor(vararg suggestions: String) : this(suggestions = suggestions.map { GoogleActionsV2UiElementsSuggestion(title = it) }.toMutableList())
 
 //    constructor(suggestions: Array<String>) : this(suggestions = suggestions.map { GoogleActionsV2UiElementsSuggestion(title = it) }.asReversed().toMutableList())
 
@@ -444,28 +444,32 @@ data class Table(override var buttons: MutableList<GoogleActionsV2UiElementsButt
  * @public
  */
 class MediaResponse() : GoogleActionsV2MediaResponse, RichResponseItem() {
-    override var mediaObjects: MutableList<GoogleActionsV2MediaObject>?
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
-        set(value) {}
-    override var mediaType: GoogleActionsV2MediaResponseMediaType?
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
-        set(value) {}
-    /*
-    /**
-     * @param options MediaResponse options
-     * @public
-     */
-    constructor(options: MediaResponseOptions): this(options = options, objects = null)
+    override var mediaObjects: MutableList<GoogleActionsV2MediaObject>? = null
+
+    override var mediaType: GoogleActionsV2MediaResponseMediaType? = null
+
 
     /**
      * @param objects MediaObjects
      * @public
      */
-    constructor(vararg objects: MediaObject): this(options = null, objects = *objects)
+    constructor(vararg objects: MediaObject) : this() {
+        this.mediaType = GoogleActionsV2MediaResponseMediaType.AUDIO
+        this.mediaObjects = objects.toMutableList() //objects.map(o => toMediaObject (o))
+    }
 
-    constructor(options: MediaResponseOptions? /*|
-    MediaObjectString[] | MediaObjectString*/,
-                vararg objects: MediaObject?) {
+    constructor(vararg strings: String) : this() {
+        this.mediaType = GoogleActionsV2MediaResponseMediaType.AUDIO
+        this.mediaObjects = strings.map { it.toMediaObject() }.toMutableList()
+    }
+
+    /**
+     * @param options MediaResponse options
+     * @public
+     */
+    constructor(init: MediaResponseOptions.() -> Unit) : this() {
+        val options = MediaResponseOptions()
+        options.init()
         this.mediaType = GoogleActionsV2MediaResponseMediaType.AUDIO
 
         if (options != null) {
@@ -473,19 +477,12 @@ class MediaResponse() : GoogleActionsV2MediaResponse, RichResponseItem() {
             return
         }
 
-        if (Array.isArray(options)) {
-            this.mediaObjects = options.map(o => toMediaObject(o))
-            return
-        }
 
-        if (isOptions(options)) {
-            this.mediaType = options.type || this.mediaType
-            this.mediaObjects = options.objects.map(o => toMediaObject(o))
-            return
-        }
-        this.mediaObjects = [options].concat(objects).map(o => toMediaObject(o))
+
+        this.mediaType = options.type ?: this.mediaType
+        this.mediaObjects = options.objects?.toMutableList()
+
     }
-    */
 }
 
 

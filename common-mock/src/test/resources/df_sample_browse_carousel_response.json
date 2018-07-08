@@ -6,32 +6,37 @@
         "items": [
           {
             "simpleResponse": {
-              "textToSpeech": "This is the first simple response for a basic card."
+              "textToSpeech": "This is an example of a \"Browse Carousel\""
             }
           },
           {
-            "basicCard": {
-              "title": "Title: this is a title",
-              "subtitle": "This is a subtitle",
-              "formattedText": "This is a basic card.  Text in a basic card can include \"quotes\" and\n    most other unicode characters including emoji 📱.  Basic cards also support\n    some markdown formatting like *emphasis* or _italics_, **strong** or\n    __bold__, and ***bold itallic*** or ___strong emphasis___ as well as other\n    things like line  \nbreaks",
-              "image": {
-                "url": "https://developers.google.com/actions/images/badges/XPM_BADGING_GoogleAssistant_VER.png",
-                "accessibilityText": "Image alternate text"
-              },
-              "buttons": [
+            "carouselBrowse": {
+              "items": [
                 {
-                  "title": "This is a button",
+                  "title": "Title of item 1",
                   "openUrlAction": {
-                    "url": "https://assistant.google.com/"
+                    "url": "https://google.com"
+                  },
+                  "description": "Description of item 1",
+                  "footer": "Item 1 footer",
+                  "image": {
+                    "url": "https://developers.google.com/actions/images/badges/XPM_BADGING_GoogleAssistant_VER.png",
+                    "accessibilityText": "Google Assistant Bubbles"
+                  }
+                },
+                {
+                  "title": "Title of item 2",
+                  "openUrlAction": {
+                    "url": "https://google.com"
+                  },
+                  "description": "Description of item 2",
+                  "footer": "Item 2 footer",
+                  "image": {
+                    "url": "https://developers.google.com/actions/images/badges/XPM_BADGING_GoogleAssistant_VER.png",
+                    "accessibilityText": "Google Assistant Bubbles"
                   }
                 }
               ]
-            }
-          },
-          {
-            "simpleResponse": {
-              "textToSpeech": "This is the second simple response.",
-              "displayText": "This is the 2nd simple response."
             }
           }
         ],
@@ -67,7 +72,7 @@
   },
   "outputContexts": [
     {
-      "name": "projects/df-sample-v2/agent/sessions/1530842303910/contexts/_actions_on_google",
+      "name": "projects/df-sample-v2/agent/sessions/1531012494339/contexts/_actions_on_google",
       "lifespanCount": 99,
       "parameters": {
         "data": "{}"
