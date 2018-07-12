@@ -207,7 +207,17 @@ data class GoogleActionsV2Argument(
          * `text_value` as option key, the `raw_text` above will indicate the raw
          * span in user's query.
          */
-        var textValue: String? = null)
+        var textValue: String? = null,
+
+        /**** ADDED FOR KOTLIN ***/
+        var resultType: GoogleActionsV2TransactionRequirementsCheckResultResultType? = null,
+
+        var userDecision: String? = null,
+
+        var location: GoogleActionsV2Location? = null,
+
+        var order: GoogleActionsV2OrdersOrder? = null
+)
 
 data class GoogleActionsV2Capability(
         /**
@@ -341,7 +351,12 @@ data class GoogleActionsV2DeliveryAddressValueSpec(
          * Configuration for delivery address dialog.
          */
         var addressOptions: GoogleActionsV2DeliveryAddressValueSpecAddressOptions? = null
-)
+) {
+    fun addressOptions(init: GoogleActionsV2DeliveryAddressValueSpecAddressOptions.() -> Unit) {
+        this.addressOptions = GoogleActionsV2DeliveryAddressValueSpecAddressOptions()
+        this.addressOptions?.init()
+    }
+}
 
 data class GoogleActionsV2DeliveryAddressValueSpecAddressOptions(
         /**
@@ -744,7 +759,30 @@ data class GoogleActionsV2OrdersCart(
          * be sent back as discount line items in proposed order.
          */
         var promotions: MutableList<GoogleActionsV2OrdersPromotion>? = null
-)
+) {
+
+    fun merchant(init: GoogleActionsV2OrdersMerchant.() -> Unit) {
+        val merchant = GoogleActionsV2OrdersMerchant()
+        merchant.init()
+        this.merchant = merchant
+    }
+
+    fun lineItems(vararg init: GoogleActionsV2OrdersLineItem.() -> Unit) {
+        this.lineItems = init.map {
+            val item = GoogleActionsV2OrdersLineItem()
+            item.it()
+            item
+        }.toMutableList()
+    }
+
+    fun otherItems(vararg init: GoogleActionsV2OrdersLineItem.() -> Unit) {
+        this.otherItems = init.map {
+            val item = GoogleActionsV2OrdersLineItem()
+            item.it()
+            item
+        }.toMutableList()
+    }
+}
 
 data class GoogleActionsV2OrdersCustomerInfo(
         /**
@@ -853,7 +891,21 @@ data class GoogleActionsV2OrdersLineItem(
          * Type of line item.
          */
         var type: GoogleActionsV2OrdersLineItemType? = null
-)
+) {
+    fun price(init: GoogleActionsV2OrdersPrice.() -> Unit) {
+        val price = GoogleActionsV2OrdersPrice()
+        price.init()
+        this.price = price
+    }
+
+    fun subLines(vararg init: GoogleActionsV2OrdersLineItemSubLine.() -> Unit) {
+        this.subLines = init.map {
+            val subLine = GoogleActionsV2OrdersLineItemSubLine()
+            subLine.it()
+            subLine
+        }?.toMutableList()
+    }
+}
 
 data class GoogleActionsV2OrdersLineItemSubLine(
         /**
@@ -864,7 +916,13 @@ data class GoogleActionsV2OrdersLineItemSubLine(
          * A note associated with the line item.
          */
         var note: String? = null
-)
+) {
+    fun lineItem(init: GoogleActionsV2OrdersLineItem.() -> Unit) {
+        val item = GoogleActionsV2OrdersLineItem()
+        item.init()
+        this.lineItem = item
+    }
+}
 
 data class GoogleActionsV2OrdersLineItemUpdate(
         /**
@@ -934,7 +992,12 @@ data class GoogleActionsV2OrdersOrderLocation(
          * Address type. Determines icon and placement. Required.
          */
         var type: GoogleActionsV2OrdersOrderLocationType? = null
-)
+) {
+    fun location(init: GoogleActionsV2Location.() -> Unit) {
+        this.location = GoogleActionsV2Location()
+        this.location?.init()
+    }
+}
 
 data class GoogleActionsV2OrdersOrderOptions(
         /**
@@ -1053,7 +1116,12 @@ data class GoogleActionsV2OrdersOrderUpdateAction(
          * Type of action.
          */
         var type: GoogleActionsV2OrdersOrderUpdateActionType? = null
-)
+) {
+    fun button(init: GoogleActionsV2UiElementsButton.() -> Unit) {
+        this.button = GoogleActionsV2UiElementsButton()
+        this.button?.init()
+    }
+}
 
 data class GoogleActionsV2OrdersOrderUpdateUserNotification(
         /**
@@ -1146,7 +1214,18 @@ data class GoogleActionsV2OrdersPaymentOptions(
          * Requirements for Google provided payment instrument.
          */
         var googleProvidedOptions: GoogleActionsV2OrdersGoogleProvidedPaymentOptions? = null
-)
+) {
+    fun actionProvidedOptions(init: GoogleActionsV2OrdersActionProvidedPaymentOptions.() -> Unit) {
+        this.actionProvidedOptions = GoogleActionsV2OrdersActionProvidedPaymentOptions()
+        this.actionProvidedOptions?.init()
+    }
+
+    fun googleProvidedOptions(init: GoogleActionsV2OrdersGoogleProvidedPaymentOptions.() -> Unit) {
+        this.googleProvidedOptions = GoogleActionsV2OrdersGoogleProvidedPaymentOptions()
+        this.googleProvidedOptions?.init()
+
+    }
+}
 
 data class GoogleActionsV2OrdersPresentationOptions(
         /**
@@ -1177,7 +1256,13 @@ data class GoogleActionsV2OrdersPrice(
          * Type of price. Required.
          */
         var type: GoogleActionsV2OrdersPriceType? = null
-)
+) {
+    fun amount(init: GoogleTypeMoney.() -> Unit) {
+        val amount = GoogleTypeMoney()
+        amount.init()
+        this.amount = amount
+    }
+}
 
 data class GoogleActionsV2OrdersPromotion(
         /**
@@ -1196,7 +1281,7 @@ data class GoogleActionsV2OrdersProposedOrder(
          * For example, if the order includes a location then this extension will
          * contain a OrderLocation value.
          */
-        var extension: ApiClientObjectMap<Any>? = null,
+        var extension: ProtoAny? = null, //ApiClientObjectMap<Any>? = null,
         /**
          * Optional id for this ProposedOrder. Included as part of the
          * ProposedOrder returned back to the integrator at confirmation time.
@@ -1219,7 +1304,28 @@ data class GoogleActionsV2OrdersProposedOrder(
          * the caller will charge when the user confirms the proposed order.
          */
         var totalPrice: GoogleActionsV2OrdersPrice? = null
-)
+) {
+    fun cart(init: GoogleActionsV2OrdersCart.() -> Unit): GoogleActionsV2OrdersCart {
+        val cart = GoogleActionsV2OrdersCart()
+        cart.init()
+        return cart
+    }
+
+    fun totalPrice(init: GoogleActionsV2OrdersPrice.() -> Unit) {
+        this.totalPrice = GoogleActionsV2OrdersPrice()
+        this.totalPrice?.init()
+    }
+    fun extension(init: ProtoAny.() -> Unit) {
+        extension = ProtoAny()
+        extension?.init()
+    }
+}
+
+fun order(init: GoogleActionsV2OrdersProposedOrder.() -> Unit): GoogleActionsV2OrdersProposedOrder {
+    val order = GoogleActionsV2OrdersProposedOrder()
+    order.init()
+    return order
+}
 
 data class GoogleActionsV2OrdersReceipt(
         /**
@@ -1526,7 +1632,18 @@ data class GoogleActionsV2TransactionDecisionValueSpec(
          * The proposed order that's ready for user to approve.
          */
         var proposedOrder: GoogleActionsV2OrdersProposedOrder? = null
-)
+) {
+
+    fun orderOptions(init: GoogleActionsV2OrdersOrderOptions.() -> Unit) {
+        this.orderOptions = GoogleActionsV2OrdersOrderOptions()
+        this.orderOptions?.init()
+    }
+
+    fun paymentOptions(init: GoogleActionsV2OrdersPaymentOptions.() -> Unit) {
+        this.paymentOptions = GoogleActionsV2OrdersPaymentOptions()
+        this.paymentOptions?.init()
+    }
+}
 
 data class GoogleActionsV2TransactionRequirementsCheckResult(
         /**
@@ -1594,17 +1711,22 @@ interface GoogleActionsV2UiElementsBasicCard {
     var title: String?
 }
 
-interface GoogleActionsV2UiElementsButton {
+open class GoogleActionsV2UiElementsButton(
     /**
      * Action to take when a user taps on the button.
      * Required.
      */
-    var openUrlAction: GoogleActionsV2UiElementsOpenUrlAction?
+    open var openUrlAction: GoogleActionsV2UiElementsOpenUrlAction? = null,
     /**
      * Title of the button.
      * Required.
      */
-    var title: String?
+    open var title: String? = null
+) {
+    fun openUrlAction(init: GoogleActionsV2UiElementsOpenUrlAction.() -> Unit) {
+        this.openUrlAction = GoogleActionsV2UiElementsOpenUrlAction()
+        this.openUrlAction?.init()
+    }
 }
 
 interface GoogleActionsV2UiElementsCarouselBrowse {
@@ -1769,22 +1891,22 @@ data class GoogleActionsV2UiElementsListSelectListItem(
         var title: String? = null
 )
 
-interface GoogleActionsV2UiElementsOpenUrlAction {
+data class GoogleActionsV2UiElementsOpenUrlAction(
     /**
      * Information about the Android App if the URL is expected to be
      * fulfilled by an Android App.
      */
-    var androidApp: GoogleActionsV2DevicesAndroidApp?
+    var androidApp: GoogleActionsV2DevicesAndroidApp? = null,
     /**
      * The url field which could be any of:
      * - http/https urls for opening an App-linked App or a webpage
      */
-    var url: String?
+    var url: String? = null,
     /**
      * Indicates a hint for the url type.
      */
-    var urlTypeHint: GoogleActionsV2UiElementsOpenUrlActionUrlTypeHint?
-}
+    var urlTypeHint: GoogleActionsV2UiElementsOpenUrlActionUrlTypeHint? = null
+)
 
 data class GoogleActionsV2UiElementsSuggestion(
         /**
@@ -2023,7 +2145,7 @@ data class GoogleTypeMoney(
          * The whole units of the amount.
          * For example if `currencyCode` is `\"USD\"`, then 1 unit is one US dollar.
          */
-        var units: String? = null
+        var units: Int? = null
 )
 
 data class GoogleTypePostalAddress(

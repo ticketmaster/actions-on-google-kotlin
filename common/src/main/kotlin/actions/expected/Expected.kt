@@ -4,7 +4,8 @@ package actions.expected
  Classes that must have platform specific implementations.  May need refactoring into separate files
  */
 
-data class Date(var timeStamp: String? = null) {
+expect class Date(timeStamp: String? = null) {
+    fun toISOString(): String?
 
 }
 

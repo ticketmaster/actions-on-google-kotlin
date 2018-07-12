@@ -29,14 +29,25 @@ data class ProtoAny(var `@type`: String? = null,
                     var checkResult: MutableList<GoogleActionsV2TransactionRequirementsCheckResult>? = null,
                     var deliveryAddress: GoogleActionsV2Location? = null,
                     var order: GoogleActionsV2OrdersOrder? = null,
+                    var presentationOptions: GoogleActionsV2OrdersPresentationOptions? = null,
+                    var proposedOrder: GoogleActionsV2OrdersProposedOrder? = null,
                     var userDecision: GoogleActionsV2TransactionDecisionValueUserDecision? = null,
                     var orderOptions: GoogleActionsV2OrdersOrderOptions? = null,
                     var paymentOptions: GoogleActionsV2OrdersPaymentOptions? = null,
                     var listSelect: GoogleActionsV2UiElementsListSelect? = null,
-                    var carouselSelect: GoogleActionsV2UiElementsCarouselSelect? = null) {
+                    var carouselSelect: GoogleActionsV2UiElementsCarouselSelect? = null,
+                    var locations: MutableList<GoogleActionsV2OrdersOrderLocation>? = null) {
 
     fun dialogSpec(init: DialogSpecData.() -> Unit) {
 
+    }
+
+    fun locations(vararg init: GoogleActionsV2OrdersOrderLocation.() -> Unit) {
+        this.locations = init.map {
+            val location = GoogleActionsV2OrdersOrderLocation()
+            location.it()
+            location
+        }.toMutableList()
     }
 }
 
@@ -52,4 +63,4 @@ data class DialogSpecData(var `@type`: String? = null,
 
 
 /** @hidden */
-class ApiClientObjectMap<TValue> : Map<String, TValue> by mutableMapOf<String, TValue>()
+class ApiClientObjectMap<TValue> : MutableMap<String, TValue> by mutableMapOf<String, TValue>()

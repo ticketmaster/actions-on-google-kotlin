@@ -20,6 +20,14 @@
         <url-pattern>/df</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>DfTransactionsWebhook</servlet-name>
+        <servlet-class>jvm.DfTransactionsWebhook</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DfTransactionsWebhook</servlet-name>
+        <url-pattern>/df/transactions</url-pattern>
+    </servlet-mapping>
 
     <security-constraint>
         <web-resource-collection>
@@ -42,8 +50,8 @@
     </security-constraint>
 
     <!--<listener>-->
-        <!--<listener-class>com.tmsdurham.maestro.StartupListener-->
-        <!--</listener-class>-->
+    <!--<listener-class>com.tmsdurham.maestro.StartupListener-->
+    <!--</listener-class>-->
     <!--</listener>-->
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>

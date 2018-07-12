@@ -8,10 +8,3 @@ interface OpenUrlActionOptions {
     var url: String?
 }
 
-data class OpenUrlAction(override var androidApp: GoogleActionsV2DevicesAndroidApp? = null,
-                         override var url: String? = null,
-                         override var urlTypeHint: GoogleActionsV2UiElementsOpenUrlActionUrlTypeHint? = null) : GoogleActionsV2UiElementsOpenUrlAction {
-
-    constructor(options: OpenUrlActionOptions? = null) : this(
-            url = options?.url)
-}

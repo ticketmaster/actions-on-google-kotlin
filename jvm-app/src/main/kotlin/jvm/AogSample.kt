@@ -9,9 +9,7 @@ import actions.expected.framework.TestHttpServletResponse
 import actions.expected.gson
 import actions.expected.logger
 import actions.service.actionssdk.actionssdk
-import actions.service.actionssdk.api.GoogleActionsV2AppRequest
-import actions.service.actionssdk.api.GoogleActionsV2UiElementsOpenUrlAction
-import actions.service.actionssdk.api.GoogleActionsV2User
+import actions.service.actionssdk.api.*
 import actions.service.actionssdk.conversation.Conversation
 import actions.service.actionssdk.conversation.IntentEnum
 import actions.service.actionssdk.conversation.SurfaceCapability
@@ -32,7 +30,9 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 data class UserStorage(var name: String? = null)
-data class ConversationData(var lastResponse: String? = null)
+data class ConversationData(var lastResponse: String? = null,
+                            var deliveryAddress: GoogleActionsV2Location? = null,
+                            var userDecision: String? = null)
 
 fun <T> Conversation<T>.hasScreen(): Boolean = surface.capabilities?.has(SurfaceCapability.ACTIONS_CAPABILITY_SCREEN_OUTPUT)
         ?: false

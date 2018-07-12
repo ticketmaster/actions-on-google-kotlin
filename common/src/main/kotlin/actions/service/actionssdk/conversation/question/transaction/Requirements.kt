@@ -12,12 +12,14 @@ typealias TransactionRequirementsArgument = GoogleActionsV2TransactionRequiremen
  * Checks whether user is in transactable state.
  * @public
  */
-class TransactionRequirements(options: GoogleActionsV2TransactionRequirementsCheckSpec): SoloQuestion(IntentEnum.TRANSACTION_REQUIREMENTS_CHECK) {
+class TransactionRequirements(init: GoogleActionsV2TransactionRequirementsCheckSpec.() -> Unit): SoloQuestion(IntentEnum.TRANSACTION_REQUIREMENTS_CHECK) {
     /**
      * @param options The raw {@link GoogleActionsV2TransactionRequirementsCheckSpec}
      * @public
      */
     init {
+        val options = GoogleActionsV2TransactionRequirementsCheckSpec()
+        options.init()
         this._data(InputValueSpec.TransactionRequirementsCheckSpec) {
             orderOptions = options.orderOptions
             paymentOptions = options.paymentOptions

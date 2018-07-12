@@ -65,7 +65,7 @@ class BrowseCarouselItem(override var description: String? = null,
         val options = BrowseCarouselItemOptions()
         options.init()
         title = options.title
-        openUrlAction = OpenUrlAction(
+        openUrlAction = GoogleActionsV2UiElementsOpenUrlAction(
                 url = options.url)
         description = options.description
         footer = options.footer

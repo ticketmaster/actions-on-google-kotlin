@@ -47,7 +47,9 @@ private val intentSuggestions = arrayOf(
 val app = actionssdk<ConversationData, UserStorage>({ debug = true })
 
 data class MyConversation(val temp: String? = null)
-data class MyArgument(val temp: String? = null)
+data class MyArgument(val temp: String? = null,
+                      var resultType: String? = null,
+                      var userDescision: String? = null)
 
 
 fun initActionsApp() {

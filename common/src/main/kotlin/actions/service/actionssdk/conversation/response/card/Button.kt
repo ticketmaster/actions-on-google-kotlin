@@ -2,7 +2,6 @@ package actions.service.actionssdk.conversation.response.card
 
 import actions.service.actionssdk.api.GoogleActionsV2UiElementsButton
 import actions.service.actionssdk.api.GoogleActionsV2UiElementsOpenUrlAction
-import actions.service.actionssdk.conversation.response.OpenUrlAction
 
 
 data class ButtonOptions(
@@ -30,7 +29,7 @@ data class ButtonOptions(
  * @public
  */
 data class Button(override var openUrlAction: GoogleActionsV2UiElementsOpenUrlAction? = null,
-                  override var title: String? = null) : GoogleActionsV2UiElementsButton {
+                  override var title: String? = null) : GoogleActionsV2UiElementsButton() {
     /**
      * @param options Button options
      * @public
@@ -38,7 +37,7 @@ data class Button(override var openUrlAction: GoogleActionsV2UiElementsOpenUrlAc
     constructor(options: ButtonOptions) : this(
             title = options.title,
             openUrlAction = when {
-                options.url != null -> OpenUrlAction(url = options.url)
+                options.url != null -> GoogleActionsV2UiElementsOpenUrlAction(url = options.url)
                 options.action != null -> options.action
                 else -> null
             })

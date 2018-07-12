@@ -95,7 +95,7 @@ class DeepLink(options: DeepLinkOptions) : Question(IntentEnum.LINK) {
                 requestLinkReason = options.reason)
 
         this._data(InputValueSpec.LinkValueSpec) {
-            openUrlAction = actions.service.actionssdk.conversation.response.OpenUrlAction(
+            openUrlAction = actions.service.actionssdk.api.GoogleActionsV2UiElementsOpenUrlAction(
                     url = options.url,
                     androidApp = actions.service.actionssdk.api.GoogleActionsV2DevicesAndroidApp(
                             packageName = options.`package`)

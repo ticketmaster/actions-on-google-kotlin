@@ -527,6 +527,48 @@ data class OrderUpdate(override var actionOrderId: String? = null,
             userNotification = options?.userNotification
     )
 
+    constructor(init: OrderUpdate.() -> Unit) : this() {
+        val options = OrderUpdate()
+        options.init()
+        actionOrderId = options.actionOrderId
+        cancellationInfo = options.cancellationInfo
+        fulfillmentInfo = options.fulfillmentInfo
+        googleOrderId = options.googleOrderId
+        inTransitInfo = options.inTransitInfo
+        infoExtension = options.infoExtension
+        lineItemUpdates = options.lineItemUpdates
+        orderManagementActions = options.orderManagementActions
+        orderState = options.orderState
+        receipt = options.receipt
+        rejectionInfo = options.rejectionInfo
+        returnInfo = options.returnInfo
+        totalPrice = options.totalPrice
+        updateTime = options.updateTime
+        userNotification = options.userNotification
+    }
+
+    fun orderState(init: GoogleActionsV2OrdersOrderState.() -> Unit) {
+        this.orderState = GoogleActionsV2OrdersOrderState()
+        this.orderState?.init()
+    }
+
+    fun receipt(init: GoogleActionsV2OrdersReceipt.() -> Unit) {
+        this.receipt = GoogleActionsV2OrdersReceipt()
+        this.receipt?.init()
+    }
+
+    fun orderManagementActions(vararg init: GoogleActionsV2OrdersOrderUpdateAction.() -> Unit) {
+        this.orderManagementActions = init.map {
+            val action = GoogleActionsV2OrdersOrderUpdateAction()
+            action.it()
+            action
+        }.toMutableList()
+    }
+
+    fun userNotification(init: GoogleActionsV2OrdersOrderUpdateUserNotification.() -> Unit) {
+        this.userNotification = GoogleActionsV2OrdersOrderUpdateUserNotification()
+        this.userNotification?.init()
+    }
 }
 
 
