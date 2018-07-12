@@ -1,10 +1,7 @@
 package actions.service.actionssdk.conversation.argument
 
 import actions.ApiClientObjectMap
-import actions.service.actionssdk.api.GoogleActionsV2Argument
-import actions.service.actionssdk.api.GoogleActionsV2DateTime
-import actions.service.actionssdk.api.GoogleActionsV2Location
-import actions.service.actionssdk.api.GoogleRpcStatus
+import actions.service.actionssdk.api.*
 import actions.service.actionssdk.conversation.question.*
 import actions.service.actionssdk.conversation.question.option.OptionArgument
 import actions.service.actionssdk.conversation.question.permission.PermissionArgument
@@ -195,13 +192,9 @@ class Parsed(raw: MutableList<GoogleActionsV2Argument>? = null) {
 
     init {
         input = ArgumentsParsed()
-        this.list = raw?.mapNotNull {
-            val value = getValue(it)
-            val name = it.name
-            if (name != null && value != null)
-                this.input?.put(name, value)
-            value
-        }?.toMutableList()
+//        raw?.forEach {
+//            input?.put(it.name ?: "", it)
+//        }
     }
 
     /** @public */
@@ -243,6 +236,15 @@ class Raw(list: MutableList<GoogleActionsV2Argument>? = null) {
     init {
         input = ArgumentsRaw()
         list?.forEach {
+            if (it.extension?.resultType != null) {
+                it.resultType = it.extension?.resultType
+            }
+            if (it.extension?.userDecision != null) {
+                it.userDecision = it.extension?.userDecision
+            }
+            if (it.extension?.location != null) {
+                it.location = it.extension?.location
+            }
             input?.put(it.name ?: "", it)
         }
     }
@@ -299,7 +301,7 @@ class Arguments(raw: MutableList<GoogleActionsV2Argument>? = null) {
     /** @public */
 //    get(name: string): Argument
     fun get(name: String): GoogleActionsV2Argument? {
-        return this.parsed?.get(name)
+        return this.raw?.get(name)
     }
 
 //    /** @public */

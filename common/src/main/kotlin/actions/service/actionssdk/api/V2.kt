@@ -3,6 +3,7 @@ package actions.service.actionssdk.api
 import actions.ApiClientObjectMap
 import actions.ProtoAny
 import actions.service.actionssdk.conversation.response.GoogleActionsV2RichResponseItem
+import actions.service.actionssdk.conversation.response.OrderUpdate
 
 
 enum class GoogleActionsV2ConversationType {
@@ -150,6 +151,17 @@ data class GoogleActionsV2AppResponse(
          */
         var userStorage: String? = null)
 
+
+data class TransactionRequirementsCheckResult(
+        val `@type`: String = "",
+//        val resultType: TransactionValues.ResultType = TransactionValues.ResultType.UNSPECIFIED,
+        val resultType: GoogleActionsV2TransactionRequirementsCheckResultResultType = GoogleActionsV2TransactionRequirementsCheckResultResultType.RESULT_TYPE_UNSPECIFIED,
+        var userDecision: String = "",
+        var status: String = "",
+        var location: GoogleActionsV2Location? = null,
+        val order: OrderUpdate? = null)
+
+
 data class GoogleActionsV2Argument(
         /**
          * Specified when query pattern includes a `$org.schema.type.YesNo` type or
@@ -167,7 +179,8 @@ data class GoogleActionsV2Argument(
          * `actions.intent.SIGN_IN` intent, then this extension will
          * contain a SignInValue value.
          */
-        var extension: ApiClientObjectMap<Any>? = null,
+//        var extension: ApiClientObjectMap<Any>? = null,
+        var extension: TransactionRequirementsCheckResult? = null,
         /**
          * Specified for built-in intent: \"actions.intent.NUMBER\"
          */
@@ -762,9 +775,8 @@ data class GoogleActionsV2OrdersCart(
 ) {
 
     fun merchant(init: GoogleActionsV2OrdersMerchant.() -> Unit) {
-        val merchant = GoogleActionsV2OrdersMerchant()
-        merchant.init()
-        this.merchant = merchant
+        merchant = GoogleActionsV2OrdersMerchant()
+        merchant?.init()
     }
 
     fun lineItems(vararg init: GoogleActionsV2OrdersLineItem.() -> Unit) {
@@ -893,9 +905,8 @@ data class GoogleActionsV2OrdersLineItem(
         var type: GoogleActionsV2OrdersLineItemType? = null
 ) {
     fun price(init: GoogleActionsV2OrdersPrice.() -> Unit) {
-        val price = GoogleActionsV2OrdersPrice()
-        price.init()
-        this.price = price
+        price = GoogleActionsV2OrdersPrice()
+        price?.init()
     }
 
     fun subLines(vararg init: GoogleActionsV2OrdersLineItemSubLine.() -> Unit) {
@@ -1258,9 +1269,8 @@ data class GoogleActionsV2OrdersPrice(
         var type: GoogleActionsV2OrdersPriceType? = null
 ) {
     fun amount(init: GoogleTypeMoney.() -> Unit) {
-        val amount = GoogleTypeMoney()
-        amount.init()
-        this.amount = amount
+        amount = GoogleTypeMoney()
+        amount?.init()
     }
 }
 
@@ -1305,15 +1315,14 @@ data class GoogleActionsV2OrdersProposedOrder(
          */
         var totalPrice: GoogleActionsV2OrdersPrice? = null
 ) {
-    fun cart(init: GoogleActionsV2OrdersCart.() -> Unit): GoogleActionsV2OrdersCart {
-        val cart = GoogleActionsV2OrdersCart()
-        cart.init()
-        return cart
+    fun cart(init: GoogleActionsV2OrdersCart.() -> Unit) {
+        cart = GoogleActionsV2OrdersCart()
+        cart?.init()
     }
 
     fun totalPrice(init: GoogleActionsV2OrdersPrice.() -> Unit) {
-        this.totalPrice = GoogleActionsV2OrdersPrice()
-        this.totalPrice?.init()
+        totalPrice = GoogleActionsV2OrdersPrice()
+        totalPrice?.init()
     }
     fun extension(init: ProtoAny.() -> Unit) {
         extension = ProtoAny()
@@ -2120,11 +2129,11 @@ data class GoogleTypeLatLng(
         /**
          * The latitude in degrees. It must be in the range [-90.0, +90.0].
          */
-        var latitude: Int? = null,
+        var latitude: Double? = null,
         /**
          * The longitude in degrees. It must be in the range [-180.0, +180.0].
          */
-        var longitude: Int? = null
+        var longitude: Double? = null
 )
 
 data class GoogleTypeMoney(

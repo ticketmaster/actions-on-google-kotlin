@@ -43,9 +43,9 @@ fun initTransactionSample(dfApp: DialogflowApp<ConversationData, *, *, *>) {
 
     dfApp.intent("transaction.check.complete") { conv ->
         val arg = conv.arguments.get("TRANSACTION_REQUIREMENTS_CHECK_RESULT")
-        if (arg != null && arg.extension?.get("resultType") == GoogleActionsV2TransactionRequirementsCheckResultResultType.OK) {
+        if (arg != null && arg.resultType == GoogleActionsV2TransactionRequirementsCheckResultResultType.OK) {
             // Normally take the user through cart building flow
-            conv.ask("""Looks like you"re good to go!
+            conv.ask("""Looks like you're good to go!
                     Try saying "Get Delivery Address".""")
         } else {
             conv.close("Transaction failed.")
@@ -81,7 +81,7 @@ fun initTransactionSample(dfApp: DialogflowApp<ConversationData, *, *, *>) {
                 }
                 lineItems({
                     name = "My Memoirs"
-                    id = "memoirs 1"
+                    id = "memoirs_1"
                     price {
                         amount {
                             currencyCode = "USD"
