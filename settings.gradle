@@ -1,4 +1,4 @@
-rootProject.name = 'kotlin-multiplatform-recipes'
+rootProject.name = 'actions-on-google-kotlin'
 
 include ':common'
 include ':common-mock'

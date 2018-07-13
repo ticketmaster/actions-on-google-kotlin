@@ -20,9 +20,9 @@ class ActionsSdkTest {
 
     @Test
     fun returnEmptyConvData() {
-        val app = actionssdk<TestConvData, TestUserStorage>()
+        val app = actionssdk<TestUserStorage>({})
         app.intent("test") { conv ->
-            conv.data = TestConvData(ct = 5)
+            conv.data["ct"] = 5
             conv.ask("This is a test")
         }
 

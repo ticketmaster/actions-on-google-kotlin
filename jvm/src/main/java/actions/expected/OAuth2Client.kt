@@ -16,13 +16,15 @@ actual class Date actual constructor(var timeStamp: String?) {
 
 }
 
-actual val MutableMap<String, Any?>.deliveryAddress: GoogleActionsV2Location?
-    get() {
-        val address = get("deliveryAddress")
-        return if (address != null) {
-            val jsonElement = gson.toJsonTree(address)
-            gson.fromJson(jsonElement, GoogleActionsV2Location::class.java)
-        } else {
-            null
-        }
+fun <T> MutableMap<String, Any?>.deserializeValue(key: String, clazz: Class<T>): T? {
+    val value = get(key)
+    return if (value != null) {
+        val jsonElement = gson.toJsonTree(value)
+        gson.fromJson(jsonElement, clazz)
+    } else {
+        null
     }
+}
+
+actual val MutableMap<String, Any?>.deliveryAddress: GoogleActionsV2Location?
+    get() = deserializeValue("deliveryAddress", GoogleActionsV2Location::class.java)
