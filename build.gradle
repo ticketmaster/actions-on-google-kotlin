@@ -25,6 +25,10 @@ task cleanOutDir(type: Delete) {
     delete 'out'
 }
 
+repositories {
+    maven { url "http://dl.bintray.com/jetbrains/spek" }
+}
+
 buildscript {
     ext.kotlinVersion = '1.2.51'
 
@@ -34,6 +38,7 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
         classpath "com.eriwen:gradle-js-plugin:2.14.1"
         classpath 'com.moowork.gradle:gradle-node-plugin:1.2.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
@@ -41,6 +46,7 @@ buildscript {
 }
 
 ext {
+    sdkVersion = '2.0.0-alpha' //version of deployed artifacts
     nodeVersion = '8.11.1'
     qunitVersion = '2.6.0'
     libraries = [

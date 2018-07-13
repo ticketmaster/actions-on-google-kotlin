@@ -17,7 +17,14 @@ const val GENERIC_EXTENSION_TYPE =
 const val UNIQUE_ORDER_ID = "<UNIQUE_ORDER_ID>"
 
 fun initTransactionSample(dfApp: DialogflowApp<*, *, *>) {
+    dfApp.intent("") {conv, param, arg, status->
+        arg?.status
+        if (newSurface?.status == GoogleRpcStatus) {
+
+        }
+    }
     dfApp.intent("transaction.check.action") { conv ->
+        conv.hasScreen()
         conv.ask(TransactionRequirements {
             orderOptions = GoogleActionsV2OrdersOrderOptions(
                     requestDeliveryAddress = false)

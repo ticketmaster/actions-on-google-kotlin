@@ -104,7 +104,11 @@ open class GoogleActionsV2AppRequest {
      * User who initiated the conversation.
      */
     var user: GoogleActionsV2User? = null
+
+    var sender: Sender? = null
 }
+
+data class Sender(val id: String? = null)
 
 data class GoogleActionsV2AppResponse(
         /**
