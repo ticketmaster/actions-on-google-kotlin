@@ -2,6 +2,7 @@ package jvm
 
 import actions.ApiClientObjectMap
 import actions.expected.Date
+import actions.expected.deliveryAddress
 import actions.expected.log
 import actions.service.actionssdk.api.*
 import actions.service.actionssdk.conversation.question.transaction.DeliveryAddress
@@ -15,7 +16,7 @@ const val GENERIC_EXTENSION_TYPE =
         "type.googleapis.com/google.actions.v2.orders.GenericExtension"
 const val UNIQUE_ORDER_ID = "<UNIQUE_ORDER_ID>"
 
-fun initTransactionSample(dfApp: DialogflowApp<ConversationData, *, *, *>) {
+fun initTransactionSample(dfApp: DialogflowApp<*, *, *>) {
     dfApp.intent("transaction.check.action") { conv ->
         conv.ask(TransactionRequirements {
             orderOptions = GoogleActionsV2OrdersOrderOptions(
@@ -64,7 +65,7 @@ fun initTransactionSample(dfApp: DialogflowApp<ConversationData, *, *, *>) {
         if (arg?.userDecision == "ACCEPTED") {
             log("DELIVERY ADDRESS: " +
                     arg.location?.postalAddress?.addressLines?.get(0))
-            conv.data?.deliveryAddress = arg.location
+            conv.data["deliveryAddress"] = arg.location
             conv.ask("""Great, got your address! Now say " confirm transaction".""")
         } else {
             conv.close("I failed to get your delivery address.")
@@ -195,13 +196,14 @@ fun initTransactionSample(dfApp: DialogflowApp<ConversationData, *, *, *>) {
             }
         }
 
-        if (conv.data?.deliveryAddress != null) {
+        if (conv.data["deliveryAddress"] != null) {
             order.extension {
                 `@type` = GENERIC_EXTENSION_TYPE
                 locations({
                     type = GoogleActionsV2OrdersOrderLocationType.DELIVERY
                     location {
-                        postalAddress = conv.data?.deliveryAddress?.postalAddress
+                        val address = conv.data.deliveryAddress
+                        postalAddress = conv.data.deliveryAddress?.postalAddress
                     }
                 })
             }
@@ -291,3 +293,4 @@ fun initTransactionSample(dfApp: DialogflowApp<ConversationData, *, *, *>) {
     }
 
 }
+

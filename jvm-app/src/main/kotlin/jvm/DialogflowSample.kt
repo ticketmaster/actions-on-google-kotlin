@@ -4,10 +4,7 @@ import actions.service.actionssdk.conversation.question.option.OptionItem
 import actions.service.actionssdk.conversation.response.List
 import actions.service.actionssdk.conversation.response.*
 import actions.service.actionssdk.conversation.response.card.Button
-import actions.service.actionssdk.conversation.response.card.TableColumn
 import actions.service.dialogflow.dialogflow
-import java.awt.SystemColor.text
-import javax.swing.text.html.Option
 
 
 // Constant for image URLs
@@ -24,7 +21,7 @@ private val intentSuggestions = arrayOf(
         "Table",
         "Test")
 
-val dfApp = dialogflow<ConversationData, UserStorage, MyConversation, MyArgument>({ debug = true })
+val dfApp = dialogflow<UserStorage, MyConversation, MyArgument>({ debug = true })
 
 fun initDf() {
 

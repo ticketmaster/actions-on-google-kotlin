@@ -98,8 +98,8 @@ abstract class AppResult<TUserStorage>: BaseApp<TUserStorage>(), StandardHandler
 
 }
 
-fun <TService: ServiceBaseApp<TUserStorage>, TConvData, TUserStorage> attach(
-        service: ActionsSdk<TConvData, TUserStorage>,
+fun <TService: ServiceBaseApp<TUserStorage>, TUserStorage> attach(
+        service: ActionsSdk<TUserStorage>,
         options: AppOptions? = null): AppResult<TUserStorage> {
 
     val baseApp = create<TUserStorage>(options)

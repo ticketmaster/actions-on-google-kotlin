@@ -37,11 +37,11 @@ import actions.service.dialogflow.api.GoogleCloudDialogflowV2WebhookRequest
  * limitations under the License.
  */
 
-typealias DialogflowIntentHandler1<TConvData, TUserStorage, TArgument> = (conv: DialogflowConversation<TConvData, TUserStorage>) -> Any
+typealias DialogflowIntentHandler1<TUserStorage, TArgument> = (conv: DialogflowConversation<TUserStorage>) -> Any
 
-typealias DialogflowIntentHandler2<TConvData, TUserStorage, TArgument> = (conv: DialogflowConversation<TConvData, TUserStorage>, param: DialogflowV1Parameters) -> Any
-typealias DialogflowIntentHandler3<TConvData, TUserStorage, TArgument> = (conv: DialogflowConversation<TConvData, TUserStorage>, param: DialogflowV1Parameters, arg: GoogleActionsV2Argument?) -> Any
-typealias DialogflowIntentHandler4<TConvData, TUserStorage, TArgument> = (conv: DialogflowConversation<TConvData, TUserStorage>, param: DialogflowV1Parameters, arg: GoogleActionsV2Argument?, status: GoogleRpcStatus?) -> Any
+typealias DialogflowIntentHandler2<TUserStorage, TArgument> = (conv: DialogflowConversation<TUserStorage>, param: DialogflowV1Parameters) -> Any
+typealias DialogflowIntentHandler3<TUserStorage, TArgument> = (conv: DialogflowConversation<TUserStorage>, param: DialogflowV1Parameters, arg: GoogleActionsV2Argument?) -> Any
+typealias DialogflowIntentHandler4<TUserStorage, TArgument> = (conv: DialogflowConversation<TUserStorage>, param: DialogflowV1Parameters, arg: GoogleActionsV2Argument?, status: GoogleRpcStatus?) -> Any
 
 /*
 /** @public */
@@ -66,19 +66,18 @@ fun <TConvData, TUserStorage, TContexts, TConversation, TParameters, TArgument> 
 */
 
 /** @hidden */
-class DialogflowIntentHandlers<TConvData, TUserStorage, TArgument> : MutableMap<String, DialogflowIntentHandler4<TConvData, TUserStorage, TArgument>> by mutableMapOf() {
+class DialogflowIntentHandlers<TUserStorage, TArgument> : MutableMap<String, DialogflowIntentHandler4<TUserStorage, TArgument>> by mutableMapOf() {
 
 }
 
 
 /** @hidden */
 data class DialogflowHandlers<
-        TConvData,
         TUserStorage,
         TConversation>(
-        var intents: DialogflowIntentHandlers<TConvData, TUserStorage, *>,
+        var intents: DialogflowIntentHandlers<TUserStorage, *>,
         var catcher: ExceptionHandler<TUserStorage, TConversation>? = null,
-        var fallback: DialogflowIntentHandler4<TConvData, TUserStorage, *>? = null //| string
+        var fallback: DialogflowIntentHandler4<TUserStorage, *>? = null //| string
 )
 
 /** @public */
@@ -94,12 +93,11 @@ TConversationPlugin extends DialogflowConversation<{}, {}, Contexts>
 
 /** @public */
 abstract class DialogflowApp<
-        TConvData,
         TUserStorage,
         TConversation,
-        TArgument> : ConversationApp<TConvData, TUserStorage>() {
+        TArgument> : ConversationApp<TUserStorage>() {
     /** @hidden */
-    abstract var _handlers: DialogflowHandlers<TConvData, TUserStorage, TConversation>
+    abstract var _handlers: DialogflowHandlers<TUserStorage, TConversation>
 
     /**
      * Sets the IntentHandler to be execute when the fulfillment is called
@@ -112,17 +110,16 @@ abstract class DialogflowApp<
      *     to the IntentHandler of the redirected intent name.
      * @public
      */
-    abstract fun intent(intents: MutableList<String>, handler: DialogflowIntentHandler1<TConvData, TUserStorage, TArgument> /*| Intent,*/): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument>
+    abstract fun intent(intents: MutableList<String>, handler: DialogflowIntentHandler1<TUserStorage, TArgument> /*| Intent,*/): DialogflowApp<TUserStorage, TConversation, TArgument>
 
-    abstract fun intent(intents: MutableList<String>, handler: DialogflowIntentHandler2<TConvData, TUserStorage, TArgument> /*| Intent,*/): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument>
-    abstract fun intent(intents: MutableList<String>, handler: DialogflowIntentHandler3<TConvData, TUserStorage, TArgument> /*| Intent,*/): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument>
+    abstract fun intent(intents: MutableList<String>, handler: DialogflowIntentHandler2<TUserStorage, TArgument> /*| Intent,*/): DialogflowApp<TUserStorage, TConversation, TArgument>
+    abstract fun intent(intents: MutableList<String>, handler: DialogflowIntentHandler3<TUserStorage, TArgument> /*| Intent,*/): DialogflowApp<TUserStorage, TConversation, TArgument>
     abstract fun intent(
             intent: MutableList<String>,
             handler: DialogflowIntentHandler4<
-                    TConvData,
                     TUserStorage,
                     TArgument> //| string,
-    ): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument>
+    ): DialogflowApp<TUserStorage, TConversation, TArgument>
 
     /**
      * Sets the IntentHandler to be execute when the fulfillment is called
@@ -135,17 +132,16 @@ abstract class DialogflowApp<
      *     to the IntentHandler of the redirected intent name.
      * @public
      */
-    abstract fun intent(intents: String, handler: DialogflowIntentHandler1<TConvData, TUserStorage, TArgument> /*| Intent,*/): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument>
+    abstract fun intent(intents: String, handler: DialogflowIntentHandler1<TUserStorage, TArgument> /*| Intent,*/): DialogflowApp<TUserStorage, TConversation, TArgument>
 
-    abstract fun intent(intents: String, handler: DialogflowIntentHandler2<TConvData, TUserStorage, TArgument> /*| Intent,*/): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument>
-    abstract fun intent(intents: String, handler: DialogflowIntentHandler3<TConvData, TUserStorage, TArgument> /*| Intent,*/): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument>
+    abstract fun intent(intents: String, handler: DialogflowIntentHandler2<TUserStorage, TArgument> /*| Intent,*/): DialogflowApp<TUserStorage, TConversation, TArgument>
+    abstract fun intent(intents: String, handler: DialogflowIntentHandler3<TUserStorage, TArgument> /*| Intent,*/): DialogflowApp<TUserStorage, TConversation, TArgument>
     abstract fun intent(
             intent: String,
             handler: DialogflowIntentHandler4<
-                    TConvData,
                     TUserStorage,
                     TArgument> //| string,
-    ): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument>
+    ): DialogflowApp<TUserStorage, TConversation, TArgument>
 
     /**
      * Sets the IntentHandler to be execute when the fulfillment is called
@@ -195,22 +191,21 @@ abstract class DialogflowApp<
     */
 
     /** @public */
-    abstract fun catch(catcher: ExceptionHandler<TUserStorage, TConversation>): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument>
+    abstract fun catch(catcher: ExceptionHandler<TUserStorage, TConversation>): DialogflowApp<TUserStorage, TConversation, TArgument>
 
     /** @public */
     abstract fun fallback(
             handler: DialogflowIntentHandler4<
-                    TConvData,
                     TUserStorage,
                     TArgument> //| string,
-    ): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument>
+    ): DialogflowApp<TUserStorage, TConversation, TArgument>
 
     abstract var _middlewares: MutableList<DialogflowMiddleware> //<DialogflowConversation<TConvData, TUserStorage, TContexts>>>
 
     /** @public */
     abstract fun middleware/*<TConversationPlugin>*/(
             middleware: DialogflowMiddleware//<TConversationPlugin>
-    ): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument>
+    ): DialogflowApp<TUserStorage, TConversation, TArgument>
 
     /** @public */
     abstract var verification: DialogflowVerification? // | DialogflowVerificationHeaders
@@ -251,7 +246,7 @@ data class DialogflowVerification(
 )
 
 /** @public */
-data class DialogflowOptions<TConvData, TUserStorage>(
+data class DialogflowOptions<TUserStorage>(
 
         /**
          * Verifies whether the request comes from Dialogflow.
@@ -263,10 +258,10 @@ data class DialogflowOptions<TConvData, TUserStorage>(
          * @public
          */
         var verification: DialogflowVerification? = null, // | DialogflowVerificationHeaders,
-        override var init: (() -> ConversationOptionsInit<TConvData, TUserStorage>)? = null,
+        override var init: (() -> ConversationOptionsInit<TUserStorage>)? = null,
         override var clientId: String? = null,
         override var debug: Boolean? = null
-) : ConversationAppOptions<TConvData, TUserStorage>
+) : ConversationAppOptions<TUserStorage>
 
 /*
 /** @public */
@@ -311,13 +306,13 @@ fun isVerification(): Boolean = true
  *
  * @public
  */
-fun <TConvData, TUserStorage, TConversation, TArgument> dialogflow(init: (DialogflowOptions<TConvData, TUserStorage>.() -> Unit)? = null): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument> {
-    val options = DialogflowOptions<TConvData, TUserStorage>()
+fun <TUserStorage, TConversation, TArgument> dialogflow(init: (DialogflowOptions<TUserStorage>.() -> Unit)? = null): DialogflowApp<TUserStorage, TConversation, TArgument> {
+    val options = DialogflowOptions<TUserStorage>()
     options.init?.invoke()
     return DialogflowSdk(options)
 }
 
-class DialogflowSdk<TConvData, TUserStorage, TConversation, TArgument>(options: DialogflowOptions<TConvData, TUserStorage>? = null) : DialogflowApp<TConvData, TUserStorage, TConversation, TArgument>() {
+class DialogflowSdk<TUserStorage, TConversation, TArgument>(options: DialogflowOptions<TUserStorage>? = null) : DialogflowApp<TUserStorage, TConversation, TArgument>() {
 
 
     override lateinit var frameworks: BuiltinFrameworks<TUserStorage>
@@ -328,8 +323,8 @@ class DialogflowSdk<TConvData, TUserStorage, TConversation, TArgument>(options: 
 
     override var debug: Boolean = false
 
-    override var _handlers: DialogflowHandlers<TConvData, TUserStorage, TConversation> = DialogflowHandlers(
-            intents = DialogflowIntentHandlers<TConvData, TUserStorage, TArgument>(),
+    override var _handlers: DialogflowHandlers<TUserStorage, TConversation> = DialogflowHandlers(
+            intents = DialogflowIntentHandlers<TUserStorage, TArgument>(),
             catcher = { conv, e -> throw e })
 
     override var _middlewares: MutableList<DialogflowMiddleware> = mutableListOf()
@@ -338,74 +333,73 @@ class DialogflowSdk<TConvData, TUserStorage, TConversation, TArgument>(options: 
     override fun intent(
             intents: MutableList<String>,
             handler: DialogflowIntentHandler4<
-                    TConvData,
                     TUserStorage,
                     TArgument> //| string,
-    ): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument> {
+    ): DialogflowApp<TUserStorage, TConversation, TArgument> {
         for (intent in intents) {
             this._handlers.intents[intent] = { conv, status, g, arg -> handler(conv, status, g, arg) }
         }
         return this
     }
 
-    override fun intent(intent: String, handler: DialogflowIntentHandler4<TConvData, TUserStorage, TArgument>): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument> {
+    override fun intent(intent: String, handler: DialogflowIntentHandler4<TUserStorage, TArgument>): DialogflowApp<TUserStorage, TConversation, TArgument> {
         this._handlers.intents[intent] = { conv, status, g, arg -> handler(conv, status, g, arg) }
         return this
     }
 
-    override fun intent(intents: MutableList<String>, handler: DialogflowIntentHandler1<TConvData, TUserStorage, TArgument>): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument> {
+    override fun intent(intents: MutableList<String>, handler: DialogflowIntentHandler1<TUserStorage, TArgument>): DialogflowApp<TUserStorage, TConversation, TArgument> {
         for (intent in intents) {
             this._handlers.intents[intent] = { conv, status, g, arg -> handler(conv) }
         }
         return this
     }
 
-    override fun intent(intents: MutableList<String>, handler: DialogflowIntentHandler2<TConvData, TUserStorage, TArgument>): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument> {
+    override fun intent(intents: MutableList<String>, handler: DialogflowIntentHandler2<TUserStorage, TArgument>): DialogflowApp<TUserStorage, TConversation, TArgument> {
         for (intent in intents) {
             this._handlers.intents[intent] = { conv, status, g, arg -> handler(conv, status) }
         }
         return this
     }
 
-    override fun intent(intents: MutableList<String>, handler: DialogflowIntentHandler3<TConvData, TUserStorage, TArgument>): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument> {
+    override fun intent(intents: MutableList<String>, handler: DialogflowIntentHandler3<TUserStorage, TArgument>): DialogflowApp<TUserStorage, TConversation, TArgument> {
         for (intent in intents) {
             this._handlers.intents[intent] = { conv, status, g, arg -> handler(conv, status, g) }
         }
         return this
     }
 
-    override fun intent(intent: String, handler: DialogflowIntentHandler1<TConvData, TUserStorage, TArgument>): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument> {
+    override fun intent(intent: String, handler: DialogflowIntentHandler1<TUserStorage, TArgument>): DialogflowApp<TUserStorage, TConversation, TArgument> {
         this._handlers.intents[intent] = { conv, status, g, arg -> handler(conv) }
         return this
     }
 
-    override fun intent(intent: String, handler: DialogflowIntentHandler2<TConvData, TUserStorage, TArgument>): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument> {
+    override fun intent(intent: String, handler: DialogflowIntentHandler2<TUserStorage, TArgument>): DialogflowApp<TUserStorage, TConversation, TArgument> {
         this._handlers.intents[intent] = { conv, status, g, arg -> handler(conv, status) }
         return this
     }
 
-    override fun intent(intent: String, handler: DialogflowIntentHandler3<TConvData, TUserStorage, TArgument>): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument> {
+    override fun intent(intent: String, handler: DialogflowIntentHandler3<TUserStorage, TArgument>): DialogflowApp<TUserStorage, TConversation, TArgument> {
         this._handlers.intents[intent] = { conv, status, g, arg -> handler(conv, status, g) }
         return this
     }
 
-    override fun catch(catcher: ExceptionHandler<TUserStorage, TConversation>): DialogflowSdk<TConvData, TUserStorage, TConversation, TArgument> {
+    override fun catch(catcher: ExceptionHandler<TUserStorage, TConversation>): DialogflowSdk<TUserStorage, TConversation, TArgument> {
         this._handlers.catcher = catcher
         return this
     }
 
-    override fun fallback(handler: DialogflowIntentHandler4<TConvData, TUserStorage, TArgument>): DialogflowSdk<TConvData, TUserStorage, TConversation, TArgument> {
+    override fun fallback(handler: DialogflowIntentHandler4<TUserStorage, TArgument>): DialogflowSdk<TUserStorage, TConversation, TArgument> {
         this._handlers.fallback = handler
         return this
     }
 
     override fun middleware(middleware: DialogflowMiddleware//<TConversationPlugin>
-    ): DialogflowApp<TConvData, TUserStorage, TConversation, TArgument> {
+    ): DialogflowApp<TUserStorage, TConversation, TArgument> {
         this._middlewares.push(middleware)
         return this
     }
 
-    override var init: (() -> ConversationOptionsInit<TConvData, TUserStorage>)? = options?.init
+    override var init: (() -> ConversationOptionsInit<TUserStorage>)? = options?.init
 
     override var verification: DialogflowVerification? = options?.verification
 
@@ -489,7 +483,7 @@ class DialogflowSdk<TConvData, TUserStorage, TConversation, TArgument>(options: 
             //Using the action field to match handlers here.  Nodejs lib uses intent, which differs from V1 and may break some agents.
             //TODO: match the implementation of nodejs once issue is resolved: https://github.com/actions-on-google/actions-on-google-nodejs/issues/132
             val intent = conv.action
-            val traversed: TraversedDialogflowHandlers<TConvData, TUserStorage, TArgument> = TraversedDialogflowHandlers()
+            val traversed: TraversedDialogflowHandlers<TUserStorage, TArgument> = TraversedDialogflowHandlers()
             var handler = _handlers.intents[intent]
 //            while (typeof handler !== 'function') {
             while (false) {

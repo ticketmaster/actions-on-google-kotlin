@@ -44,7 +44,7 @@ private val intentSuggestions = arrayOf(
         "Media",
         "Suggestions")
 
-val app = actionssdk<ConversationData, UserStorage>({ debug = true })
+val app = actionssdk<UserStorage>({ debug = true })
 
 data class MyConversation(val temp: String? = null)
 data class MyArgument(val temp: String? = null,

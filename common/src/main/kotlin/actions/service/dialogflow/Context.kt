@@ -109,8 +109,8 @@ class ContextValues {
             val parameters = it.parameters
             val lifespanCount = it.lifespanCount
             //TODO test this regex
-            val find = "/([^/]+)?$/".toRegex().find(name)
-            val first = find?.next()?.value ?: name
+            val find = """([^/]+)?$""".toRegex().find(name)
+            val first = find?.groups?.first()?.value ?: name
             this.input?.put(first, DialogflowV1Context(name = name,
                     lifespan = lifespanCount,
                     parameters = parameters))

@@ -51,12 +51,12 @@ data class PayloadGoogle(
         var google: GoogleAssistantResponse? = null)
 
 /** @public */
-data class DialogflowConversationOptions<TConvData, TUserStorage>(var body: GoogleCloudDialogflowV2WebhookRequest? = null,
+data class DialogflowConversationOptions<TUserStorage>(var body: GoogleCloudDialogflowV2WebhookRequest? = null,
                                                                   var bodyV1: DialogflowV1WebhookRequest? = null,
                                                                   override var headers: Headers? = null,
-                                                                  override var init: ConversationOptionsInit<TConvData, TUserStorage>?,
+                                                                  override var init: ConversationOptionsInit<TUserStorage>?,
                                                                   override var debug: Boolean?
-) : ConversationBaseOptions<TConvData, TUserStorage> {
+) : ConversationBaseOptions<TUserStorage> {
     fun isV1(): Boolean = bodyV1 != null
 
     fun getRequest(): GoogleActionsV2AppRequest? {
@@ -82,7 +82,7 @@ data class DialogflowConversationOptions<TConvData, TUserStorage>(var body: Goog
 //}
 
 /** @public */
-class DialogflowConversation<TConvData, TUserStorage>(options: DialogflowConversationOptions<TConvData, TUserStorage>) : Conversation<TUserStorage>(
+class DialogflowConversation<TUserStorage>(options: DialogflowConversationOptions<TUserStorage>) : Conversation<TUserStorage>(
         ConversationOptions<TUserStorage>(request = options.getRequest(),
                 headers = options.headers,
                 init = options.init)) {
@@ -188,7 +188,7 @@ class DialogflowConversation<TConvData, TUserStorage>(options: DialogflowConvers
      *
      * @public
      */
-    var data: TConvData? = null
+    var data: MutableMap<String, Any?> = mutableMapOf()
 
     /** @public */
     var version: Int
@@ -236,7 +236,7 @@ class DialogflowConversation<TConvData, TUserStorage>(options: DialogflowConvers
             this.action = action ?: ""
             this.intent = displayName ?: ""
             this.parameters = parameters
-            this.contexts = ContextValues(outputContexts = outputContexts, session = this.body?.session)
+            this.contexts = ContextValues(outputContexts = outputContexts, session = this.body?.session, flag = true)
             this.incoming = Incoming(fulfillmentMessages!!)
             this.query = queryText ?: ""
         }
@@ -252,12 +252,13 @@ class DialogflowConversation<TConvData, TUserStorage>(options: DialogflowConvers
 
         //TODO find a way to do this in kotlin
 //        this.data = (init && init.data) || {} as TConvData
+//        this.data = init.body?.originalDetectIntentRequest?.s
 
         val context = this.contexts.input?.get(APP_DATA_CONTEXT)
         if (context != null) {
-            val data = context!!.parameters?.get("data")//?.data
+            val data = context.parameters?.get("data")//?.data
             if (data is String) {
-                this.data = Serializer.deserialize<TConvData>(data)
+                this.data = Serializer.deserializeMap(data)
             }
         }
     }

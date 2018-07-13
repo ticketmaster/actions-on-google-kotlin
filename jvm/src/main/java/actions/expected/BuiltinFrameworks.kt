@@ -23,9 +23,8 @@ actual class BuiltinFrameworks<TUserStorage> : Frameworks<TUserStorage>() {
     }
 }
 
-val gson = GsonBuilder().create() //TODO make param or other solution
 
-class ServletHandler<TConvData, TUserStorage>(val standardHandler: StandardHandler<TUserStorage>) : OmniHandler {
+class ServletHandler<TUserStorage>(val standardHandler: StandardHandler<TUserStorage>) : OmniHandler {
 
     override fun handle(vararg args: Any): Any {
         log("Servlet Handler: handle $args")
@@ -79,12 +78,12 @@ class ServletHandler<TConvData, TUserStorage>(val standardHandler: StandardHandl
 }
 //typealias ServletHandler = (HttpServletRequest, HttpServletResponse) -> Unit
 
-class ServletFramework<TConvData, TUserStorage> : Framework<TUserStorage> {
+class ServletFramework<TUserStorage> : Framework<TUserStorage> {
 
     override fun handle(base: StandardHandler<TUserStorage>): OmniHandler {
 //      base.handle(body = ,
 //              headers = )
-        return ServletHandler<TConvData, TUserStorage>(base)
+        return ServletHandler<TUserStorage>(base)
     }
 
     override fun check(vararg args: Any): Boolean = (args.size > 1 && args.first() is HttpServletRequest)

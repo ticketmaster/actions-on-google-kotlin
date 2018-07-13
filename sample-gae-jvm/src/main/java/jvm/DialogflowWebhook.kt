@@ -2,10 +2,12 @@ package jvm
 
 import actions.expected.ServletFramework
 import actions.expected.logger
+import javax.servlet.annotation.WebServlet
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+@WebServlet("/df")
 class DialogflowWebhook : HttpServlet() {
 
     override fun doGet(req: HttpServletRequest, resp: HttpServletResponse) {
@@ -17,7 +19,7 @@ class DialogflowWebhook : HttpServlet() {
     override fun doPost(req: HttpServletRequest, resp: HttpServletResponse) {
         logger.info("here")
         if (!hasAddedFramework) {
-            dfApp.frameworks.add(ServletFramework<ConversationData, UserStorage>())
+            dfApp.frameworks.add(ServletFramework())
             hasAddedFramework = true
         }
 

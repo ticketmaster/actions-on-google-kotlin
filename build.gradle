@@ -21,6 +21,10 @@ task wrapper(type: Wrapper) {
     distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
 }
 
+task cleanOutDir(type: Delete) {
+    delete 'out'
+}
+
 buildscript {
     ext.kotlinVersion = '1.2.51'
 

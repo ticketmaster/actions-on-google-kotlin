@@ -9,7 +9,7 @@ actual object Serializer {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    actual fun <T> deserialize(json: String): T {
+    actual fun deserializeMap(json: String): MutableMap<String, Any?> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 

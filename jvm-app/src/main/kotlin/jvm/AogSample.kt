@@ -2,24 +2,12 @@ package jvm
 
 import actions.AogMockFactory
 import actions.MockResponses
-import actions.expected.BuiltinFrameworks
 import actions.expected.ServletFramework
-import actions.expected.framework.TestHttpServletRequest
-import actions.expected.framework.TestHttpServletResponse
-import actions.expected.gson
 import actions.expected.logger
 import actions.service.actionssdk.actionssdk
 import actions.service.actionssdk.api.*
 import actions.service.actionssdk.conversation.Conversation
-import actions.service.actionssdk.conversation.IntentEnum
 import actions.service.actionssdk.conversation.SurfaceCapability
-import actions.service.actionssdk.conversation.response.BasicCard
-import actions.service.actionssdk.conversation.response.Image
-import actions.service.actionssdk.conversation.response.SimpleResponse
-import actions.service.actionssdk.conversation.response.Suggestions
-import actions.service.actionssdk.conversation.response.card.BasicCardOptions
-import actions.service.actionssdk.conversation.response.card.Button
-import actions.service.actionssdk.conversation.response.card.ButtonOptions
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.io.ByteArrayInputStream
@@ -30,9 +18,6 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 data class UserStorage(var name: String? = null)
-data class ConversationData(var lastResponse: String? = null,
-                            var deliveryAddress: GoogleActionsV2Location? = null,
-                            var userDecision: String? = null)
 
 fun <T> Conversation<T>.hasScreen(): Boolean = surface.capabilities?.has(SurfaceCapability.ACTIONS_CAPABILITY_SCREEN_OUTPUT)
         ?: false
@@ -41,11 +26,11 @@ fun <T> Conversation<T>.hasAudioPlayback(): Boolean = surface.capabilities?.has(
         ?: false
 
 fun servlet() {
-    val app = actionssdk<ConversationData, UserStorage>() {}
-    app.frameworks.add(ServletFramework<ConversationData, UserStorage>())
+    val app = actionssdk<UserStorage>() {}
+    app.frameworks.add(ServletFramework<UserStorage>())
 
     app.intent("actions.intent.MAIN", "actions.intent.TEXT") { conv ->
-        conv.data = ConversationData(lastResponse = "This was the last response")
+        conv.data["lastResponse"] = "This was the last response"
         conv.user.storage = UserStorage(name = "fred")
         conv.ask("Can you hear me?")
 

@@ -66,15 +66,15 @@ data class ConversationResponse(
         var userStorage: String? = null,
         var expectedIntent: GoogleActionsV2ExpectedIntent? = null)
 
-interface ConversationOptionsInit<TConvData, TUserStorage> {
-    var data: TConvData?
+interface ConversationOptionsInit<TUserStorage> {
+    var data: MutableMap<String, Any?>?
 
     var storage: TUserStorage?
 }
 
-interface ConversationBaseOptions<TConvData, TUserStorage> {
+interface ConversationBaseOptions<TUserStorage> {
     var headers: Headers?
-    var init: ConversationOptionsInit<TConvData, TUserStorage>?
+    var init: ConversationOptionsInit<TUserStorage>?
 
     var debug: Boolean?
 }
@@ -82,7 +82,7 @@ interface ConversationBaseOptions<TConvData, TUserStorage> {
 data class ConversationOptions<TUserStorage>(
         var request: GoogleActionsV2AppRequest? = null,
         var headers: Headers?,
-        var init: ConversationOptionsInit<*, TUserStorage>? = null)
+        var init: ConversationOptionsInit<TUserStorage>? = null)
 
 abstract class Conversation<TUserStorage> {
     var request: GoogleActionsV2AppRequest?
@@ -383,14 +383,14 @@ typealias ExceptionHandler<TUserStorage, TConversation> = (TConversation, Except
 //    }
 
 /** @hidden */
-class TraversedActionsHandlers<TConvData, TUserStorage> : MutableMap<ActionsSdkIntentHandler4<TConvData, TUserStorage>, Boolean> by mutableMapOf()
+class TraversedActionsHandlers<TUserStorage> : MutableMap<ActionsSdkIntentHandler4<TUserStorage>, Boolean> by mutableMapOf()
 
 /** @hidden */
-class TraversedDialogflowHandlers<TConvData, TUserStorage, TArgument> : MutableMap<DialogflowIntentHandler4<TConvData, TUserStorage, TArgument>, Boolean> by mutableMapOf()
+class TraversedDialogflowHandlers<TUserStorage, TArgument> : MutableMap<DialogflowIntentHandler4<TUserStorage, TArgument>, Boolean> by mutableMapOf()
 
 /** @hidden */
-interface ConversationAppOptions<TConvData, TUserStorage> : AppOptions {
-    var init: (() -> ConversationOptionsInit<TConvData, TUserStorage>)?
+interface ConversationAppOptions<TUserStorage> : AppOptions {
+    var init: (() -> ConversationOptionsInit<TUserStorage>)?
 
     /**
      * Client ID for User Profile Payload Verification
@@ -404,9 +404,9 @@ data class OAuth2ConfigClient(var id: String? = null)
 
 data class OAuth2Config(var client: OAuth2ConfigClient? = null)
 
-abstract class ConversationApp<TConvData, TUserStorage> : BaseApp<TUserStorage>() {
+abstract class ConversationApp<TUserStorage> : BaseApp<TUserStorage>() {
     /** @public */
-    abstract var init: (() -> ConversationOptionsInit<TConvData, TUserStorage>)?
+    abstract var init: (() -> ConversationOptionsInit<TUserStorage>)?
 
     /** @public */
     abstract var auth: OAuth2Config?

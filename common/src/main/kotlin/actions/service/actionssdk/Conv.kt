@@ -8,14 +8,14 @@ import actions.service.actionssdk.conversation.*
 
 
 data class ActionsSdkConversationOptions<
-        TConvData, TUserStorage>(override var headers: Headers?,
+        TUserStorage>(override var headers: Headers?,
                                  var body: GoogleActionsV2AppRequest? = null,
-                                 override var init: ConversationOptionsInit<TConvData, TUserStorage>? = null,
-                                 override var debug: Boolean? = null) : ConversationBaseOptions<TConvData, TUserStorage>
+                                 override var init: ConversationOptionsInit<TUserStorage>? = null,
+                                 override var debug: Boolean? = null) : ConversationBaseOptions<TUserStorage>
 
 
 
-class ActionsSdkConversation<TConvData, TUserStorage>(options: ActionsSdkConversationOptions<TConvData, TUserStorage>) :
+class ActionsSdkConversation<TUserStorage>(options: ActionsSdkConversationOptions<TUserStorage>) :
         Conversation<TUserStorage>(options = ConversationOptions(request = options.body, headers = options.headers)) {
 
     var body: GoogleActionsV2AppRequest?
@@ -49,7 +49,7 @@ class ActionsSdkConversation<TConvData, TUserStorage>(options: ActionsSdkConvers
      *
      * @public
      */
-    var data: TConvData?
+    var data: MutableMap<String, Any?> = mutableMapOf()
 
     /** @public */
     init {
@@ -68,9 +68,9 @@ class ActionsSdkConversation<TConvData, TUserStorage>(options: ActionsSdkConvers
         this.intent = intent
 
         this.data = if (conversationToken != null) {
-            deserialize<TConvData>(conversationToken)
+            deserialize<MutableMap<String, Any?>>(conversationToken) ?: mutableMapOf()
         } else {
-            null
+            mutableMapOf()
 //            TODO("Find way to do this in kotlin, or delegate to platform")
 //            ((init && init.data) || {})
         }

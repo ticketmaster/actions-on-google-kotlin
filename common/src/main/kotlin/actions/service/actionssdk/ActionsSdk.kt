@@ -8,72 +8,12 @@ import actions.service.actionssdk.api.GoogleActionsV2Argument
 import actions.service.actionssdk.api.GoogleRpcStatus
 import actions.service.actionssdk.conversation.*
 
-typealias ActionsSdkIntentHandler1<TConvData, TUserStorage> = (conv: ActionsSdkConversation<TConvData, TUserStorage>) -> Any
-typealias ActionsSdkIntentHandler2<TConvData, TUserStorage> = (conv: ActionsSdkConversation<TConvData, TUserStorage>, argument: Any) -> Any
-typealias ActionsSdkIntentHandler3<TConvData, TUserStorage> = (conv: ActionsSdkConversation<TConvData, TUserStorage>, argument: Any, arg: GoogleActionsV2Argument?) -> Any
-typealias ActionsSdkIntentHandler4<TConvData, TUserStorage> = (conv: ActionsSdkConversation<TConvData, TUserStorage>, argument: Any, arg: GoogleActionsV2Argument?, status: GoogleRpcStatus?) -> Any
+typealias ActionsSdkIntentHandler1<TUserStorage> = (conv: ActionsSdkConversation<TUserStorage>) -> Any
+typealias ActionsSdkIntentHandler2<TUserStorage> = (conv: ActionsSdkConversation<TUserStorage>, argument: Any) -> Any
+typealias ActionsSdkIntentHandler3<TUserStorage> = (conv: ActionsSdkConversation<TUserStorage>, argument: Any, arg: GoogleActionsV2Argument?) -> Any
+typealias ActionsSdkIntentHandler4<TUserStorage> = (conv: ActionsSdkConversation<TUserStorage>, argument: Any, arg: GoogleActionsV2Argument?, status: GoogleRpcStatus?) -> Any
 
-interface ActionsSdkIntentHandlerTest<TConvData, TUserStorage> {
-    operator fun invoke(conv: ActionsSdkConversation<TConvData, TUserStorage>, argument: Any? = null, status: GoogleRpcStatus? = null)
-}
-
-/*
-fun <TConvData, TUserStorage, TConversation : ActionsSdkConversation<TConvData, TUserStorage>, TArgument : GoogleActionsV2Argument> actionsSdkIntentHandler(
-        conv: TConversation,
-        /**
-         * The user's raw input query.
-         * See {@link Input#raw|Input.raw}
-         * Same as `conv.input.raw`
-         */
-        input: String,
-        /**
-         * The first argument value from the current intent.
-         * See {@link Arguments#get|Arguments.get}
-         * Same as `conv.arguments.parsed.list[0]`
-         */
-        argument: TArgument,
-        /**
-         * The first argument status from the current intent.
-         * See {@link Arguments#status|Arguments.status}
-         * Same as `conv.arguments.status.list[0]`
-         */
-        status: GoogleRpcStatus?
-        // tslint:disable-next-line:no-any allow developer to return any just detect if is promise
-): Any {
-    return Any()
-}
-*/
-//
-///** @public */
-//interface ActionsSdkIntentHandler<
-//        TConvData,
-//        TUserStorage,
-//        TConversation : ActionsSdkConversation<TConvData, TUserStorage>,
-//        TArgument : Argument> {
-//    var conv: TConversation
-//    /**
-//     * The user's raw input query.
-//     * See {@link Input#raw|Input.raw}
-//     * Same as `conv.input.raw`
-//     */
-//    var input: String
-//    /**
-//     * The first argument value from the current intent.
-//     * See {@link Arguments#get|Arguments.get}
-//     * Same as `conv.arguments.parsed.list[0]`
-//     */
-//    var argument: TArgument
-//    /**
-//     * The first argument status from the current intent.
-//     * See {@link Arguments#status|Arguments.status}
-//     * Same as `conv.arguments.status.list[0]`
-//     */
-//    var status: GoogleRpcStatus?
-//    // tslint:disable-next-line:no-any allow developer to return any just detect if is promise
-//    ): Promise<any> | any
-//}
-
-class ActionSdkIntentHandlers<TConvData, TUserStorage> : MutableMap<String, ActionsSdkIntentHandler4<TConvData, TUserStorage>?> by mutableMapOf() {
+class ActionSdkIntentHandlers<TUserStorage> : MutableMap<String, ActionsSdkIntentHandler4<TUserStorage>?> by mutableMapOf() {
 //    [intent: string]: ActionsSdkIntentHandler<
 //    {},
 //    {},
@@ -84,10 +24,10 @@ class ActionSdkIntentHandlers<TConvData, TUserStorage> : MutableMap<String, Acti
 //    > | string | undefined
 }
 
-data class ActionsSdkHandlers<TConvData, TUserStorage>(
-        var intents: ActionSdkIntentHandlers<TConvData, TUserStorage> = ActionSdkIntentHandlers(),
-        var catcher: ExceptionHandler<TUserStorage, ActionsSdkConversation<TConvData, TUserStorage>>? = null, //TODO provide defaults for these nulls
-        var fallback: ActionsSdkIntentHandler4<TConvData, TUserStorage>? = null //| string
+data class ActionsSdkHandlers<TUserStorage>(
+        var intents: ActionSdkIntentHandlers<TUserStorage> = ActionSdkIntentHandlers(),
+        var catcher: ExceptionHandler<TUserStorage, ActionsSdkConversation<TUserStorage>>? = null, //TODO provide defaults for these nulls
+        var fallback: ActionsSdkIntentHandler4<TUserStorage>? = null //| string
 )
 
 interface ActionsSdkMiddleware
@@ -97,9 +37,9 @@ interface ActionsSdkMiddleware
 //}
 
 /** @public */
-abstract class ActionsSdkApp<TConvData, TUserStorage> : ConversationApp<TConvData, TUserStorage>() {
+abstract class ActionsSdkApp<TUserStorage> : ConversationApp<TUserStorage>() {
     /** @hidden */
-    abstract var _handlers: ActionsSdkHandlers<TConvData, TUserStorage>
+    abstract var _handlers: ActionsSdkHandlers<TUserStorage>
 
     /**
      * Sets the IntentHandler to be executed when the fulfillment is called
@@ -112,10 +52,10 @@ abstract class ActionsSdkApp<TConvData, TUserStorage> : ConversationApp<TConvDat
      *     to the IntentHandler of the redirected intent.
      * @public
      */
-    abstract fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler1<TConvData, TUserStorage> /*| Intent,*/): ActionsSdkApp<TConvData, TUserStorage>
-    abstract fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler2<TConvData, TUserStorage> /*| Intent,*/): ActionsSdkApp<TConvData, TUserStorage>
-    abstract fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler3<TConvData, TUserStorage> /*| Intent,*/): ActionsSdkApp<TConvData, TUserStorage>
-    abstract fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler4<TConvData, TUserStorage> /*| Intent,*/): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler1<TUserStorage> /*| Intent,*/): ActionsSdkApp<TUserStorage>
+    abstract fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler2<TUserStorage> /*| Intent,*/): ActionsSdkApp<TUserStorage>
+    abstract fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler3<TUserStorage> /*| Intent,*/): ActionsSdkApp<TUserStorage>
+    abstract fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler4<TUserStorage> /*| Intent,*/): ActionsSdkApp<TUserStorage>
 
     /**
      * Sets the IntentHandler to be executed when the fulfillment is called
@@ -128,28 +68,28 @@ abstract class ActionsSdkApp<TConvData, TUserStorage> : ConversationApp<TConvDat
      *     to the IntentHandler of the redirected intent.
      * @public
      */
-    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler1<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
-    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler2<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
-    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler3<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
-    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler4<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler1<TUserStorage> /*| string,*/): ActionsSdkApp<TUserStorage>
+    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler2<TUserStorage> /*| string,*/): ActionsSdkApp<TUserStorage>
+    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler3<TUserStorage> /*| string,*/): ActionsSdkApp<TUserStorage>
+    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler4<TUserStorage> /*| string,*/): ActionsSdkApp<TUserStorage>
 
     /** @public */
-    abstract fun catch(catcher: ExceptionHandler<TUserStorage, ActionsSdkConversation<TConvData, TUserStorage>>): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun catch(catcher: ExceptionHandler<TUserStorage, ActionsSdkConversation<TUserStorage>>): ActionsSdkApp<TUserStorage>
 
     /** @public */
-    abstract fun fallback(handler: ActionsSdkIntentHandler3<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun fallback(handler: ActionsSdkIntentHandler3<TUserStorage> /*| string,*/): ActionsSdkApp<TUserStorage>
 
     /** @hidden */
     abstract var _middlewares: MutableList<ActionsSdkMiddleware>
 
     /** @public */
-    abstract fun <TConversationPlugin : ActionsSdkConversation<*, *>> middleware(middleware: ActionsSdkMiddleware): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun <TConversationPlugin : ActionsSdkConversation<*>> middleware(middleware: ActionsSdkMiddleware): ActionsSdkApp<TUserStorage>
 
     /** @public */
     abstract var verification: ActionsSdkVerification? //| string
 }
 
-abstract class BaseService<THandler, TIntentHandler, TConversation, TMiddleware, TVerification, TConvData, TUserStorage> : ConversationApp<TConvData, TUserStorage>() {
+abstract class BaseService<THandler, TIntentHandler, TConversation, TMiddleware, TVerification, TConvData, TUserStorage> : ConversationApp<TUserStorage>() {
     /** @hidden */
     abstract var _handlers: THandler//<TConvData, TUserStorage>
 
@@ -164,7 +104,7 @@ abstract class BaseService<THandler, TIntentHandler, TConversation, TMiddleware,
      *     to the IntentHandler of the redirected intent.
      * @public
      */
-    abstract fun intent(intents: MutableList<IntentEnum>, handler: TIntentHandler/*<TConvData, TUserStorage>*/ /*| Intent,*/): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun intent(intents: MutableList<IntentEnum>, handler: TIntentHandler/*<TConvData, TUserStorage>*/ /*| Intent,*/): ActionsSdkApp<TUserStorage>
 
     /**
      * Sets the IntentHandler to be executed when the fulfillment is called
@@ -177,23 +117,23 @@ abstract class BaseService<THandler, TIntentHandler, TConversation, TMiddleware,
      *     to the IntentHandler of the redirected intent.
      * @public
      */
-    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler1<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler1<TUserStorage> /*| string,*/): ActionsSdkApp<TUserStorage>
 
-    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler2<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
-    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler3<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
-    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler4<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
-
-    /** @public */
-    abstract fun catch(catcher: ExceptionHandler<TUserStorage, ActionsSdkConversation<TConvData, TUserStorage>>): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler2<TUserStorage> /*| string,*/): ActionsSdkApp<TUserStorage>
+    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler3<TUserStorage> /*| string,*/): ActionsSdkApp<TUserStorage>
+    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler4<TUserStorage> /*| string,*/): ActionsSdkApp<TUserStorage>
 
     /** @public */
-    abstract fun fallback(handler: ActionsSdkIntentHandler3<TConvData, TUserStorage> /*| string,*/): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun catch(catcher: ExceptionHandler<TUserStorage, ActionsSdkConversation<TUserStorage>>): ActionsSdkApp<TUserStorage>
+
+    /** @public */
+    abstract fun fallback(handler: ActionsSdkIntentHandler3<TUserStorage> /*| string,*/): ActionsSdkApp<TUserStorage>
 
     /** @hidden */
     abstract var _middlewares: MutableList<ActionsSdkMiddleware>
 
     /** @public */
-    abstract fun <TConversationPlugin : ActionsSdkConversation<*, *>> middleware(middleware: ActionsSdkMiddleware): ActionsSdkApp<TConvData, TUserStorage>
+    abstract fun <TConversationPlugin : ActionsSdkConversation<*>> middleware(middleware: ActionsSdkMiddleware): ActionsSdkApp<TUserStorage>
 
     /** @public */
     abstract var verification: ActionsSdkVerification? //| string
@@ -231,7 +171,7 @@ interface ActionsSdkVerification {
     var error: String //| ((error: string) => string)
 }
 
-data class ActionsSdkOptions<TConvData, TUserStorage>(
+data class ActionsSdkOptions<TUserStorage>(
         /**
          * Validates whether request is from Google through signature verification.
          * Uses Google-Auth-Library to verify authorization token against given Google Cloud Project ID.
@@ -248,10 +188,10 @@ data class ActionsSdkOptions<TConvData, TUserStorage>(
          * @public
          */
         var verification: ActionsSdkVerification? = null,
-        override var init: (() -> ConversationOptionsInit<TConvData, TUserStorage>)? = null,
+        override var init: (() -> ConversationOptionsInit<TUserStorage>)? = null,
         override var clientId: String? = null,
         override var debug: Boolean? = null
-) : ConversationAppOptions<TConvData, TUserStorage>
+) : ConversationAppOptions<TUserStorage>
 
 /**
  * This is the function that creates the app instance which on new requests,
@@ -273,18 +213,18 @@ data class ActionsSdkOptions<TConvData, TUserStorage>(
  * @public
  */
 
-fun <TConvData, TUserStorage> actionssdk(options: ActionsSdkOptions<TConvData, TUserStorage>? = null): ActionsSdk<TConvData, TUserStorage> {
+fun <TUserStorage> actionssdk(options: ActionsSdkOptions<TUserStorage>? = null): ActionsSdk<TUserStorage> {
 //    return attach<ActionsSdk<TConvData, TUserStorage>, TConvData, TUserStorage>(ActionsSdk(options), options)
     return ActionsSdk(options)
 }
 
-fun <TConvData, TUserStorage> actionssdk(init: (ActionsSdkOptions<TConvData, TUserStorage>.() -> Unit)? = null): ActionsSdk<TConvData, TUserStorage> {
-    val options = ActionsSdkOptions<TConvData, TUserStorage>()
+fun <TUserStorage> actionssdk(init: (ActionsSdkOptions<TUserStorage>.() -> Unit)? = null): ActionsSdk<TUserStorage> {
+    val options = ActionsSdkOptions<TUserStorage>()
     options.init?.invoke()
     return ActionsSdk(options)
 }
 
-class ActionsSdk<TConvData, TUserStorage>(options: ActionsSdkOptions<TConvData, TUserStorage>? = null) : ActionsSdkApp<TConvData, TUserStorage>() {
+class ActionsSdk<TUserStorage>(options: ActionsSdkOptions<TUserStorage>? = null) : ActionsSdkApp<TUserStorage>() {
 
 
     override lateinit var frameworks: BuiltinFrameworks<TUserStorage>
@@ -296,87 +236,87 @@ class ActionsSdk<TConvData, TUserStorage>(options: ActionsSdkOptions<TConvData, 
     override var debug: Boolean = false
 
 
-    override var _handlers: ActionsSdkHandlers<TConvData, TUserStorage> = ActionsSdkHandlers<TConvData, TUserStorage>(
+    override var _handlers: ActionsSdkHandlers<TUserStorage> = ActionsSdkHandlers<TUserStorage>(
             intents = ActionSdkIntentHandlers(),
             catcher = { conv, e -> throw e }
     )
 
-    override fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler1<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
+    override fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler1<TUserStorage>): ActionsSdkApp<TUserStorage> {
         for (intent in intents) {
             this._handlers.intents[intent.value] = { conv, status, g, arg -> handler(conv) }
         }
         return this
     }
 
-    override fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler2<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
+    override fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler2<TUserStorage>): ActionsSdkApp<TUserStorage> {
         for (intent in intents) {
             this._handlers.intents[intent.value] = { conv, status, g, arg -> handler(conv, status) }
         }
         return this
     }
 
-    override fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler3<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
+    override fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler3<TUserStorage>): ActionsSdkApp<TUserStorage> {
         for (intent in intents) {
             this._handlers.intents[intent.value] = { conv, status, g, arg -> handler(conv, status, g) }
         }
         return this
     }
 
-    override fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler4<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
+    override fun intent(intents: MutableList<IntentEnum>, handler: ActionsSdkIntentHandler4<TUserStorage>): ActionsSdkApp<TUserStorage> {
         for (intent in intents) {
             this._handlers.intents[intent.value] = { conv, status, g, arg -> handler(conv, status, g, arg) }
         }
         return this
     }
 
-    override fun intent(vararg intents: String, handler: ActionsSdkIntentHandler1<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
+    override fun intent(vararg intents: String, handler: ActionsSdkIntentHandler1<TUserStorage>): ActionsSdkApp<TUserStorage> {
         for (intent in intents) {
             this._handlers.intents[intent] = { conv, status, g, arg -> handler(conv) }
         }
         return this
     }
 
-    override fun intent(vararg intents: String, handler: ActionsSdkIntentHandler2<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
+    override fun intent(vararg intents: String, handler: ActionsSdkIntentHandler2<TUserStorage>): ActionsSdkApp<TUserStorage> {
         for (intent in intents) {
             this._handlers.intents[intent] = { conv, status, g, arg -> handler(conv, status) }
         }
         return this
     }
 
-    override fun intent(vararg intents: String, handler: ActionsSdkIntentHandler3<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
+    override fun intent(vararg intents: String, handler: ActionsSdkIntentHandler3<TUserStorage>): ActionsSdkApp<TUserStorage> {
         for (intent in intents) {
             this._handlers.intents[intent] = { conv, status, g, arg -> handler(conv, status, g) }
         }
         return this
     }
 
-    override fun intent(vararg intents: String, handler: ActionsSdkIntentHandler4<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
+    override fun intent(vararg intents: String, handler: ActionsSdkIntentHandler4<TUserStorage>): ActionsSdkApp<TUserStorage> {
         for (intent in intents) {
             this._handlers.intents[intent] = handler
         }
         return this
     }
 
-    override fun catch(catcher: ExceptionHandler<TUserStorage, ActionsSdkConversation<TConvData, TUserStorage>>): ActionsSdkApp<TConvData, TUserStorage> {
+    override fun catch(catcher: ExceptionHandler<TUserStorage, ActionsSdkConversation<TUserStorage>>): ActionsSdkApp<TUserStorage> {
         this._handlers.catcher = catcher
         return this
     }
 
-    override fun fallback(handler: ActionsSdkIntentHandler3<TConvData, TUserStorage>): ActionsSdkApp<TConvData, TUserStorage> {
+    override fun fallback(handler: ActionsSdkIntentHandler3<TUserStorage>): ActionsSdkApp<TUserStorage> {
         this._handlers.fallback = { conv, status, g, arg -> handler.invoke(conv, status, g) }
         return this
     }
 
     override var _middlewares: MutableList<ActionsSdkMiddleware> = mutableListOf()
 
-    override fun <TConversationPlugin : ActionsSdkConversation<*, *>> middleware(middleware: ActionsSdkMiddleware): ActionsSdkApp<TConvData, TUserStorage> {
+    override fun <TConversationPlugin : ActionsSdkConversation<*>> middleware(middleware: ActionsSdkMiddleware): ActionsSdkApp<TUserStorage> {
         this._middlewares.push(middleware)
         return this
     }
 
     override var verification: ActionsSdkVerification? = options?.verification
 
-    override var init: (() -> ConversationOptionsInit<TConvData, TUserStorage>)? = options?.init
+    override var init: (() -> ConversationOptionsInit<TUserStorage>)? = options?.init
 
     override var auth: OAuth2Config? = if (options?.clientId != null) OAuth2Config(client = OAuth2ConfigClient(id = options.clientId)) else null
 
@@ -429,7 +369,7 @@ class ActionsSdk<TConvData, TUserStorage>(options: ActionsSdkOptions<TConvData, 
 //                        body: null,
 //                    }))
             val intent = conv.intent
-            val traversedActionsHandlers: TraversedActionsHandlers<TConvData, TUserStorage> = TraversedActionsHandlers()
+            val traversedActionsHandlers: TraversedActionsHandlers<TUserStorage> = TraversedActionsHandlers()
             var handler = _handlers.intents[intent]
 //            while (typeof handler !== 'function') {
             while (false) {
