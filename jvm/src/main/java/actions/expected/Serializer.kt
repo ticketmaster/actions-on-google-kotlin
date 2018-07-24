@@ -1,16 +1,15 @@
 package actions.expected
 
-import com.google.gson.GsonBuilder
 import com.google.gson.Gson
 import com.google.gson.TypeAdapter
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 
-val gson = GsonBuilder().create() //TODO make param or other solution
 
 actual object Serializer {
     private val mapType by lazy { object : TypeToken<MutableMap<String, Any?>>() {}.type }
+    lateinit var aogGson: Gson
 
     actual fun stringifyConversationToken(data: Any?): ConversationTokenData {
         val token = if (data == null)
@@ -22,12 +21,12 @@ actual object Serializer {
 
     actual fun serialize(any: Any?): String? {
         if (any == null) return "{}"
-        return gson.toJson(any)
+        return aogGson.toJson(any)
     }
 
 
     actual fun deserializeMap(json: String): MutableMap<String, Any?> {
-        return gson.fromJson(json, mapType)
+        return aogGson.fromJson(json, mapType)
     }
 
 }

@@ -1,6 +1,7 @@
 package actions.framework
 
-import actions.service.actionssdk.conversation.Conversation
+import actions.service.actionssdk.ActionsSdkIntentHandler4
+import actions.service.dialogflow.DialogflowIntentHandler4
 
 //import kotlinx.coroutines.experimental.Deferred
 
@@ -45,7 +46,9 @@ typealias Headers = MutableMap<String, MutableList<String>>
 //typealias StandardHandler =  (body: JsonObject, headers: Headers) -> StandardResponse //TODO Promise or deferred
 
 interface StandardHandler<TUserStorage> {
-    fun handle(body: Any, headers: Headers): StandardResponse //TODO Promise or deferred
+    fun handle(body: Any, headers: Headers,
+               overrideHandler: DialogflowIntentHandler4<TUserStorage>? = null,
+               aogOverrideHandler: ActionsSdkIntentHandler4<TUserStorage>? = null): StandardResponse //TODO Promise or deferred
 }
 
 typealias JsonObject = Any

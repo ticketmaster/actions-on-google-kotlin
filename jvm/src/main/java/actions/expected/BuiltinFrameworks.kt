@@ -1,16 +1,10 @@
 package actions.expected
 
 import actions.framework.*
-import actions.service.actionssdk.ActionsSdkConversation
-import actions.service.actionssdk.ActionsSdkConversationOptions
-import actions.service.actionssdk.ActionsSdkOptions
 import actions.service.actionssdk.api.GoogleActionsV2AppRequest
-import actions.service.actionssdk.api.GoogleActionsV2AppResponse
 import actions.service.dialogflow.api.DialogflowV1WebhookRequest
 import actions.service.dialogflow.api.GoogleCloudDialogflowV2WebhookRequest
 import actions.service.dialogflow.api.GoogleCloudDialogflowV2WebhookResponse
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import java.io.InputStream
 import java.io.InputStreamReader
 import javax.servlet.http.HttpServletRequest
@@ -56,21 +50,21 @@ class ServletHandler<TUserStorage>(val standardHandler: StandardHandler<TUserSto
 
     fun requestToActionsSdkRequest(inputStream: InputStream): GoogleActionsV2AppRequest {
 //        val options = ActionsSdkConversationOptions<TConvData, TUserStorage>(body = GoogleActionsV2AppRequest(), headers = null)
-        return gson.fromJson(InputStreamReader(inputStream), GoogleActionsV2AppRequest::class.java)
+        return Serializer.aogGson.fromJson(InputStreamReader(inputStream), GoogleActionsV2AppRequest::class.java)
     }
 
     fun requestToDialogflowV1Request(inputStream: InputStream): DialogflowV1WebhookRequest {
 //        val options = ActionsSdkConversationOptions<TConvData, TUserStorage>(body = GoogleActionsV2AppRequest(), headers = null)
-        return gson.fromJson(InputStreamReader(inputStream), DialogflowV1WebhookRequest::class.java)
+        return Serializer.aogGson.fromJson(InputStreamReader(inputStream), DialogflowV1WebhookRequest::class.java)
     }
 
     fun requestToDialogflowV2Request(inputStream: InputStream): GoogleCloudDialogflowV2WebhookRequest {
 //        val options = ActionsSdkConversationOptions<TConvData, TUserStorage>(body = GoogleActionsV2AppRequest(), headers = null)
-        return gson.fromJson(InputStreamReader(inputStream), GoogleCloudDialogflowV2WebhookRequest::class.java)
+        return Serializer.aogGson.fromJson(InputStreamReader(inputStream), GoogleCloudDialogflowV2WebhookRequest::class.java)
     }
 
     fun StandardResponse.serialize(): String? {
-        return gson.toJson(this.body, GoogleCloudDialogflowV2WebhookResponse::class.java)
+        return Serializer.aogGson.toJson(this.body, GoogleCloudDialogflowV2WebhookResponse::class.java)
     }
 
     fun HttpServletRequest.getAoGHeaders(): Headers =

@@ -9,26 +9,26 @@ import actions.service.actionssdk.conversation.response.SoloQuestion
 
 typealias NewSurfaceArgument = GoogleActionsV2NewSurfaceValue
 
-interface NewSurfaceOptions {
+data class NewSurfaceOptions(
     /**
      * Context why new surface is requested.
      * It's the TTS prompt prefix (action phrase) we ask the user.
      * @public
      */
-    var context: String
+    var context: String? = null,
 
     /**
      * Title of the notification appearing on new surface device.
      * @public
      */
-    var notification: String
+    var notification: String? = null,
 
     /**
      * The list of capabilities required in the surface.
      * @public
      */
-    var capabilities: MutableList<SurfaceCapability>
-}
+    var capabilities: MutableList<SurfaceCapability>? = null
+)
 
 /**
  * Requests the user to switch to another surface during the conversation.
@@ -107,12 +107,14 @@ interface NewSurfaceOptions {
  *
  * @public
  */
-class NewSurface(options: NewSurfaceOptions): SoloQuestion(IntentEnum.NEW_SURFACE){
+class NewSurface(init: NewSurfaceOptions.() -> Unit): SoloQuestion(IntentEnum.NEW_SURFACE){
     /**
      * @param options NewSurface options
      * @public
      */
     init {
+        val options = NewSurfaceOptions()
+        options.init()
         this._data(InputValueSpec.NewSurfaceValueSpec) {
             capabilities = options.capabilities
             context = options.context

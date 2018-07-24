@@ -38,10 +38,10 @@ data class SystemIntent(
 
 /** @hidden */
 data class GoogleAssistantResponse(
-        var expectUserResponse: Boolean,
+        var expectUserResponse: Boolean? = null,
         var noInputPrompts: MutableList<GoogleActionsV2SimpleResponse>? = null,
         var isSsml: Boolean? = null,
-        var richResponse: GoogleActionsV2RichResponse,
+        var richResponse: GoogleActionsV2RichResponse? = null,
         var systemIntent: SystemIntent? = null,
         var userStorage: String? = null
 )
@@ -151,7 +151,7 @@ class DialogflowConversation<TUserStorage>(options: DialogflowConversationOption
      *
      * @public
      */
-    var parameters: DialogflowV1Parameters? = null
+    var parameters: DialogflowV1Parameters
 
     /** @public */
     var contexts: ContextValues
@@ -190,6 +190,7 @@ class DialogflowConversation<TUserStorage>(options: DialogflowConversationOption
      */
     var data: MutableMap<String, Any?> = mutableMapOf()
 
+
     /** @public */
     var version: Int
 
@@ -216,7 +217,7 @@ class DialogflowConversation<TUserStorage>(options: DialogflowConversationOption
 
             this.action = action
             this.intent = intentName ?: ""
-            this.parameters = parameters
+            this.parameters = parameters ?: mutableMapOf()
             this.contexts = ContextValues(contexts)
             this.incoming = Incoming(fulfillment!!)
             this.query = resolvedQuery ?: ""
@@ -235,13 +236,13 @@ class DialogflowConversation<TUserStorage>(options: DialogflowConversationOption
 
             this.action = action ?: ""
             this.intent = displayName ?: ""
-            this.parameters = parameters
+            this.parameters = parameters ?: mutableMapOf()
             this.contexts = ContextValues(outputContexts = outputContexts, session = this.body?.session, flag = true)
             this.incoming = Incoming(fulfillmentMessages!!)
             this.query = queryText ?: ""
         }
 
-        parameters?.forEach {
+        parameters.forEach {
             //Not needed for kotlin SDK
 //            val value = this.parameters[key]
 //            if (typeof value !== "object") {
@@ -312,25 +313,33 @@ class DialogflowConversation<TUserStorage>(options: DialogflowConversationOption
     }
 
 
-    fun commonPayload(): PayloadGoogle {
-        val response = this.response()
-        val richResponse = response.richResponse
-        val expectUserResponse = response.expectUserResponse ?: true
-        val userStorage = response.userStorage
-        val expectedIntent = response.expectedIntent
-        val systemIntent = if (expectedIntent?.intent != null)
-            SystemIntent(
-                    intent = expectedIntent?.intent,
-                    data = expectedIntent?.inputValueData ?: ProtoAny())
-        else
-            null
+    fun commonPayload(): Data {
 
-        return PayloadGoogle(GoogleAssistantResponse(
-                expectUserResponse = expectUserResponse,
-                richResponse = richResponse!!,
-                userStorage = userStorage,
-                systemIntent = systemIntent
-        ))
+        return if (platformData != null) {
+           platformData!!
+        } else {
+            val response = this.response()
+            val richResponse = response.richResponse
+            val expectUserResponse = response.expectUserResponse ?: true
+            val userStorage = response.userStorage
+            val expectedIntent = response.expectedIntent
+            val systemIntent = if (expectedIntent?.intent != null)
+                SystemIntent(
+                        intent = expectedIntent?.intent,
+                        data = expectedIntent?.inputValueData ?: ProtoAny())
+            else
+                null
+
+            val googleData = Data()
+            googleData.google = GoogleAssistantResponse(
+                    expectUserResponse = expectUserResponse,
+                    richResponse = richResponse!!,
+                    userStorage = userStorage,
+                    systemIntent = systemIntent
+            )
+            googleData
+        }
+
     }
 
     fun serializeV1(): DialogflowV1WebhookResponse {
@@ -340,7 +349,10 @@ class DialogflowConversation<TUserStorage>(options: DialogflowConversationOption
         }
         val contextOut = this.contexts._serializeV1()
         val payload = commonPayload()
-        val response = DialogflowV1WebhookResponse(data = payload,
+        val response = DialogflowV1WebhookResponse(
+                speech = textToSpeech,
+                displayText = displayText,
+                data = payload,
                 contextOut = contextOut)
         return response
     }
@@ -353,13 +365,15 @@ class DialogflowConversation<TUserStorage>(options: DialogflowConversationOption
 
         val payload = commonPayload()
 
-        val data = DialogflowV1Parameters()
+        val data = mutableMapOf<String, Any>()
         data["data"] = Serializer.serialize(this.data) ?: Any()
 
         this.contexts.set(APP_DATA_CONTEXT, APP_DATA_CONTEXT_LIFESPAN, data)
 
         val outputContexts = this.contexts._serialize()
-        val response = GoogleCloudDialogflowV2WebhookResponse(payload = payload,
+        val response = GoogleCloudDialogflowV2WebhookResponse(
+                fulfillmentText = textToSpeech,
+                payload = payload,
                 outputContexts = outputContexts)
         return response
     }

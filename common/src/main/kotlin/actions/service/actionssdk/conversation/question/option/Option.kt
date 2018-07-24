@@ -2,6 +2,7 @@ package actions.service.actionssdk.conversation.question.option
 
 import actions.service.actionssdk.api.GoogleActionsV2UiElementsCarouselSelectCarouselItem
 import actions.service.actionssdk.api.GoogleActionsV2UiElementsImage
+import actions.service.actionssdk.conversation.response.Image
 
 
 /** @public */
@@ -43,7 +44,7 @@ data class OptionItem(
      * Square image to show for this item.
      * @public
      */
-    var image: GoogleActionsV2UiElementsImage? = null
+    var image: Image? = null
 )
 
 /** @hidden */

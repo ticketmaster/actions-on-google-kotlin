@@ -4,101 +4,113 @@ import actions.ApiClientObjectMap
 import actions.framework.JsonObject
 import actions.service.dialogflow.api.DialogflowV1Button
 
-sealed class DialogflowV1Message:DialogflowV1BaseMessage {}
+data class Message(
+        var type: String = "",
+        var platform: String? = "",
+        var payload: String? = "",
+        var items: MutableList<DialogflowV1MessageOptionItem>? = null,
+        var speech: String? = null,
+        var textToSpeech: String? = null,
+        var displayText: String? = null,
+        var suggestions: MutableList<DialogflowV1MessageSuggestion>? = null,
+        var destinationName: String? = null,
+        var url: String? = null,
+        var title: String? = null,
+        var subtitle: String? = null,
+        var formattedText: String? = null,
+        var image: DialogflowV1MessageImage? = null,
+        var buttons: MutableList<DialogflowV1MessageBasicCardButton>? = null)
 
-interface DialogflowV1MessageText: DialogflowV1BaseMessage {//<0>
-    var speech: String
-}
+sealed class DialogflowV1Message : DialogflowV1BaseMessage() {}
 
-interface DialogflowV1BaseMessage {
-    var platform: String? //"facebook" | "kik" | "line" | "skype" | "slack" | "telegram" | "viber"
-    var type: String? // <-- investigate Int/String - what is actually returned? both? look in Incoming.kt for examples
-}
+data class DialogflowV1MessageText(var speech: String? = null) : DialogflowV1BaseMessage()
 
-
-interface DialogflowV1MessageImage: DialogflowV1BaseMessage {//<3> {
-    var imageUrl: String
-}
-
-interface DialogflowV1MessageCard: DialogflowV1BaseMessage {//<1> {
-    var buttons: MutableList<DialogflowV1Button>
-    var imageUrl: String
-    var subtitle: String
-    var title: String
-}
-
-interface DialogflowV1MessageQuickReplies: DialogflowV1BaseMessage {//<2> {
-    var replies: MutableList<String>
-    var title: String
-}
-
-interface DialogflowV1MessageCustomPayload: DialogflowV1BaseMessage {//<4> {
-    var payload: JsonObject
-}
+open class DialogflowV1BaseMessage(
+        var platform: String? = null, //"facebook" | "kik" | "line" | "skype" | "slack" | "telegram" | "viber"
+        var type: String? = null // <-- investigate Int/String - what is actually returned? both? look in Incoming.kt for examples
+)
 
 
-interface DialogflowV1BaseGoogleMessage {
-    var platform: String //= "Google"
-    var type: Int
-}
+data class DialogflowV1MessageImage(var imageUrl: String? = null) : DialogflowV1BaseMessage()
 
-interface DialogflowV1MessageSimpleResponse: DialogflowV1BaseGoogleMessage {//<"simple_response"> {
-    var displayText: String
-    var textToSpeech: String
-}
+data class DialogflowV1MessageCard(
+        var buttons: MutableList<DialogflowV1Button>? = null,
+        var imageUrl: String? = null,
+        var subtitle: String? = null,
+        var title: String? = null
+) : DialogflowV1BaseMessage(type = "1") // 1
 
-interface DialogflowV1MessageBasicCardButtonAction {
-    var url: String
-}
+data class DialogflowV1MessageQuickReplies(
+        var replies: MutableList<String>? = null,
+        var title: String? = null
+) : DialogflowV1BaseMessage(type = "2") //<2> {
 
-interface DialogflowV1MessageBasicCardButton {
-    var openUrlAction: DialogflowV1MessageBasicCardButtonAction
-    var title: String
-}
+data class DialogflowV1MessageCustomPayload(
+        var payload: JsonObject? = null
+) : DialogflowV1BaseMessage(type = "4") //<4> {
 
-interface DialogflowV1MessageBasicCard: DialogflowV1BaseGoogleMessage {
-    var buttons: MutableList<DialogflowV1MessageBasicCardButton>
-    var formattedText: String
-    var image: DialogflowV1MessageImage
-    var subtitle: String
-    var title: String
-}
+
+open class DialogflowV1BaseGoogleMessage(
+        var platform: String? = null, //= "Google"
+        var type: Int? = null)
+
+data class DialogflowV1MessageSimpleResponse(
+        var displayText: String? = null,
+        var textToSpeech: String? = null
+) : DialogflowV1BaseGoogleMessage() //{//<"simple_response"> {
+
+data class DialogflowV1MessageBasicCardButtonAction(
+        var url: String? = null
+)
+
+data class DialogflowV1MessageBasicCardButton(
+        var openUrlAction: DialogflowV1MessageBasicCardButtonAction? = null,
+        var title: String? = null
+)
+
+data class DialogflowV1MessageBasicCard(
+        var buttons: MutableList<DialogflowV1MessageBasicCardButton>? = null,
+        var formattedText: String? = null,
+        var image: DialogflowV1MessageImage? = null,
+        var subtitle: String? = null,
+        var title: String? = null
+) : DialogflowV1BaseGoogleMessage()
 
 interface DialogflowV1MessageOptionInfo {
     var key: String
     var synonyms: MutableList<String>
 }
 
-interface DialogflowV1MessageOptionItem {
-    var description: String
-    var image: DialogflowV1MessageImage
-    var optionInfo: DialogflowV1MessageOptionInfo
-    var title: String
-}
+data class DialogflowV1MessageOptionItem(
+        var description: String? = null,
+        var image: DialogflowV1MessageImage? = null,
+        var optionInfo: DialogflowV1MessageOptionInfo? = null,
+        var title: String? = null
+)
 
-interface DialogflowV1MessageList: DialogflowV1BaseGoogleMessage {
-    var items: MutableList<DialogflowV1MessageOptionItem>
-    var title: String
-}
+data class DialogflowV1MessageList(
+        var items: MutableList<DialogflowV1MessageOptionItem>? = null,
+        var title: String? = null
+) : DialogflowV1BaseGoogleMessage()
 
-interface DialogflowV1MessageSuggestion {
-    var title: String
-}
+data class DialogflowV1MessageSuggestion(
+        var title: String? = null
+)
 
-interface DialogflowV1MessageSuggestions: DialogflowV1BaseGoogleMessage {
-    var suggestions: MutableList<DialogflowV1MessageSuggestion>
-}
+data class DialogflowV1MessageSuggestions(
+        var suggestions: MutableList<DialogflowV1MessageSuggestion>? = null
+) : DialogflowV1BaseGoogleMessage()
 
-interface DialogflowV1MessageCarousel: DialogflowV1BaseGoogleMessage {
-    var items: MutableList<DialogflowV1MessageOptionItem>
-}
+data class DialogflowV1MessageCarousel(
+        var items: MutableList<DialogflowV1MessageOptionItem>? = null
+) : DialogflowV1BaseGoogleMessage()
 
-interface DialogflowV1MessageLinkOut: DialogflowV1BaseGoogleMessage {
-    var destinationName: String
-    var url: String
-}
+data class DialogflowV1MessageLinkOut(
+        var destinationName: String? = null,
+        var url: String? = null
+) : DialogflowV1BaseGoogleMessage()
 
-interface DialogflowV1MessageGooglePayload: DialogflowV1BaseGoogleMessage {
-    var payload: ApiClientObjectMap<Any>
-}
+data class DialogflowV1MessageGooglePayload(var payload: ApiClientObjectMap<Any>? = null) : DialogflowV1BaseGoogleMessage()
+
+
 

@@ -103,16 +103,17 @@ data class PermissionOptions(
  * * {@link Place|conv.ask(new Place)} which also can ask for Location permission to get a place
  * @public
  */
-open class Permission(options: PermissionOptions? = null): SoloQuestion(IntentEnum.PERMISSION) {
+open class Permission(init: PermissionOptions.() -> Unit): SoloQuestion(IntentEnum.PERMISSION) {
     /**
      * @param options Permission options
      * @public
      */
     init {
-
+        val options = PermissionOptions()
+        options.init()
         this._data(actions.service.actionssdk.conversation.InputValueSpec.PermissionValueSpec) {
-            optContext = options?.context
-            permissions = options?.permissions
+            optContext = options.context
+            permissions = options.permissions
             //...options.extra,
         }
     }

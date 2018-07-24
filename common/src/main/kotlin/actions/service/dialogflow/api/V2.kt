@@ -275,7 +275,7 @@ data class GoogleCloudDialogflowV2WebhookResponse(
         var fulfillmentText: String? = null,
         var fulfillmentMessages: MutableList<GoogleCloudDialogflowV2IntentMessage>? = null,
         var source: String? = null,
-        var payload: PayloadGoogle? = null,
+        var payload: Data? = null,
 //    var payload: ApiClientObjectMap<Any>? = null,
         var outputContexts: MutableList<GoogleCloudDialogflowV2Context>? = null,
         var followupEventInput: GoogleCloudDialogflowV2EventInput? = null)

@@ -488,6 +488,7 @@ class MediaResponse() : GoogleActionsV2MediaResponse, RichResponseItem() {
 
 /**
  * Class for initializing and constructing OrderUpdate
+ * Delegates to MutableMap so dynamic fields may be added.
  * @public
  */
 data class OrderUpdate(override var actionOrderId: String? = null,
@@ -503,8 +504,10 @@ data class OrderUpdate(override var actionOrderId: String? = null,
                        override var rejectionInfo: GoogleActionsV2OrdersRejectionInfo? = null,
                        override var returnInfo: GoogleActionsV2OrdersReturnInfo? = null,
                        override var totalPrice: GoogleActionsV2OrdersPrice? = null,
-                       override var updateTime: String? = null,
-                       override var userNotification: GoogleActionsV2OrdersOrderUpdateUserNotification? = null) : GoogleActionsV2OrdersOrderUpdate, RichResponseItem() {
+                       override var updateTime: GoogleTypeTimeOfDay? = null,
+                       override var userNotification: GoogleActionsV2OrdersOrderUpdateUserNotification? = null,
+                       override var orderDate: String? = null,
+                       override var locale: String? = null) : GoogleActionsV2OrdersOrderUpdate, MutableMap<String, Any> by mutableMapOf(), RichResponseItem() {
     /**
      * @param options The raw {@link GoogleActionsV2OrdersOrderUpdate}
      * @public

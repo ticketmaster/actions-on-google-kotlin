@@ -3,7 +3,9 @@ package actions.service.actionssdk.api
 import actions.ApiClientObjectMap
 import actions.ProtoAny
 import actions.service.actionssdk.conversation.response.GoogleActionsV2RichResponseItem
+import actions.service.actionssdk.conversation.response.Image
 import actions.service.actionssdk.conversation.response.OrderUpdate
+import actions.service.actionssdk.conversation.response.card.Button
 
 
 enum class GoogleActionsV2ConversationType {
@@ -626,7 +628,9 @@ data class GoogleActionsV2Location(
          * Requires the DEVICE_PRECISE_LOCATION or
          * DEVICE_COARSE_LOCATION permission.
          */
-        var zipCode: String? = null
+        var zipCode: String? = null,
+
+        var address: String? = null
 )
 
 interface GoogleActionsV2MediaObject {
@@ -880,7 +884,7 @@ data class GoogleActionsV2OrdersLineItem(
         /**
          * Small image associated with this item.
          */
-        var image: GoogleActionsV2UiElementsImage? = null,
+        var image: Image? = null,
         /**
          * Name of the line item as displayed in the receipt. Required.
          */
@@ -1113,27 +1117,35 @@ interface GoogleActionsV2OrdersOrderUpdate {
     /**
      * When the order was updated from the app's perspective.
      */
-    var updateTime: String?
+    var updateTime: GoogleTypeTimeOfDay?
     /**
      * If specified, displays a notification to the user with the specified
      * title and text. Specifying a notification is a suggestion to
      * notify and is not guaranteed to result in a notification.
      */
     var userNotification: GoogleActionsV2OrdersOrderUpdateUserNotification?
+
+    /**
+     * Added in AoG-Kotlin
+     */
+    var orderDate: String?
+
+    var locale: String?
 }
+
 
 data class GoogleActionsV2OrdersOrderUpdateAction(
         /**
          * Button label and link.
          */
-        var button: GoogleActionsV2UiElementsButton? = null,
+        var button: Button? = null,
         /**
          * Type of action.
          */
         var type: GoogleActionsV2OrdersOrderUpdateActionType? = null
 ) {
     fun button(init: GoogleActionsV2UiElementsButton.() -> Unit) {
-        this.button = GoogleActionsV2UiElementsButton()
+        this.button = Button()
         this.button?.init()
     }
 }
@@ -1304,7 +1316,7 @@ data class GoogleActionsV2OrdersProposedOrder(
         /**
          * Image associated with the proposed order.
          */
-        var image: GoogleActionsV2UiElementsImage? = null,
+        var image: Image? = null,
         /**
          * Fees, adjustments, subtotals, etc.
          */
@@ -1320,17 +1332,29 @@ data class GoogleActionsV2OrdersProposedOrder(
         var totalPrice: GoogleActionsV2OrdersPrice? = null
 ) {
     fun cart(init: GoogleActionsV2OrdersCart.() -> Unit) {
-        cart = GoogleActionsV2OrdersCart()
+        if (cart == null) {
+            cart = GoogleActionsV2OrdersCart()
+        }
         cart?.init()
     }
 
     fun totalPrice(init: GoogleActionsV2OrdersPrice.() -> Unit) {
-        totalPrice = GoogleActionsV2OrdersPrice()
+        if (totalPrice == null) {
+            totalPrice = GoogleActionsV2OrdersPrice()
+        }
         totalPrice?.init()
     }
     fun extension(init: ProtoAny.() -> Unit) {
-        extension = ProtoAny()
+        if (extension == null) {
+            extension = ProtoAny()
+        }
         extension?.init()
+    }
+    fun image(init: Image.() -> Unit) {
+        if (image == null) {
+            image = Image()
+        }
+        image?.init()
     }
 }
 
@@ -1724,18 +1748,18 @@ interface GoogleActionsV2UiElementsBasicCard {
     var title: String?
 }
 
-open class GoogleActionsV2UiElementsButton(
+interface GoogleActionsV2UiElementsButton {
     /**
      * Action to take when a user taps on the button.
      * Required.
      */
-    open var openUrlAction: GoogleActionsV2UiElementsOpenUrlAction? = null,
+    var openUrlAction: GoogleActionsV2UiElementsOpenUrlAction?
     /**
      * Title of the button.
      * Required.
      */
-    open var title: String? = null
-) {
+    var title: String?
+
     fun openUrlAction(init: GoogleActionsV2UiElementsOpenUrlAction.() -> Unit) {
         this.openUrlAction = GoogleActionsV2UiElementsOpenUrlAction()
         this.openUrlAction?.init()

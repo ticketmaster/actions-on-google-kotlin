@@ -4,6 +4,8 @@ import actions.ApiClientObjectMap
 import actions.framework.JsonObject
 import actions.service.actionssdk.api.GoogleActionsV2AppRequest
 import actions.service.dialogflow.DialogflowV1Message
+import actions.service.dialogflow.GoogleAssistantResponse
+import actions.service.dialogflow.Message
 import actions.service.dialogflow.PayloadGoogle
 
 /**
@@ -30,14 +32,15 @@ data class DialogflowV1OriginalRequest(
     var data: GoogleActionsV2AppRequest? = null
 )
 
-class DialogflowV1Parameters: MutableMap<String, Any?> by mutableMapOf() {
+typealias DialogflowV1Parameters = MutableMap<String, Any>
+//class DialogflowV1Parameters: MutableMap<String, Any?> by mutableMapOf() {
 //    [parameter: String]: String | Object | undefined
-}
+//}
 
 data class DialogflowV1Context(
     var name: String? = null,
-    var parameters: DialogflowV1Parameters? = null,
-    var lifespan: Int? = null
+    var lifespan: Int? = null,
+    var parameters: DialogflowV1Parameters? = null
 )
 
 data class DialogflowV1Metadata(
@@ -72,7 +75,8 @@ DialogflowV1MessageGooglePayload
 
 data class DialogflowV1Fulfillment(
     var speech: String? = null,
-    var messages: MutableList<DialogflowV1Message>? = null
+    var messages: MutableList<Message>? = null,
+    var data: Data? = null
 )
 
 data class DialogflowV1Result(
@@ -85,8 +89,24 @@ data class DialogflowV1Result(
     var contexts: MutableList<DialogflowV1Context>? = null,
     var metadata: DialogflowV1Metadata? = null,
     var fulfillment: DialogflowV1Fulfillment? = null,
-    var score: Int? = null
+    var score: Float? = null
 )
+
+/**
+ * Holds data for original platform.  Extends MutableMap so this is extendable
+ * to other platforms by adding a field
+ * Requires custom serialization in JVM.  See DataTypeAdapter
+ */
+data class Data(val nothing: Nothing? = null) : MutableMap<String, Any?> by mutableMapOf() {
+    var google: GoogleAssistantResponse? by this
+
+    inline fun google(init: GoogleAssistantResponse.() -> Unit) {
+        if (google == null) {
+            google = GoogleAssistantResponse()
+        }
+        google?.init()
+    }
+}
 
 data class DialogflowV1Status(
     var code: Int? = null,
@@ -113,8 +133,8 @@ data class DialogflowV1FollowupEvent(
 data class DialogflowV1WebhookResponse(
     var speech: String? = null,
     var displayText: String? = null,
-    var messages: MutableList<DialogflowV1Message>? = null,
-    var data: PayloadGoogle? = null,
+    var messages: MutableList<Message>? = null,
+    var data: Data? = null,
 //    var data: ApiClientObjectMap<Any>? = null,
     var contextOut: MutableList<DialogflowV1Context>? = null,
     var source: String? = null,

@@ -5,7 +5,9 @@ import actions.expected.BuiltinFrameworks
 import actions.expected.Serializer
 import actions.expected.log
 import actions.service.actionssdk.ActionsSdk
+import actions.service.actionssdk.ActionsSdkIntentHandler4
 import actions.service.actionssdk.conversation.Conversation
+import actions.service.dialogflow.DialogflowIntentHandler4
 
 
 abstract class AppHandler<THandler>: BaseApp<THandler>()
@@ -116,7 +118,7 @@ fun <TService: ServiceBaseApp<TUserStorage>, TUserStorage> attach(
 
     var handler = baseApp.handler
     val standard = object: StandardHandler<TUserStorage> {
-        override fun handle(body: Any, headers: Headers): StandardResponse {
+        override fun handle(body: Any, headers: Headers, overrideHandler: DialogflowIntentHandler4<TUserStorage>?, aogOverrideHandler: ActionsSdkIntentHandler4<TUserStorage>?): StandardResponse {
             log("Request", Serializer.serialize(body))
             log("Headers", Serializer.serialize(headers))
             val response = /* await */ handler.handle(body, headers)
@@ -147,7 +149,7 @@ fun <TService: ServiceBaseApp<TUserStorage>, TUserStorage> attach(
             TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
         }
 
-        override fun handle(body: Any, headers: Headers): StandardResponse = standard.handle(body, headers)
+        override fun handle(body: Any, headers: Headers, overrideHandler: DialogflowIntentHandler4<TUserStorage>?, aogOverrideHandler: ActionsSdkIntentHandler4<TUserStorage>?): StandardResponse = standard.handle(body, headers)
 
         override var frameworks: BuiltinFrameworks<TUserStorage> = baseApp.frameworks
 

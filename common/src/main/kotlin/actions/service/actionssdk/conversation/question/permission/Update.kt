@@ -94,9 +94,9 @@ class UpdatePermissionOptions {
  * @param options UpdatePermission options
  * @public
  */
-class UpdatePermission(options: UpdatePermissionOptions? = null) : Permission(
-        PermissionOptions(permissions = mutableListOf(GoogleActionsV2PermissionValueSpecPermissions.UPDATE),
-                extra = GoogleActionsV2PermissionValueSpec(
-                        updatePermissionValueSpec = GoogleActionsV2UpdatePermissionValueSpec(arguments = options?.arguments, intent = options?.intent))
-        ))
+class UpdatePermission(options: UpdatePermissionOptions? = null) : Permission({
+            permissions = mutableListOf(GoogleActionsV2PermissionValueSpecPermissions.UPDATE)
+            extra = GoogleActionsV2PermissionValueSpec(
+                    updatePermissionValueSpec = GoogleActionsV2UpdatePermissionValueSpec(arguments = options?.arguments, intent = options?.intent))
+        })
 

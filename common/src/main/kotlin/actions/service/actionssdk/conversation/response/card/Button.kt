@@ -29,7 +29,7 @@ data class ButtonOptions(
  * @public
  */
 data class Button(override var openUrlAction: GoogleActionsV2UiElementsOpenUrlAction? = null,
-                  override var title: String? = null) : GoogleActionsV2UiElementsButton() {
+                  override var title: String? = null) : GoogleActionsV2UiElementsButton {
     /**
      * @param options Button options
      * @public

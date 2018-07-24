@@ -1,10 +1,8 @@
 package actions.service.dialogflow
 
 import actions.service.actionssdk.conversation.response.*
-import actions.service.actionssdk.conversation.response.card.Button
 import actions.service.actionssdk.push
 import actions.service.dialogflow.api.DialogflowV1Fulfillment
-import actions.service.dialogflow.api.DialogflowV1WebhookRequest
 import actions.service.dialogflow.api.GoogleCloudDialogflowV2IntentMessage
 
 /**
@@ -67,17 +65,18 @@ class Incoming {
                     continue
                 }
                 if (type == "0") {
-                    val assumed = message as DialogflowV1MessageText
-                    this.parsed?.push(assumed.speech)
+                    val assumed = message //as DialogflowV1MessageText
+                    this.parsed?.push(assumed.speech ?: "")
                     continue
                 }
                 if (type == "3") {
-                    val assumed = message as DialogflowV1MessageImage
+                    val assumed = message //as DialogflowV1MessageImage
 //                    this.parsed?.push(toImage(assumed.imageUrl))
                     continue
                 }
                 if (type == "1") {
-                    val assumed = message as DialogflowV1MessageCard
+                    val assumed = message //as DialogflowV1MessageCard
+                    /*
                     val buttons = assumed.buttons
                     this.parsed?.push(BasicCard(
                             title = assumed.title,
@@ -88,30 +87,34 @@ class Incoming {
                                     title = it.text ?: ""
                                     url = it.postback
                                 }
-                            }.toMutableList()))
+                            }?.toMutableList()))
+                            */
                     continue
                 }
                 if (type == "2") {
-                    val assumed = message as DialogflowV1MessageQuickReplies
+                    val assumed = message //as DialogflowV1MessageQuickReplies
                     //TODO find cleaner way for Suggestions creation
-                    this.parsed?.push(Suggestions(*assumed.replies.toTypedArray()))
+                    /*
+                    if (assumed?.replies != null)
+                        this.parsed?.push(Suggestions(*assumed.replies!!.toTypedArray()))
+                        */
                     continue
                 }
                 if (type == "4") {
-                    val assumed = message as DialogflowV1MessageCustomPayload
-                    this.parsed?.push(assumed.payload)
+                    val assumed = message //as DialogflowV1MessageCustomPayload
+                    this.parsed?.push(assumed.payload ?: "")
                     continue
                 }
                 if (type == "simple_response") {
-                    val assumed = message as DialogflowV1MessageSimpleResponse
+                    val assumed = message //as DialogflowV1MessageSimpleResponse
                     this.parsed?.push(SimpleResponse {
                         text = assumed.displayText
-                        this.speech = assumed.textToSpeech
+                        this.speech = assumed.textToSpeech ?: ""
                     })
                     continue
                 }
                 if (type == "basic_card") {
-                    val assumed = message as DialogflowV1MessageBasicCard
+                    val assumed = message //as DialogflowV1MessageBasicCard
                     val image = assumed.image
                     val buttons = assumed.buttons
                     /*
@@ -131,7 +134,7 @@ class Incoming {
                     continue
                 }
                 if (type == "list_card") {
-                    val assumed = message as DialogflowV1MessageList
+                    val assumed = message //as DialogflowV1MessageList
                     /*
                     this.parsed?.push(List ({ title: assumed.title,
                                                  items: assumed.items!,
@@ -140,28 +143,28 @@ class Incoming {
                     continue
                 }
                 if (type == "suggestion_chips") {
-                    val assumed = message as DialogflowV1MessageSuggestions
+                    val assumed = message //as DialogflowV1MessageSuggestions
 //                    this.parsed?.push(Suggestions (assumed.suggestions!.map(s => s . title !)))
                     continue
                 }
                 if (type == "carousel_card") {
-                    val assumed = message as DialogflowV1MessageCarousel
+                    val assumed = message //as DialogflowV1MessageCarousel
                     this.parsed?.push(Carousel {
-//                        items = assumed.items
+                        //                        items = assumed.items
                     })
                     continue
                 }
                 if (type == "link_out_chip") {
-                    val assumed = message as DialogflowV1MessageLinkOut
+                    val assumed = message //as DialogflowV1MessageLinkOut
                     this.parsed?.push(LinkOutSuggestion {
-                        name = assumed.destinationName
-                        url = assumed.url
+                        name = assumed.destinationName ?: ""
+                        url = assumed.url ?: ""
                     })
                     continue
                 }
                 if (type == "custom_payload") {
-                    val assumed = message as DialogflowV1MessageGooglePayload
-                    this.parsed?.push(assumed.payload)
+                    val assumed = message //as DialogflowV1MessageGooglePayload
+                    this.parsed?.push(assumed.payload ?: "")
                     continue
                 }
             }

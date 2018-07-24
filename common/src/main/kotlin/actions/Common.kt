@@ -36,7 +36,8 @@ data class ProtoAny(var `@type`: String? = null,
                     var paymentOptions: GoogleActionsV2OrdersPaymentOptions? = null,
                     var listSelect: GoogleActionsV2UiElementsListSelect? = null,
                     var carouselSelect: GoogleActionsV2UiElementsCarouselSelect? = null,
-                    var locations: MutableList<GoogleActionsV2OrdersOrderLocation>? = null) {
+                    var locations: MutableList<GoogleActionsV2OrdersOrderLocation>? = null,
+                    var time: Time? = null) {
 
     fun dialogSpec(init: DialogSpecData.() -> Unit) {
 
@@ -50,6 +51,8 @@ data class ProtoAny(var `@type`: String? = null,
         }.toMutableList()
     }
 }
+
+data class Time(var type: GoogleActionsV2OrdersTimeType? = null, var time_iso8601: String? = null)
 
 data class DialogSpecData(var `@type`: String? = null,
                           var permissionContext: String? = null,

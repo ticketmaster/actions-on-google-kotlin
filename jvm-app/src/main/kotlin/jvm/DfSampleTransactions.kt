@@ -1,7 +1,6 @@
 package jvm
 
 import actions.ApiClientObjectMap
-import actions.expected.Date
 import actions.expected.deliveryAddress
 import actions.expected.log
 import actions.service.actionssdk.api.*
@@ -17,12 +16,7 @@ const val GENERIC_EXTENSION_TYPE =
 const val UNIQUE_ORDER_ID = "<UNIQUE_ORDER_ID>"
 
 fun initTransactionSample(dfApp: DialogflowApp<*, *, *>) {
-    dfApp.intent("") {conv, param, arg, status->
-        arg?.status
-        if (newSurface?.status == GoogleRpcStatus) {
 
-        }
-    }
     dfApp.intent("transaction.check.action") { conv ->
         conv.hasScreen()
         conv.ask(TransactionRequirements {
@@ -267,7 +261,8 @@ fun initTransactionSample(dfApp: DialogflowApp<*, *, *>) {
                     state = "CREATED"
                 }
                 lineItemUpdates = ApiClientObjectMap()
-                updateTime = Date().toISOString()
+                //TODO make setting updatetime easier
+                updateTime = GoogleTypeTimeOfDay()
                 receipt {
                     confirmedActionOrderId = UNIQUE_ORDER_ID
                 }

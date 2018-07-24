@@ -1,21 +1,17 @@
 package actions.service.actionssdk.conversation
 
 import actions.AppOptions
-import actions.ServiceBaseApp
 import actions.BaseApp
 import actions.expected.OAuth2Client
 import actions.framework.Headers
 import actions.framework.JsonObject
-import actions.service.actionssdk.api.GoogleActionsV2AppRequest
-import actions.service.actionssdk.api.GoogleActionsV2ConversationType
-import actions.service.actionssdk.api.GoogleActionsV2ExpectedIntent
-import actions.service.actionssdk.api.GoogleActionsV2RichResponse
 import actions.service.actionssdk.conversation.argument.Arguments
 import actions.service.actionssdk.conversation.response.*
-import actions.service.actionssdk.push
-import actions.service.actionssdk.ActionsSdkIntentHandler3
 import actions.service.actionssdk.ActionsSdkIntentHandler4
+import actions.service.actionssdk.api.*
+import actions.service.actionssdk.conversation.question.transaction.TransactionDecisionArgument
 import actions.service.dialogflow.DialogflowIntentHandler4
+import actions.service.dialogflow.api.Data
 
 
 //TODO test enum vs sealed class
@@ -64,7 +60,11 @@ data class ConversationResponse(
         var richResponse: GoogleActionsV2RichResponse? = null,
         var expectUserResponse: Boolean? = null,
         var userStorage: String? = null,
-        var expectedIntent: GoogleActionsV2ExpectedIntent? = null)
+        var expectedIntent: GoogleActionsV2ExpectedIntent? = null,
+        var noInputPrompts: MutableList<SimpleResponse>? = null,
+        /** THESE ADDED TO AOG-KOTLIN TO GIVE RESPONSE IN DF CONSOLE AND USEFUL FOR OTHER PLATFORMS **/
+        var speech: String? = null,
+        var displayText: String? = null)
 
 interface ConversationOptionsInit<TUserStorage> {
     var data: MutableMap<String, Any?>?
@@ -148,9 +148,57 @@ abstract class Conversation<TUserStorage> {
      */
     var screen: Boolean
 
+    /**
+     * Set reprompts when users don't provide input to this action (no-input errors).
+     * Each reprompt represents as the {@link SimpleResponse}, but raw strings also can be specified
+     * for convenience (they're passed to the constructor of {@link SimpleResponse}).
+     * Notice that this value is not kept over conversations. Thus, it is necessary to set
+     * the reprompts per each conversation response.
+     */
+    var noInputs: MutableList<SimpleResponse>? = null
+
     var _raw: JsonObject? = null
 
     var _responded = false
+
+    /**
+     * Holds platform data.  May be used for other platforms with conv.data["facebook"] = <FB_DATA>
+     */
+    var platformData: Data? = null
+
+    /**
+     * Added to AOG-Kotlin to support DF console and other platforms
+     */
+    var textToSpeech: String? = null
+    var displayText: String? = null
+
+    private fun addToTextToSpeech(speech: String?) {
+        if (textToSpeech == null)
+            textToSpeech = String()
+        if (textToSpeech?.isBlank() == true) {
+            textToSpeech = speech
+        } else {
+            textToSpeech = "  $speech"
+        }
+    }
+
+    private fun addToTextToDisplayText(text: String?) {
+        if (displayText == null)
+            displayText = String()
+        if (displayText?.isBlank() == true) {
+            displayText = text
+        } else {
+            displayText = "  $text"
+        }
+    }
+
+    fun data(init: Data.() -> Unit) {
+        if (platformData == null) {
+            platformData = Data()//mutableMapOf<String, Any?>()
+        }
+        platformData?.init()
+    }
+
 
     constructor(options: ConversationOptions<TUserStorage>) {
         val request = options.request
@@ -198,12 +246,23 @@ abstract class Conversation<TUserStorage> {
         }
         this.responses.addAll(responses)
         this._responded = true
+
+        responses?.forEach {
+            if (it is SimpleResponse) {
+                addToTextToSpeech(it.textToSpeech)
+                addToTextToDisplayText(it.displayText)
+            }
+        }
         return this
     }
 
     fun add(vararg responses: String): Conversation<TUserStorage> {
+        if (textToSpeech == null) {
+            textToSpeech = String()
+        }
         responses.forEach {
             this.add(SimpleResponse(it))
+            addToTextToSpeech(it)
         }
 //        if (this.digested) {
 //            throw Error("Response has already been sent. " +
@@ -266,6 +325,14 @@ abstract class Conversation<TUserStorage> {
         return this.add(*responses)
     }
 
+    fun noInputPrompts(vararg prompts: String) {
+        noInputs = prompts.map { SimpleResponse { textToSpeech = it } }.toMutableList()
+    }
+
+    fun noInputPrompts(vararg init: SimpleResponseOptions.() -> Unit) {
+        noInputs = init.map { SimpleResponse(it) }.toMutableList()
+    }
+
     /**
      * Have Assistant render the speech response and close the mic.
      *
@@ -313,6 +380,11 @@ abstract class Conversation<TUserStorage> {
     fun close(vararg responses: String): Conversation<TUserStorage> {
         this.expectUserResponse = false
         return this.add(*responses)
+    }
+
+    fun close(): Conversation<TUserStorage> {
+        this.expectUserResponse = false
+        return this
     }
 
     /** @public */
@@ -366,11 +438,40 @@ abstract class Conversation<TUserStorage> {
             }
         }
         val userStorage = this.user._serialize()
+
         return ConversationResponse(expectUserResponse = expectUserResponse,
                 richResponse = richResponse,
                 userStorage = userStorage,
-                expectedIntent = expectedIntent)
+                expectedIntent = expectedIntent,
+                noInputPrompts = noInputs,
+                speech = textToSpeech,
+                displayText = this.displayText)
     }
+
+    fun isNewSurface(): Boolean {
+        val ext = request?.inputs?.firstOrNull()?.arguments?.firstOrNull()
+        return ext?.name == "NEW_SURFACE" && ext?.extension?.status == "OK"
+    }
+
+    /****  ADDED TO KOTLIN SDK FOR CONVENIENCE FOR MIGRATING FROM V1  *****/
+
+    fun getArgument(name: String): Any? = arguments.get(name)
+
+    fun getTransactionDecision(): TransactionRequirementsCheckResult? {
+        val tmp = arguments.get("TRANSACTION_DECISION_VALUE")
+        return tmp?.extension
+    }
+
+    fun getSignInStatus(): GoogleActionsV2SignInValueStatus? {
+//        TODO()
+        return null
+    }
+
+    fun getTransactionRequirementsResult(): TransactionRequirementsCheckResult? {
+        val tmp = arguments.get("TRANSACTION_REQUIREMENTS_CHECK_RESULT")
+        return tmp?.extension
+    }
+
 }
 
 typealias ExceptionHandler<TUserStorage, TConversation> = (TConversation, Exception) -> Any
@@ -386,7 +487,7 @@ typealias ExceptionHandler<TUserStorage, TConversation> = (TConversation, Except
 class TraversedActionsHandlers<TUserStorage> : MutableMap<ActionsSdkIntentHandler4<TUserStorage>, Boolean> by mutableMapOf()
 
 /** @hidden */
-class TraversedDialogflowHandlers<TUserStorage, TArgument> : MutableMap<DialogflowIntentHandler4<TUserStorage, TArgument>, Boolean> by mutableMapOf()
+class TraversedDialogflowHandlers<TUserStorage, TArgument> : MutableMap<DialogflowIntentHandler4<TUserStorage>, Boolean> by mutableMapOf()
 
 /** @hidden */
 interface ConversationAppOptions<TUserStorage> : AppOptions {

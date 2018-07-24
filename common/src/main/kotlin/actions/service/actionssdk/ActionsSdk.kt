@@ -7,6 +7,7 @@ import actions.service.actionssdk.api.GoogleActionsV2AppRequest
 import actions.service.actionssdk.api.GoogleActionsV2Argument
 import actions.service.actionssdk.api.GoogleRpcStatus
 import actions.service.actionssdk.conversation.*
+import actions.service.dialogflow.DialogflowIntentHandler4
 
 typealias ActionsSdkIntentHandler1<TUserStorage> = (conv: ActionsSdkConversation<TUserStorage>) -> Any
 typealias ActionsSdkIntentHandler2<TUserStorage> = (conv: ActionsSdkConversation<TUserStorage>, argument: Any) -> Any
@@ -324,7 +325,7 @@ class ActionsSdk<TUserStorage>(options: ActionsSdkOptions<TUserStorage>? = null)
         OAuth2Client(options.clientId!!) else null
 
     override var handler: StandardHandler<TUserStorage> = object : StandardHandler<TUserStorage> {
-        override fun handle(body: Any, headers: Headers): StandardResponse {
+        override fun handle(body: Any, headers: Headers, overrideHandler: DialogflowIntentHandler4<TUserStorage>?, aogOverrideHandler: ActionsSdkIntentHandler4<TUserStorage>?): StandardResponse {
             val convBody = body as GoogleActionsV2AppRequest
             val debug: Boolean = options?.debug ?: false
             val init = init
@@ -370,7 +371,7 @@ class ActionsSdk<TUserStorage>(options: ActionsSdkOptions<TUserStorage>? = null)
 //                    }))
             val intent = conv.intent
             val traversedActionsHandlers: TraversedActionsHandlers<TUserStorage> = TraversedActionsHandlers()
-            var handler = _handlers.intents[intent]
+            var handler = aogOverrideHandler ?: _handlers.intents[intent]
 //            while (typeof handler !== 'function') {
             while (false) {
                 //TODO why is this loop here? handle intents mapped to a string?
@@ -390,17 +391,19 @@ class ActionsSdk<TUserStorage>(options: ActionsSdkOptions<TUserStorage>? = null)
             try {
                 /* await */ handler?.invoke(
                         conv,
-                        conv.input.raw!!,
-                        conv.arguments.parsed?.list?.firstOrNull(),
+                        conv.input.raw ?: "",
+                        conv.arguments.raw?.input?.values?.firstOrNull(),
+//                        conv.arguments.parsed?.list?.firstOrNull(),
                         conv.arguments.status?.list?.firstOrNull()
                 )
             } catch (e: Exception) {
                 //TODO provide default catcher
                 /*await */ _handlers.catcher?.invoke(conv, e)
+
             }
             return StandardResponse(
                     status = 200,
-                    headers = mutableMapOf(),
+                    headers = mutableMapOf("Content-type" to mutableListOf("application/json; charset=UTF-8")),
                     body = conv.serialize()
             )
         }
@@ -423,7 +426,7 @@ class ActionsSdk<TUserStorage>(options: ActionsSdkOptions<TUserStorage>? = null)
 
 //        var handler = baseApp.handler
         val standard = object : StandardHandler<TUserStorage> {
-            override fun handle(body: Any, headers: Headers): StandardResponse {
+            override fun handle(body: Any, headers: Headers, overrideHandler: DialogflowIntentHandler4<TUserStorage>?, aogOverrideHandler: ActionsSdkIntentHandler4<TUserStorage>?): StandardResponse {
                 val body = body as GoogleActionsV2AppRequest
                 log("Request", Serializer.serialize(body))
                 log("Headers", Serializer.serialize(headers))
