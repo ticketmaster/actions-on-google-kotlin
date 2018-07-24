@@ -209,7 +209,6 @@ fun initTransactionSample(dfApp: DialogflowApp<*, *, *>) {
                 locations({
                     type = GoogleActionsV2OrdersOrderLocationType.DELIVERY
                     location {
-                        val address = conv.data.deliveryAddress
                         postalAddress = conv.data.deliveryAddress?.postalAddress
                     }
                 })

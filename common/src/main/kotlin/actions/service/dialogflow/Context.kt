@@ -92,6 +92,8 @@ open class OutputContext(
 
 //typeof (context as ApiV1.DialogflowV1Context).lifespan === "number"
 
+val contextNameRegex by lazy {   """([^/]+)?$""".toRegex() }
+
 class ContextValues {
     /** @public */
     var input: Contexts? = null
@@ -109,7 +111,7 @@ class ContextValues {
             val parameters = it.parameters
             val lifespanCount = it.lifespanCount
             //TODO test this regex
-            val find = """([^/]+)?$""".toRegex().find(name)
+            val find = contextNameRegex.find(name)
             val first = find?.groups?.first()?.value ?: name
             this.input?.put(first, DialogflowV1Context(name = name,
                     lifespan = lifespanCount,
