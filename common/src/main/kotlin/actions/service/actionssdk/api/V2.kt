@@ -5,6 +5,7 @@ import actions.ProtoAny
 import actions.service.actionssdk.conversation.response.GoogleActionsV2RichResponseItem
 import actions.service.actionssdk.conversation.response.Image
 import actions.service.actionssdk.conversation.response.OrderUpdate
+import actions.service.actionssdk.conversation.response.SimpleResponse
 import actions.service.actionssdk.conversation.response.card.Button
 
 
@@ -549,7 +550,7 @@ data class GoogleActionsV2InputPrompt(
         /**
          * Prompt used to ask user when there is no input from user.
          */
-        var noInputPrompts: MutableList<GoogleActionsV2SimpleResponse>? = null,
+        var noInputPrompts: MutableList<SimpleResponse>? = null,
         /**
          * Prompt payload.
          */

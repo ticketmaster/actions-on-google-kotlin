@@ -88,7 +88,8 @@ class ActionsSdkConversation<TUserStorage>(options: ActionsSdkConversationOption
         val userStorage = response.userStorage
         val expectedIntent = response.expectedIntent
 
-        val inputPrompt = GoogleActionsV2InputPrompt(richInitialPrompt = richResponse)
+        val inputPrompt = GoogleActionsV2InputPrompt(richInitialPrompt = richResponse,
+                noInputPrompts = response.noInputPrompts)
 
         val possibleIntents = if (expectedIntent != null) {
             mutableListOf(expectedIntent)
