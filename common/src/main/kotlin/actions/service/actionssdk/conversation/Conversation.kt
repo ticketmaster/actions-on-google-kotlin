@@ -326,7 +326,7 @@ abstract class Conversation<TUserStorage> {
     }
 
     fun noInputPrompts(vararg prompts: String) {
-        noInputs = prompts.map { SimpleResponse { textToSpeech = it } }.toMutableList()
+        noInputs = prompts.map { SimpleResponse { speech = it } }.toMutableList()
     }
 
     fun noInputPrompts(vararg init: SimpleResponseOptions.() -> Unit) {
