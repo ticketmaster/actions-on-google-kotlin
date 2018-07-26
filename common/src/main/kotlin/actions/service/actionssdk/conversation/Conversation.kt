@@ -9,12 +9,10 @@ import actions.service.actionssdk.conversation.argument.Arguments
 import actions.service.actionssdk.conversation.response.*
 import actions.service.actionssdk.ActionsSdkIntentHandler4
 import actions.service.actionssdk.api.*
-import actions.service.actionssdk.conversation.question.transaction.TransactionDecisionArgument
 import actions.service.dialogflow.DialogflowIntentHandler4
 import actions.service.dialogflow.api.Data
 
 
-//TODO test enum vs sealed class
 enum class IntentEnum(val value: String) {
     MAIN("actions.intent.MAIN"),
     TEXT("actions.intent.TEXT"),
@@ -402,10 +400,6 @@ abstract class Conversation<TUserStorage> {
         var richResponse = RichResponse()
         var expectedIntent: GoogleActionsV2ExpectedIntent? = null
 
-//        this.strResponses.forEach {
-//            richResponse.add(it)
-//        }
-
         for (response in this.responses) {
             when (response) {
 
@@ -457,19 +451,25 @@ abstract class Conversation<TUserStorage> {
 
     fun getArgument(name: String): Any? = arguments.get(name)
 
-    fun getTransactionDecision(): TransactionRequirementsCheckResult? {
+    fun getTransactionDecision(): ArgumentExtension? {
         val tmp = arguments.get("TRANSACTION_DECISION_VALUE")
         return tmp?.extension
     }
 
     fun getSignInStatus(): GoogleActionsV2SignInValueStatus? {
-//        TODO()
-        return null
+        val arg = arguments.get("SIGN_IN")
+        return if (arg?.extension?.status == null)
+            GoogleActionsV2SignInValueStatus.ERROR
+        else
+            GoogleActionsV2SignInValueStatus.valueOf(arg.extension?.status!!)
     }
 
-    fun getTransactionRequirementsResult(): TransactionRequirementsCheckResult? {
+    fun getTransactionRequirementsResult(): GoogleActionsV2TransactionRequirementsCheckResultResultType {
         val tmp = arguments.get("TRANSACTION_REQUIREMENTS_CHECK_RESULT")
-        return tmp?.extension
+        return if (tmp?.extension?.status == null)
+            GoogleActionsV2TransactionRequirementsCheckResultResultType.RESULT_TYPE_UNSPECIFIED
+         else
+            GoogleActionsV2TransactionRequirementsCheckResultResultType.valueOf(tmp?.extension?.resultType!!)
     }
 
 }

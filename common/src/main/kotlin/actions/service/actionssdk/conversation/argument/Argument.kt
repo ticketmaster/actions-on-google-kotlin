@@ -14,7 +14,7 @@ import actions.service.actionssdk.conversation.question.transaction.TransactionR
 data class Argument(
         var boolValue: Boolean? = null,
         var datetimeValue: GoogleActionsV2DateTime? = null,
-//        var extension: TransactionRequirementsCheckResult? = null,
+//        var extension: ArgumentExtension? = null,
         var extension: ApiClientObjectMap<Any>? = null,
         var floatValue: Float? = null,
         var intValue: Int? = null,

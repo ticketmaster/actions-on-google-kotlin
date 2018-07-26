@@ -44,32 +44,9 @@ typealias DialogflowIntentHandler2<TUserStorage> = (conv: DialogflowConversation
 typealias DialogflowIntentHandler3<TUserStorage> = (conv: DialogflowConversation<TUserStorage>, param: DialogflowV1Parameters, arg: GoogleActionsV2Argument?) -> Any
 typealias DialogflowIntentHandler4<TUserStorage> = (conv: DialogflowConversation<TUserStorage>, param: DialogflowV1Parameters, arg: GoogleActionsV2Argument?, status: GoogleRpcStatus?) -> Any
 
-/*
-/** @public */
-fun <TConvData, TUserStorage, TContexts, TConversation, TParameters, TArgument> dialogflowIntentHandler(
-    var conv: TConversation,
-    var params: TParameters,
-    /**
-     * The first argument value from the current intent.
-     * See {@link Arguments#get|Arguments.get}
-     * Same as `conv.arguments.parsed.list[0]`
-     */
-    var argument: TArgument,
-    /**
-     * The first argument status from the current intent.
-     * See {@link Arguments#status|Arguments.status}
-     * Same as `conv.arguments.status.list[0]`
-     */
-    var status: GoogleRpcStatus?
-    // tslint:disable-next-line:no-any allow developer to return any just detect if is promise
-    ): Any {
-}
-*/
 
 /** @hidden */
-class DialogflowIntentHandlers<TUserStorage> : MutableMap<String, DialogflowIntentHandler4<TUserStorage>> by mutableMapOf() {
-
-}
+class DialogflowIntentHandlers<TUserStorage> : MutableMap<String, DialogflowIntentHandler4<TUserStorage>> by mutableMapOf()
 
 
 /** @hidden */
@@ -164,30 +141,6 @@ abstract class DialogflowApp<
     ): DialogflowApp<TConvData, TUserStorage, TContexts, TConversation, TArgument>
     */
 
-    /**
-     * Sets the IntentHandler to be execute when the fulfillment is called
-     * with a given Dialogflow intent name.
-     *
-     * @param intent The Dialogflow intent name to match.
-     *     When given an array, sets the IntentHandler for any intent name in the array.
-     * @param handler The IntentHandler to be executed when the intent name is matched.
-     *     When given a string instead of a function, the intent fulfillment will be redirected
-     *     to the IntentHandler of the redirected intent name.
-     * @public
-     */
-    /*
-    fun intent<TParameters, TArgument> (
-            intent: MutableList<String>,
-            handler: DialogflowIntentHandler4<
-                    TConvData,
-                    TUserStorage,
-                    TContexts,
-                    TConversation,
-                    TParameters,
-                    TArgument
-                    > //| string,
-    ): DialogflowApp<TConvData, TUserStorage, TContexts, TConversation>
-    */
 
     /** @public */
     abstract fun catch(catcher: ExceptionHandler<TUserStorage, TConversation>): DialogflowApp<TUserStorage, TConversation, TArgument>
@@ -195,10 +148,10 @@ abstract class DialogflowApp<
     /** @public */
     abstract fun fallback(
             handler: DialogflowIntentHandler4<
-                    TUserStorage> //| string,
+                    TUserStorage>
     ): DialogflowApp<TUserStorage, TConversation, TArgument>
 
-    abstract var _middlewares: MutableList<DialogflowMiddleware> //<DialogflowConversation<TConvData, TUserStorage, TContexts>>>
+    abstract var _middlewares: MutableList<DialogflowMiddleware>
 
     /** @public */
     abstract fun middleware/*<TConversationPlugin>*/(
@@ -206,7 +159,7 @@ abstract class DialogflowApp<
     ): DialogflowApp<TUserStorage, TConversation, TArgument>
 
     /** @public */
-    abstract var verification: DialogflowVerification? // | DialogflowVerificationHeaders
+    abstract var verification: DialogflowVerification?
 }
 
 /** @public */
@@ -261,25 +214,6 @@ data class DialogflowOptions<TUserStorage>(
         override var debug: Boolean? = null
 ) : ConversationAppOptions<TUserStorage>
 
-/*
-/** @public */
-interface Dialogflow {
-    /** @public */
-    fun <TConvData,
-            TUserStorage,
-            TContexts,
-            Conversation> process(
-            options: DialogflowOptions<TConvData, TUserStorage>?
-    ): DialogflowApp<TConvData, TUserStorage, TContexts, Conversation>
-
-    /** @public */
-    fun <TContexts, Conversation> process(
-            options: DialogflowOptions<*, *>): /*AppHandler & */DialogflowApp<*, *, TContexts, Conversation>
-
-    /** @public */
-    fun <TConversation>process(options: DialogflowOptions<*, *>): /*AppHandler & */ DialogflowApp<*, *, Contexts, TConversation>
-}
-*/
 
 fun isVerification(): Boolean = true
 //val isVerification = (verification: DialogflowVerification | DialogflowVerificationHeaders):
@@ -390,7 +324,7 @@ class DialogflowSdk<TUserStorage, TConversation, TArgument>(options: DialogflowO
         return this
     }
 
-    override fun middleware(middleware: DialogflowMiddleware//<TConversationPlugin>
+    override fun middleware(middleware: DialogflowMiddleware
     ): DialogflowApp<TUserStorage, TConversation, TArgument> {
         this._middlewares.push(middleware)
         return this

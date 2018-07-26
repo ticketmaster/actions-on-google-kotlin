@@ -14,21 +14,12 @@ typealias ActionsSdkIntentHandler2<TUserStorage> = (conv: ActionsSdkConversation
 typealias ActionsSdkIntentHandler3<TUserStorage> = (conv: ActionsSdkConversation<TUserStorage>, argument: Any, arg: GoogleActionsV2Argument?) -> Any
 typealias ActionsSdkIntentHandler4<TUserStorage> = (conv: ActionsSdkConversation<TUserStorage>, argument: Any, arg: GoogleActionsV2Argument?, status: GoogleRpcStatus?) -> Any
 
-class ActionSdkIntentHandlers<TUserStorage> : MutableMap<String, ActionsSdkIntentHandler4<TUserStorage>?> by mutableMapOf() {
-//    [intent: string]: ActionsSdkIntentHandler<
-//    {},
-//    {},
-//    ActionsSdkConversation<
-//    {},
-//    {}>,
-//    Argument
-//    > | string | undefined
-}
+class ActionSdkIntentHandlers<TUserStorage> : MutableMap<String, ActionsSdkIntentHandler4<TUserStorage>?> by mutableMapOf()
 
 data class ActionsSdkHandlers<TUserStorage>(
         var intents: ActionSdkIntentHandlers<TUserStorage> = ActionSdkIntentHandlers(),
         var catcher: ExceptionHandler<TUserStorage, ActionsSdkConversation<TUserStorage>>? = null, //TODO provide defaults for these nulls
-        var fallback: ActionsSdkIntentHandler4<TUserStorage>? = null //| string
+        var fallback: ActionsSdkIntentHandler4<TUserStorage>? = null
 )
 
 interface ActionsSdkMiddleware
@@ -105,7 +96,7 @@ abstract class BaseService<THandler, TIntentHandler, TConversation, TMiddleware,
      *     to the IntentHandler of the redirected intent.
      * @public
      */
-    abstract fun intent(intents: MutableList<IntentEnum>, handler: TIntentHandler/*<TConvData, TUserStorage>*/ /*| Intent,*/): ActionsSdkApp<TUserStorage>
+    abstract fun intent(intents: MutableList<IntentEnum>, handler: TIntentHandler): ActionsSdkApp<TUserStorage>
 
     /**
      * Sets the IntentHandler to be executed when the fulfillment is called
@@ -118,17 +109,17 @@ abstract class BaseService<THandler, TIntentHandler, TConversation, TMiddleware,
      *     to the IntentHandler of the redirected intent.
      * @public
      */
-    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler1<TUserStorage> /*| string,*/): ActionsSdkApp<TUserStorage>
+    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler1<TUserStorage>): ActionsSdkApp<TUserStorage>
 
-    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler2<TUserStorage> /*| string,*/): ActionsSdkApp<TUserStorage>
-    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler3<TUserStorage> /*| string,*/): ActionsSdkApp<TUserStorage>
-    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler4<TUserStorage> /*| string,*/): ActionsSdkApp<TUserStorage>
+    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler2<TUserStorage>): ActionsSdkApp<TUserStorage>
+    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler3<TUserStorage>): ActionsSdkApp<TUserStorage>
+    abstract fun intent(vararg intents: String, handler: ActionsSdkIntentHandler4<TUserStorage>): ActionsSdkApp<TUserStorage>
 
     /** @public */
     abstract fun catch(catcher: ExceptionHandler<TUserStorage, ActionsSdkConversation<TUserStorage>>): ActionsSdkApp<TUserStorage>
 
     /** @public */
-    abstract fun fallback(handler: ActionsSdkIntentHandler3<TUserStorage> /*| string,*/): ActionsSdkApp<TUserStorage>
+    abstract fun fallback(handler: ActionsSdkIntentHandler3<TUserStorage> ): ActionsSdkApp<TUserStorage>
 
     /** @hidden */
     abstract var _middlewares: MutableList<ActionsSdkMiddleware>
@@ -139,15 +130,6 @@ abstract class BaseService<THandler, TIntentHandler, TConversation, TMiddleware,
     /** @public */
     abstract var verification: ActionsSdkVerification? //| string
 }
-
-//interface ActionsSdk {
-//    <TConvData,TUserStorage,Conversation: ActionsSdkConversation<TConvData, TUserStorage> =
-//    ActionsSdkConversation<TConvData, TUserStorage>>
-//    (options: ActionsSdkOptions<TConvData, TUserStorage>?): AppHandler & ActionsSdkApp<
-//    TConvData, TUserStorage, Conversation>
-//    <Conversation: ActionsSdkConversation<*,*> = ActionsSdkConversation<*,*>>(
-//    options: ActionsSdkOptions<*,*>): AppHandler & ActionsSdkApp<*,*, Conversation>
-//}
 
 interface ActionsSdkVerification {
     /**
@@ -215,7 +197,6 @@ data class ActionsSdkOptions<TUserStorage>(
  */
 
 fun <TUserStorage> actionssdk(options: ActionsSdkOptions<TUserStorage>? = null): ActionsSdk<TUserStorage> {
-//    return attach<ActionsSdk<TConvData, TUserStorage>, TConvData, TUserStorage>(ActionsSdk(options), options)
     return ActionsSdk(options)
 }
 

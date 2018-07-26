@@ -158,11 +158,13 @@ data class GoogleActionsV2AppResponse(
          */
         var userStorage: String? = null)
 
-
-data class TransactionRequirementsCheckResult(
+/**
+ * Hold data for TransactionCheckComplete, SignInStatus, TransactionDecision, NewSurfaceResult
+ */
+data class ArgumentExtension(
         val `@type`: String = "",
 //        val resultType: TransactionValues.ResultType = TransactionValues.ResultType.UNSPECIFIED,
-        val resultType: GoogleActionsV2TransactionRequirementsCheckResultResultType = GoogleActionsV2TransactionRequirementsCheckResultResultType.RESULT_TYPE_UNSPECIFIED,
+        val resultType: String? = null,
         var userDecision: String = "",
         var status: String = "",
         var location: GoogleActionsV2Location? = null,
@@ -187,7 +189,7 @@ data class GoogleActionsV2Argument(
          * contain a SignInValue value.
          */
 //        var extension: ApiClientObjectMap<Any>? = null,
-        var extension: TransactionRequirementsCheckResult? = null,
+        var extension: ArgumentExtension? = null,
         /**
          * Specified for built-in intent: \"actions.intent.NUMBER\"
          */
@@ -230,7 +232,7 @@ data class GoogleActionsV2Argument(
         var textValue: String? = null,
 
         /**** ADDED FOR KOTLIN ***/
-        var resultType: GoogleActionsV2TransactionRequirementsCheckResultResultType? = null,
+        var resultType: String? = null,
 
         var userDecision: String? = null,
 

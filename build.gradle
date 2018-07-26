@@ -46,7 +46,7 @@ buildscript {
 }
 
 ext {
-    sdkVersion = '2.0.1-alpha' //version of deployed artifacts
+    sdkVersion = '2.0.2-alpha' //version of deployed artifacts
     nodeVersion = '8.11.1'
     qunitVersion = '2.6.0'
     libraries = [
