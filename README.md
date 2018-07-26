@@ -3,8 +3,19 @@
 
 ## THIS IS DEVELOPMENT BRANCH FOR V2 SUPPORT
 
-This branch will bring the this in line with the node.js V2 library and support v2 of dialog flow & Action on Google.
-UNDER ACTIVE DEVELOPMENT - probably will not work for you at this time.
+This branch will update to match the official node.js V2 library and support v2 of dialog flow & Action on Google.
+UNDER DEVELOPMENT.
+
+An alpha release is available by using:
+
+        compile 'com.tmsdurham.actions:actions-on-google:2.0.1-alpha'
+	
+This alpha is mostly complete, but may have a few bugs.  All Conversation components and Transaction API are working.  Dialogflow & ActionSDK has been tested and working.  The API matches the official node.js API very closely.  The sample in this repo is a good place to get started.  There are a few differerences and additions:
+
+	* use action name from Dialogflow instead of intent name.  The official library changed from using the action field, to using the intent name.  There is a PR open on the official SDK for support for action.  If/when this is merged, this library will be updated to match.
+	* more TBA
+
+
 
 ![](https://storage.googleapis.com/kotlin-actions-sdk.appspot.com/actions-kotlin-java.png)
 
