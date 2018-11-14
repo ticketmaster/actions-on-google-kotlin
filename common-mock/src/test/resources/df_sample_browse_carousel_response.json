@@ -1,0 +1,82 @@
+{
+  "payload": {
+    "google": {
+      "expectUserResponse": true,
+      "richResponse": {
+        "items": [
+          {
+            "simpleResponse": {
+              "textToSpeech": "This is an example of a \"Browse Carousel\""
+            }
+          },
+          {
+            "carouselBrowse": {
+              "items": [
+                {
+                  "title": "Title of item 1",
+                  "openUrlAction": {
+                    "url": "https://google.com"
+                  },
+                  "description": "Description of item 1",
+                  "footer": "Item 1 footer",
+                  "image": {
+                    "url": "https://developers.google.com/actions/images/badges/XPM_BADGING_GoogleAssistant_VER.png",
+                    "accessibilityText": "Google Assistant Bubbles"
+                  }
+                },
+                {
+                  "title": "Title of item 2",
+                  "openUrlAction": {
+                    "url": "https://google.com"
+                  },
+                  "description": "Description of item 2",
+                  "footer": "Item 2 footer",
+                  "image": {
+                    "url": "https://developers.google.com/actions/images/badges/XPM_BADGING_GoogleAssistant_VER.png",
+                    "accessibilityText": "Google Assistant Bubbles"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "suggestions": [
+          {
+            "title": "Basic Card"
+          },
+          {
+            "title": "Browse Carousel"
+          },
+          {
+            "title": "Carousel"
+          },
+          {
+            "title": "List"
+          },
+          {
+            "title": "Media"
+          },
+          {
+            "title": "Suggestions"
+          },
+          {
+            "title": "Table"
+          },
+          {
+            "title": "Test"
+          }
+        ]
+      },
+      "userStorage": "{\"data\":{}}"
+    }
+  },
+  "outputContexts": [
+    {
+      "name": "projects/df-sample-v2/agent/sessions/1531012494339/contexts/_actions_on_google",
+      "lifespanCount": 99,
+      "parameters": {
+        "data": "{}"
+      }
+    }
+  ]
+}

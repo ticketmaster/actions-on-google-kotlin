@@ -1,0 +1,68 @@
+{
+  "payload": {
+    "google": {
+      "expectUserResponse": true,
+      "richResponse": {
+        "items": [
+          {
+            "simpleResponse": {
+              "textToSpeech": "This is the first simple response for a media response"
+            }
+          },
+          {
+            "mediaResponse": {
+              "mediaType": "AUDIO",
+              "mediaObjects": [
+                {
+                  "contentUrl": "http://storage.googleapis.com/automotive-media/Jazz_In_Paris.mp3",
+                  "description": "A funky Jazz tune",
+                  "icon": {
+                    "url": "http://storage.googleapis.com/automotive-media/album_art.jpg",
+                    "accessibilityText": "Media icon"
+                  },
+                  "name": "Jazz in Paris"
+                }
+              ]
+            }
+          }
+        ],
+        "suggestions": [
+          {
+            "title": "Basic Card"
+          },
+          {
+            "title": "Browse Carousel"
+          },
+          {
+            "title": "Carousel"
+          },
+          {
+            "title": "List"
+          },
+          {
+            "title": "Media"
+          },
+          {
+            "title": "Suggestions"
+          },
+          {
+            "title": "Table"
+          },
+          {
+            "title": "Test"
+          }
+        ]
+      },
+      "userStorage": "{\"data\":{}}"
+    }
+  },
+  "outputContexts": [
+    {
+      "name": "projects/df-sample-v2/agent/sessions/1531012494339/contexts/_actions_on_google",
+      "lifespanCount": 99,
+      "parameters": {
+        "data": "{}"
+      }
+    }
+  ]
+}

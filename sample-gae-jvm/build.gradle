@@ -1,0 +1,40 @@
+buildscript {    // Configuration for building
+    repositories {
+        jcenter()    // Bintray's repository - a fast Maven Central mirror & more
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.google.cloud.tools:appengine-gradle-plugin:+'    // latest App Engine Gradle tasks
+    }
+}
+
+apply plugin: 'kotlin'
+apply plugin: 'java'
+apply plugin: 'war'
+apply plugin: 'com.google.cloud.tools.appengine'
+
+
+
+dependencies {
+    compile project(':jvm-app')
+    compile group: 'org.mockito', name: 'mockito-core', version: '2.18.3'
+    compile('com.google.appengine:appengine-api-1.0-sdk:1.9.64',
+            'com.google.code.gson:gson:2.8.0')
+
+    providedCompile('javax.servlet:javax.servlet-api:3.1.0')
+
+    compile libraries.kotlin_stdlib
+
+//    compileProject(":common", configuration: "testArtifacts")
+//    compile files(project(':common').configurations.test.output.classesDir)
+}
+compileTestJava.dependsOn tasks.getByPath(':common:testClasses')
+
+task run(dependsOn: classes, type: JavaExec) {
+    main = 'jvm.JvmAppKt'
+    classpath = sourceSets.main.runtimeClasspath
+    ignoreExitValue(true)
+}
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"

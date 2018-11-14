@@ -1,0 +1,76 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json; charset=utf-8"
+  },
+  "body": {
+    "expectUserResponse": true,
+    "expectedInputs": [
+      {
+        "inputPrompt": {
+          "richInitialPrompt": {
+            "items": [
+              {
+                "simpleResponse": {
+                  "textToSpeech": "This is the first simple response for a basic card."
+                }
+              },
+              {
+                "basicCard": {
+                  "title": "Title: this is a title",
+                  "subtitle": "This is a subtitle",
+                  "formattedText": "This is a basic card.  Text in a basic card can include \"quotes\" and\n    most other unicode characters including emoji 📱.  Basic cards also support\n    some markdown formatting like *emphasis* or _italics_, **strong** or\n    __bold__, and ***bold itallic*** or ___strong emphasis___ as well as other\n    things like line  \nbreaks",
+                  "image": {
+                    "url": "https://developers.google.com/actions/images/badges/XPM_BADGING_GoogleAssistant_VER.png",
+                    "accessibilityText": "Image alternate text"
+                  },
+                  "buttons": [
+                    {
+                      "title": "This is a button",
+                      "openUrlAction": {
+                        "url": "https://assistant.google.com/"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "simpleResponse": {
+                  "textToSpeech": "This is the second simple response.",
+                  "displayText": "This is the 2nd simple response."
+                }
+              }
+            ],
+            "suggestions": [
+              {
+                "title": "Basic Card"
+              },
+              {
+                "title": "Browse Carousel"
+              },
+              {
+                "title": "Carousel"
+              },
+              {
+                "title": "List"
+              },
+              {
+                "title": "Media"
+              },
+              {
+                "title": "Suggestions"
+              }
+            ]
+          }
+        },
+        "possibleIntents": [
+          {
+            "intent": "actions.intent.TEXT"
+          }
+        ]
+      }
+    ],
+    "conversationToken": "{\"data\":{}}",
+    "userStorage": "{\"data\":{}}"
+  }
+}

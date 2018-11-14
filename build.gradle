@@ -1,50 +1,69 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+allprojects {
+    group 'com.ticketmaster.actions'
+    version '1-SNAPSHOT'
 
-buildscript {
-    ext.kotlin_version = '1.2.10'
-    repositories {
-        jcenter()
+    apply plugin: 'idea'
+    idea {
+        module {
+            outputDir file('build/classes/main')
+            testOutputDir file('build/classes/test')
+        }
     }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.0'
-
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
+    if (project.convention.findPlugin(JavaPluginConvention)) {
+        // Change the output directory for the main and test source sets back to the old path
+        sourceSets.main.output.classesDir = new File(buildDir, "classes/main")
+        sourceSets.test.output.classesDir = new File(buildDir, "classes/test")
     }
 }
-apply plugin: 'kotlin'
 
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.7'
+    distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
+}
+
+task cleanOutDir(type: Delete) {
+    delete 'out'
+}
 
 repositories {
     maven { url "http://dl.bintray.com/jetbrains/spek" }
 }
 
-allprojects {
+buildscript {
+    ext.kotlinVersion = '1.2.51'
+
     repositories {
         jcenter()
+        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
     }
-    project.ext {
-        kotlinVersion = '1.2.10'
-        gsonVersion = '2.8.1'
-        sdkVersion = '1.6.4' //version of deployed artifacts
-        spekVersion = '1.1.5'
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
+        classpath "com.eriwen:gradle-js-plugin:2.14.1"
+        classpath 'com.moowork.gradle:gradle-node-plugin:1.2.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
     }
 }
 
-repositories {
-    mavenCentral()
+ext {
+    sdkVersion = '2.0.2-alpha' //version of deployed artifacts
+    nodeVersion = '8.11.1'
+    qunitVersion = '2.6.0'
+    libraries = [
+            junit                         : "junit:junit:4.12",
+            kotlin_stdlib                 : "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion",
+            kotlin_stdlib_common          : "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlinVersion",
+            kotlin_stdlib_js              : "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlinVersion",
+            kotlin_test_annotations_common: "org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlinVersion",
+            kotlin_test_common            : "org.jetbrains.kotlin:kotlin-test-common:$kotlinVersion",
+            kotlin_test_js                : "org.jetbrains.kotlin:kotlin-test-js:$kotlinVersion",
+            kotlin_test_junit             : "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion",
+    ]
 }
-dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-}
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-}
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
+
+subprojects {
+    repositories {
+        jcenter()
+        mavenCentral()
     }
 }

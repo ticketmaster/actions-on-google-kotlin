@@ -1,0 +1,31 @@
+apply plugin: 'kotlin-platform-common'
+
+archivesBaseName = 'actions-on-google-common'
+
+configurations {
+    testArtifacts
+}
+
+task testJar (type: Jar) {
+    baseName = "$project.name}-test"
+    from sourceSets.test.output
+}
+
+artifacts {
+    testArtifacts testJar
+}
+
+dependencies {
+    compile libraries.kotlin_stdlib_common
+    testCompile libraries.kotlin_test_annotations_common
+    testCompile libraries.kotlin_test_common
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.kotlin
+}
+
+artifacts {
+    archives sourcesJar
+}

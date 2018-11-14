@@ -1,0 +1,113 @@
+{
+  "responses": [],
+  "expectUserResponse": true,
+  "digested": false,
+  "_responded": false,
+  "request": null,
+  "headers": null,
+  "sandbox": true,
+  "input": {
+    "raw": "Talk to conversation components",
+    "type": "KEYBOARD"
+  },
+  "surface": {
+    "capabilities": {
+      "list": [
+        {
+          "name": "actions.capability.AUDIO_OUTPUT"
+        },
+        {
+          "name": "actions.capability.SCREEN_OUTPUT"
+        },
+        {
+          "name": "actions.capability.MEDIA_RESPONSE_AUDIO"
+        },
+        {
+          "name": "actions.capability.WEB_BROWSER"
+        }
+      ]
+    }
+  },
+  "available": {
+    "surfaces": {
+      "list": [
+        {
+          "capabilities": {
+            "list": [
+              {
+                "name": "actions.capability.AUDIO_OUTPUT"
+              },
+              {
+                "name": "actions.capability.SCREEN_OUTPUT"
+              },
+              {
+                "name": "actions.capability.WEB_BROWSER"
+              }
+            ]
+          }
+        }
+      ],
+      "capabilities": {
+        "surfaces": [
+          {
+            "capabilities": {
+              "list": [
+                {
+                  "name": "actions.capability.AUDIO_OUTPUT"
+                },
+                {
+                  "name": "actions.capability.SCREEN_OUTPUT"
+                },
+                {
+                  "name": "actions.capability.WEB_BROWSER"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "user": {
+    "raw": {
+      "userId": "APhe68EmFG8L689xcinHdNbpSadP",
+      "locale": "en-US",
+      "lastSeen": "2018-05-21T15:10:52Z",
+      "userStorage": "{\"data\":{}}"
+    },
+    "storage": {},
+    "id": "APhe68EmFG8L689xcinHdNbpSadP",
+    "locale": "en-US",
+    "permissions": [],
+    "last": {
+      "seen": "2018-05-21T15:10:52.000Z"
+    },
+    "name": {},
+    "entitlements": [],
+    "access": {},
+    "profile": {}
+  },
+  "arguments": {
+    "parsed": {
+      "input": {},
+      "list": []
+    },
+    "status": {
+      "input": {},
+      "list": []
+    },
+    "raw": {
+      "list": [],
+      "input": {}
+    }
+  },
+  "device": {},
+  "id": "1526915488535",
+  "type": "NEW",
+  "screen": true,
+  "body": null,
+  "intent": "actions.intent.MAIN",
+  "data": {},
+  "hasScreen": true,
+  "hasAudioPlayback": true
+}

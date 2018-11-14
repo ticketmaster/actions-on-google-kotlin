@@ -1,0 +1,26 @@
+{
+  "payload": {
+    "google": {
+      "expectUserResponse": true,
+      "richResponse": {
+        "items": [
+          {
+            "simpleResponse": {
+              "textToSpeech": "Great, got your address! Now say \"confirm transaction\"."
+            }
+          }
+        ]
+      },
+      "userStorage": "{\"data\":{}}"
+    }
+  },
+  "outputContexts": [
+    {
+      "name": "projects/df-v2-transactions/agent/sessions/1531419984314/contexts/_actions_on_google",
+      "lifespanCount": 99,
+      "parameters": {
+        "data": "{\"deliveryAddress\":{\"zipCode\":\"27525\",\"postalAddress\":{\"regionCode\":\"US\",\"recipients\":[\"Patrick Jackson\"],\"postalCode\":\"27525\",\"locality\":\"FRANKLINTON\",\"addressLines\":[\"165 SUTHERLAND DR\"],\"administrativeArea\":\"NC\"},\"phoneNumber\":\"9196076160\",\"city\":\"FRANKLINTON\",\"coordinates\":{\"latitude\":36.080033,\"longitude\":-78.507623}}}"
+      }
+    }
+  ]
+}

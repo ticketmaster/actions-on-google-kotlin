@@ -1,1 +1,9 @@
-include ':sdk', ':sdk-gson-servlet', ':dialogflow-samples', ':action-sdk-samples'
+rootProject.name = 'actions-on-google-kotlin'
+
+include ':common'
+include ':common-mock'
+include ':jvm'
+include ':jvm-app'
+include ':js'
+include ':js-app'
+include ':sample-gae-jvm'
