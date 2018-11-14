@@ -1,0 +1,106 @@
+buildscript {
+
+    repositories {
+        jcenter()
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
+    }
+}
+
+apply plugin: 'kotlin-platform-jvm'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
+
+archivesBaseName = 'actions-on-google-kotlin'
+
+dependencies {
+    expectedBy project(':common')
+    compile libraries.kotlin_stdlib
+    testCompile libraries.kotlin_test_junit
+
+    compile('javax.servlet:javax.servlet-api:3.1.0', //todo pull into separate module
+            "com.google.code.gson:gson:2.8.1")
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+bintray {
+    user = JCENTER_USERNAME
+    key = JCENTER_API_KEY
+    publications = ['ActionsMavenPublication']
+    pkg {
+        repo = 'maven'
+        name = 'com.tmsdurham.actions'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/TicketmasterMobileStudio/actions-on-google-kotlin'
+        version {
+            name = sdkVersion
+            desc = 'Actions on Google SDK for java - Servlet & Gson'
+            vcsTag = sdkVersion
+            released = new Date()
+        }
+    }
+    override = true
+
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+// Create the pom configuration:
+def pomConfig = {
+    licenses {
+        license {
+            name "The Apache Software License, Version 2.0"
+            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            distribution "repo"
+        }
+    }
+    developers {
+        developer {
+            name "Patrick Jackson"
+            email "patrick.jackson@ticketmaster.com"
+        }
+    }
+
+    scm {
+        url "https://github.com/TicketmasterMobileStudio/actions-on-google-kotlin"
+    }
+}
+
+
+publishing {
+    publications {
+        ActionsMavenPublication(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+            groupId 'com.tmsdurham.actions'
+            artifactId 'actions-on-google'
+            version sdkVersion
+            pom.withXml {
+                def root = asNode()
+                root.appendNode('description', 'Unofficial Actions on Google Client Library for Kolin/Java')
+                root.appendNode('name', 'Google Actions Kolin/Java SDK')
+                root.appendNode('url', 'https://github.com/TicketmasterMobileStudio/actions-on-google-kotlin')
+                root.children().last() + pomConfig
+            }
+        }
+    }
+}

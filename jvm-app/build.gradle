@@ -1,0 +1,20 @@
+apply plugin: 'kotlin'
+
+
+
+dependencies {
+    compile project(':jvm')
+    compile group: 'org.mockito', name: 'mockito-core', version: '2.18.3'
+    compile libraries.kotlin_stdlib
+    compile('javax.servlet:javax.servlet-api:3.1.0', //todo pull into separate module
+            "com.google.code.gson:gson:2.8.1")
+//    compileProject(":common", configuration: "testArtifacts")
+//    compile files(project(':common').configurations.test.output.classesDir)
+}
+compileTestJava.dependsOn tasks.getByPath(':common:testClasses')
+
+task run(dependsOn: classes, type: JavaExec) {
+    main = 'jvm.JvmAppKt'
+    classpath = sourceSets.main.runtimeClasspath
+    ignoreExitValue(true)
+}

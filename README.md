@@ -1,5 +1,8 @@
 # Actions On Google Client Library
 
+
+
+
 ![](https://storage.googleapis.com/kotlin-actions-sdk.appspot.com/actions-kotlin-java.png)
 
 This is a port of the [official Node.js SDK](https://github.com/actions-on-google/actions-on-google-nodejs) to Kotlin.  This can also be used from Java and any JVM language.
@@ -15,25 +18,41 @@ __Quick Facts__
  * Conversation Components & Transaction Sample ported
  * Supports v2 of Actions on Google API (if v1 is needed, make an issue please)
 
-## Setup Instructions
+
+## V2 Support
+
+The V2 release is available by using:
+
+        compile 'com.tmsdurham.actions:actions-on-google:2.0.1'
+	
+The V2 is mostly complete, but may have a few bugs and missing features.  All Conversation components and Transaction API are working.  Dialogflow & ActionSDK has been tested and working.  The API matches the official node.js API very closely.  The sample in this repo is a good place to get started.  The setup and samples in this readme have not been updated yet.  There are a few differerences and additions:
+
+	* use action name from Dialogflow instead of intent name.  The official library changed from using the action field, to using the intent name.  There is a PR open on the official SDK for support for action.  If/when this is merged, this library will be updated to match.
+	* middleware not supported.  Same functionality can be implemented without lib support by wrapping handlers in fuctions.
+
+__V2 notes__:
+A common module was used with the intent on targeting multiple platforms (JS & possibly native).  These other platforms are purely experimental at this time.  A single code base for JVM and JS would be more efficient.
+
+## Setup Instructions(V1 - see sample for V2 setup and use)
 
 This library is available on jCenter.  If your using gradle simply add the dependency as follows:
 
 __Gradle:__
 
     repositories {
-    	jcenter()
+            jCenter()
+        }
     }
     
     dependencies {
-        compile 'com.tmsdurham.actions:actions-on-google:1.6.3'
+        compile 'com.tmsdurham.actions:actions-on-google:1.6.0'
     }
 __Maven:__
 
     <dependency>
   		<groupId>com.tmsdurham.actions</groupId>
   		<artifactId>actions-on-google</artifactId>
-  		<version>1.6.3</version>
+  		<version>1.6.0</version>
   		<type>pom</type>
     </dependency>
 
@@ -41,14 +60,14 @@ The above artifact should fit the needs of most developers, however, if you are 
 
 __Gradle:__
 
-   	compile 'com.tmsdurham.actions:actions-on-google-core:1.6.3'. //only if not using Servlets
+   	compile 'com.tmsdurham.actions:actions-on-google-core:1.6.0'. //only if not using Servlets
 
 __Maven:__
 
     <dependency>
   		<groupId>com.tmsdurham.actions</groupId>
   		<artifactId>actions-on-google-core</artifactId>		//only if not using Servlets
-  		<version>1.6.3</version>
+  		<version>1.6.0</version>
   		<type>pom</type>
     </dependency>
 

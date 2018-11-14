@@ -1,0 +1,201 @@
+{
+  "payload": {
+    "google": {
+      "expectUserResponse": true,
+      "richResponse": {
+        "items": [
+          {
+            "simpleResponse": {
+              "textToSpeech": "PLACEHOLDER"
+            }
+          }
+        ]
+      },
+      "userStorage": "{\"data\":{}}",
+      "systemIntent": {
+        "intent": "actions.intent.TRANSACTION_DECISION",
+        "data": {
+          "@type": "type.googleapis.com/google.actions.v2.TransactionDecisionValueSpec",
+          "orderOptions": {
+            "requestDeliveryAddress": true
+          },
+          "paymentOptions": {
+            "actionProvidedOptions": {
+              "paymentType": "PAYMENT_CARD",
+              "displayName": "VISA-1234"
+            }
+          },
+          "proposedOrder": {
+            "id": "<UNIQUE_ORDER_ID>",
+            "cart": {
+              "merchant": {
+                "id": "book_store_1",
+                "name": "Book Store"
+              },
+              "lineItems": [
+                {
+                  "name": "My Memoirs",
+                  "id": "memoirs_1",
+                  "price": {
+                    "amount": {
+                      "currencyCode": "USD",
+                      "nanos": 990000000,
+                      "units": 3
+                    },
+                    "type": "ACTUAL"
+                  },
+                  "quantity": 1,
+                  "subLines": [
+                    {
+                      "note": "Note from the author"
+                    }
+                  ],
+                  "type": "REGULAR"
+                },
+                {
+                  "name": "Memoirs of a person",
+                  "id": "memoirs_2",
+                  "price": {
+                    "amount": {
+                      "currencyCode": "USD",
+                      "nanos": 990000000,
+                      "units": 5
+                    },
+                    "type": "ACTUAL"
+                  },
+                  "quantity": 1,
+                  "subLines": [
+                    {
+                      "note": "Special introduction by author"
+                    }
+                  ],
+                  "type": "REGULAR"
+                },
+                {
+                  "name": "Their memoirs",
+                  "id": "memoirs_3",
+                  "price": {
+                    "amount": {
+                      "currencyCode": "USD",
+                      "nanos": 750000000,
+                      "units": 15
+                    },
+                    "type": "ACTUAL"
+                  },
+                  "quantity": 1,
+                  "subLines": [
+                    {
+                      "lineItem": {
+                        "name": "Special memoir epilogue",
+                        "id": "memoirs_epilogue",
+                        "price": {
+                          "amount": {
+                            "currencyCode": "USD",
+                            "nanos": 990000000,
+                            "units": 3
+                          },
+                          "type": "ACTUAL"
+                        },
+                        "quantity": 1,
+                        "type": "REGULAR"
+                      }
+                    }
+                  ],
+                  "type": "REGULAR"
+                },
+                {
+                  "name": "Our memoirs",
+                  "id": "memoirs_4",
+                  "price": {
+                    "amount": {
+                      "currencyCode": "USD",
+                      "nanos": 490000000,
+                      "units": 6
+                    },
+                    "type": "ACTUAL"
+                  },
+                  "quantity": 1,
+                  "subLines": [
+                    {
+                      "note": "Special introduction by author"
+                    }
+                  ],
+                  "type": "REGULAR"
+                }
+              ],
+              "notes": "The Memoir collection",
+              "otherItems": [
+                {
+                  "name": "Subtotal",
+                  "id": "subtotal",
+                  "price": {
+                    "amount": {
+                      "currencyCode": "USD",
+                      "nanos": 220000000,
+                      "units": 32
+                    },
+                    "type": "ESTIMATE"
+                  },
+                  "type": "SUBTOTAL"
+                },
+                {
+                  "name": "Tax",
+                  "id": "tax",
+                  "price": {
+                    "amount": {
+                      "currencyCode": "USD",
+                      "nanos": 780000000,
+                      "units": 2
+                    },
+                    "type": "ESTIMATE"
+                  },
+                  "type": "TAX"
+                }
+              ]
+            },
+            "otherItems": [],
+            "totalPrice": {
+              "amount": {
+                "currencyCode": "USD",
+                "nanos": 0,
+                "units": 35
+              },
+              "type": "ESTIMATE"
+            },
+            "extension": {
+              "@type": "type.googleapis.com/google.actions.v2.orders.GenericExtension",
+              "locations": [
+                {
+                  "type": "DELIVERY",
+                  "location": {
+                    "postalAddress": {
+                      "regionCode": "US",
+                      "recipients": [
+                        "Patrick Jackson"
+                      ],
+                      "postalCode": "27525",
+                      "locality": "FRANKLINTON",
+                      "addressLines": [
+                        "165 SUTHERLAND DR"
+                      ],
+                      "administrativeArea": "NC"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "outputContexts": [
+    {
+      "name": "projects/df-v2-transactions/agent/sessions/1531419984314/contexts/_actions_on_google",
+      "lifespanCount": 99,
+      "parameters": {
+        "data": "{\"deliveryAddress\":{\"zipCode\":\"27525\",\"postalAddress\":{\"regionCode\":\"US\",\"recipients\":[\"Patrick Jackson\"],\"postalCode\":\"27525\",\"locality\":\"FRANKLINTON\",\"addressLines\":[\"165 SUTHERLAND DR\"],\"administrativeArea\":\"NC\"},\"phoneNumber\":\"9196076160\",\"city\":\"FRANKLINTON\",\"coordinates\":{\"latitude\":36.080033,\"longitude\":-78.507623}}}"
+      }
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+package actions.service.actionssdk.conversation.argument
+
+import actions.service.actionssdk.api.GoogleActionsV2MediaStatus
+
+typealias MediaStatusArgument = GoogleActionsV2MediaStatus

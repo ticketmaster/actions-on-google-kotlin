@@ -1,0 +1,59 @@
+{
+  "payload": {
+    "google": {
+      "expectUserResponse": true,
+      "richResponse": {
+        "items": [
+          {
+            "simpleResponse": {
+              "textToSpeech": "This is a simple response for suggestions."
+            }
+          }
+        ],
+        "suggestions": [
+          {
+            "title": "Suggestion Chips"
+          },
+          {
+            "title": "Basic Card"
+          },
+          {
+            "title": "Browse Carousel"
+          },
+          {
+            "title": "Carousel"
+          },
+          {
+            "title": "List"
+          },
+          {
+            "title": "Media"
+          },
+          {
+            "title": "Suggestions"
+          },
+          {
+            "title": "Table"
+          },
+          {
+            "title": "Test"
+          }
+        ],
+        "linkOutSuggestion": {
+          "destinationName": "Suggestion Link",
+          "url": "https://assistant.google.com/"
+        }
+      },
+      "userStorage": "{\"data\":{}}"
+    }
+  },
+  "outputContexts": [
+    {
+      "name": "projects/df-sample-v2/agent/sessions/1531013042496/contexts/_actions_on_google",
+      "lifespanCount": 99,
+      "parameters": {
+        "data": "{}"
+      }
+    }
+  ]
+}
