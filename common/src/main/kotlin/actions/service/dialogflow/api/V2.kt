@@ -260,7 +260,7 @@ data class GoogleCloudDialogflowV2QueryResult(
         var webhookPayload: ApiClientObjectMap<Any>? = null,
         var outputContexts: MutableList<GoogleCloudDialogflowV2Context>? = null,
         var intent: GoogleCloudDialogflowV2Intent? = null,
-        var intentDetectionConfidence: Int? = null,
+        var intentDetectionConfidence: Float? = null,
         var diagnosticInfo: ApiClientObjectMap<Any>? = null
 )
 

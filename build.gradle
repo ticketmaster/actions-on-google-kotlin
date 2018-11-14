@@ -1,7 +1,6 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
 allprojects {
     group 'com.ticketmaster.actions'
-    version '2.0.2'
+    version '2.0.4'
 
     apply plugin: 'idea'
     idea {
@@ -46,17 +45,8 @@ buildscript {
     }
 }
 
-<<<<<<< Updated upstream
 ext {
-    sdkVersion = '2.0.2-alpha' //version of deployed artifacts
-=======
-<<<<<<< Updated upstream
-repositories {
-    mavenCentral()
-=======
-ext {
-    sdkVersion = '2.0.2' //version of deployed artifacts
->>>>>>> Stashed changes
+    sdkVersion = '2.0.4' //version of deployed artifacts
     nodeVersion = '8.11.1'
     qunitVersion = '2.6.0'
     libraries = [
@@ -69,13 +59,6 @@ ext {
             kotlin_test_js                : "org.jetbrains.kotlin:kotlin-test-js:$kotlinVersion",
             kotlin_test_junit             : "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion",
     ]
-<<<<<<< Updated upstream
-=======
->>>>>>> Stashed changes
-}
-dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
->>>>>>> Stashed changes
 }
 
 subprojects {
