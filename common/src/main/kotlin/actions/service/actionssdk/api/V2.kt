@@ -50,7 +50,7 @@ enum class GoogleActionsV2OrdersTimeType { UNKNOWN, DELIVERY_DATE, ETA, RESERVAT
 
 enum class GoogleActionsV2PermissionValueSpecPermissions { UNSPECIFIED_PERMISSION, NAME, DEVICE_PRECISE_LOCATION, DEVICE_COARSE_LOCATION, UPDATE }
 
-enum class GoogleActionsV2RawInputInputType { UNSPECIFIED_INPUT_TYPE, TOUCH, VOICE, KEYBOARD }
+enum class GoogleActionsV2RawInputInputType { UNSPECIFIED_INPUT_TYPE, TOUCH, VOICE, KEYBOARD, URL }
 
 enum class GoogleActionsV2RegisterUpdateValueStatus { REGISTER_UPDATE_STATUS_UNSPECIFIED, OK, CANCELLED }
 

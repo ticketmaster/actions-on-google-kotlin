@@ -1,6 +1,6 @@
 allprojects {
     group 'com.ticketmaster.actions'
-    version '2.0.4'
+    version '2.0.5'
 
     apply plugin: 'idea'
     idea {
@@ -46,7 +46,7 @@ buildscript {
 }
 
 ext {
-    sdkVersion = '2.0.4' //version of deployed artifacts
+    sdkVersion = '2.0.5' //version of deployed artifacts
     nodeVersion = '8.11.1'
     qunitVersion = '2.6.0'
     libraries = [
