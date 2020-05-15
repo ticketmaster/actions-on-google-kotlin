@@ -2,6 +2,12 @@
 
 
 
+***DEPRECATED ***
+
+*** An offical Java/Kotlin client library exists now - https://github.com/actions-on-google/actions-on-google-java
+
+*** This library will continue to work, but I will not be maintaining it and will not recieve updates.
+
 
 ![](https://storage.googleapis.com/kotlin-actions-sdk.appspot.com/actions-kotlin-java.png)
 
